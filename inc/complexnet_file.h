@@ -10,6 +10,9 @@
 // for malloc, 
 #include <stdlib.h>
 
+// for assert.
+#include <assert.h>
+
 // for fileError, memError, isError
 #include "complexnet_error.h"
 
@@ -28,13 +31,13 @@
 struct LineInfo{
 	long vt1Id;
 	long vt2Id;
-	int time;
-	int weight;
+//	int time;
+//	int weight;
 };
 
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file.
-long fillLineInfo(char *line, int partNum, struct LineInfo *LI, long *vtMaxId, long *vtMinId);
+long fillLineInfo(char *line, struct LineInfo *LI, long *vtMaxId, long *vtMinId);
 //for each line, readFileLBL call fillLineInfo to fill the LineInfo.
 //when finish, you get the edNum, vtMaxId, vtMinId and all information in LineInfo.
 //partNum means how many parts a line contains. 
@@ -44,14 +47,6 @@ long fillLineInfo(char *line, int partNum, struct LineInfo *LI, long *vtMaxId, l
 //the member in LineInfo is correspond to line's different part.
 //for line which is blank or contains less than partNum parts, the line will be ignored.
 //for line which contains more than partNum parts, only partNum parts will be read.
-struct LineInfo *readFileLBL(char *filename, long *edNum, long *vtMaxId, long *vtMinId, int partNum);
-
-
-//the following four functions is for change time complex network's time granularity.
-//getDaysLines get the lines which time is >=daystart, <dayend.
-struct LineInfo *getDaysLines(struct LineInfo *edList, int edNum, int daystart, int dayend, int *dayNum);
-//change time granularity, it's complicate, but it's right.
-struct LineInfo *AddWeight2LineInfo(struct LineInfo *dayList, int dayNum, int *realdayNum, int daystepNum);
-void moveLI2LIW(int *vt1, int *vt2, int begin, int end, struct LineInfo *dayListWeight, int *realdayNum);
+struct LineInfo *readFileLBL(char *filename, long *edNum, long *vtMaxId, long *vtMinId);
 
 #endif
