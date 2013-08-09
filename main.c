@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <limits.h>
-#include "inc/file.h" //for readFileLBL;
-#include "inc/sort.h"
-#include "inc/crosslist.h"
-#include "inc/net.h"
+#include "inc/complexnet_file.h" //for readFileLBL;
 
 #define VTREALNUM 3210678
 
@@ -28,15 +25,15 @@ int main(int argc, char **argv)
 	struct LineInfo	*edList=readFileLBL(datafilename, &edNum, &vtMaxId, &vtMinId, partNum);
 
 	//create net;
-	enum isDirect isD=directed;
-	struct Net *net=createNet(edList, edNum, VTREALNUM, isD);
+	//enum isDirect isD=directed;
+	//struct Net *net=createNet(edList, edNum, VTREALNUM, isD);
 	//free fileContent;
 	free(edList);
 
 	//work area;
 
 	//free net;
-	freeNet(net);
+	//freeNet(net);
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	return 0;

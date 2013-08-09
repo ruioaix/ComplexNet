@@ -1,4 +1,4 @@
-#include "../inc/sort.h"
+#include "../inc/complexnet_sort.h"
 
 void quick_sort_int(int s[], int l, int r)
 {

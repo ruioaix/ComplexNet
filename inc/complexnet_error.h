@@ -1,5 +1,5 @@
-#ifndef ERRORHANDLE_H
-#define ERRORHANDLE_H
+#ifndef COMPLEXNET_ERROR_H
+#define COMPLEXNET_ERROR_H
 
 //for NULL
 #include <stddef.h> 

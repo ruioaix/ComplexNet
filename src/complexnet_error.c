@@ -1,4 +1,4 @@
-#include "../inc/errorhandle.h"
+#include "../inc/complexnet_error.h"
 
 void fileError(FILE *fp, char *filename)
 {

@@ -1,4 +1,4 @@
-#include "../inc/file.h"
+#include "../inc/complexnet_file.h"
 
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
 long fillLineInfo(char *line, int partNum, struct LineInfo *LI, long *vtMaxId, long *vtMinId)

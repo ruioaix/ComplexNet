@@ -1,5 +1,5 @@
-#ifndef FILE_H
-#define FILE_H
+#ifndef COMPLEXNET_FILE_H
+#define COMPLEXNET_FILE_H
 
 // for strtol, strtok
 #include <string.h>
@@ -11,9 +11,9 @@
 #include <stdlib.h>
 
 // for fileError, memError, isError
-#include "errorhandle.h"
+#include "complexnet_error.h"
 
-#include "sort.h"
+#include "complexnet_sort.h"
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
 #define LINE_LENGTH_MAX 10000

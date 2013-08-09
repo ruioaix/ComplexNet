@@ -1,5 +1,5 @@
-#ifndef SORT_H
-#define SORT_H
+#ifndef COMPLEXNET_SORT_H
+#define COMPLEXNET_SORT_H
 
 void quick_sort_int(int s[], int l, int r);
 void quick_sort_int_index(int s[], int l, int r, int in[]);
