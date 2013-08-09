@@ -29,15 +29,22 @@
 #define LINES_DAY 100000
 
 struct LineInfo{
-	long vt1Id;
-	long vt2Id;
+	int vt1Id;
+	int vt2Id;
 //	int time;
 //	int weight;
 };
 
+struct NetFile{
+	int maxId;
+	int minId;
+	int linesNum;
+	struct LineInfo *lines;
+}
+
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file.
-long fillLineInfo(char *line, struct LineInfo *LI, long *vtMaxId, long *vtMinId);
+void fillLineInfo(char *line, struct LineInfo *LI, int *maxId, int *minId);
 //for each line, readFileLBL call fillLineInfo to fill the LineInfo.
 //when finish, you get the edNum, vtMaxId, vtMinId and all information in LineInfo.
 //partNum means how many parts a line contains. 
@@ -47,6 +54,6 @@ long fillLineInfo(char *line, struct LineInfo *LI, long *vtMaxId, long *vtMinId)
 //the member in LineInfo is correspond to line's different part.
 //for line which is blank or contains less than partNum parts, the line will be ignored.
 //for line which contains more than partNum parts, only partNum parts will be read.
-struct LineInfo *readFileLBL(char *filename, long *edNum, long *vtMaxId, long *vtMinId);
+struct NetFile *readFileLBL(char *filename);
 
 #endif

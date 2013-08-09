@@ -1,7 +1,7 @@
 #include "../inc/complexnet_file.h"
 
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
-long fillLineInfo(char *line, struct LineInfo *LI, long *vtMaxId, long *vtMinId)
+void fillLineInfo(char *line, struct LineInfo *LI, int *vtMaxId, int *vtMinId)
 {
 
 	//divide line to parts.
@@ -27,26 +27,30 @@ long fillLineInfo(char *line, struct LineInfo *LI, long *vtMaxId, long *vtMinId)
 		*vtMaxId=(*vtMaxId)>LI->vt2Id?(*vtMaxId):LI->vt2Id;
 		*vtMinId=(*vtMinId)<LI->vt1Id?(*vtMinId):LI->vt1Id;
 	}
-	return 0;
+
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct LineInfo *readFileLBL(char *filename, long *edNum, long *vtMaxId, long *vtMinId)
+struct NetFile *readFileLBL(char *filename)
 {
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	char line[LINE_LENGTH_MAX];
-	int lineNum=0;
 	struct LineInfo *LinesInfo=NULL;
 	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct LineInfo));
 	assert(LinesInfo!=NULL);
+
+	int lineNum=0;
+	int maxId=INT_MAX;
+	int minId=0;
+
+	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		if (lineNum<LINES_LENGTH_EACH) {
-			long id=fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, vtMaxId, vtMinId);
-			if (id==0) ++lineNum;
+			fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, &maxId, &minId);
+			++lineNum;
 		} else {
 			++each;
 			printf("read file %s lines: %d\r", filename, (each-1)*LINES_LENGTH_EACH); fflush(stdout);
@@ -54,12 +58,20 @@ struct LineInfo *readFileLBL(char *filename, long *edNum, long *vtMaxId, long *v
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			lineNum=0;
-			long id=fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, vtMaxId, vtMinId);
-			if (id==0) ++lineNum;
+			fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, &maxId, &minId);
+			++lineNum;
 		}
 	}
-	*edNum=lineNum+(each-1)*LINES_LENGTH_EACH;
-	printf("read file %s lines: %ld, vtMaxId: %ld, vtMinId: %ld\n", filename, *edNum, *vtMaxId, *vtMinId); fflush(stdout);
+	lineNum+=(each-1)*LINES_LENGTH_EACH;
+	printf("read file %s lines: %ld, Max: %ld, Min: %ld\n", filename, lineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
-	return LinesInfo;
+
+	struct NetFile *file=malloc(sizeof(struct NetFile));
+	assert(file!=NULL);
+	file->minId=minId;
+	file->maxId=maxId;
+	file->lines=LinesInfo;
+	file->linesNum=lineNum;
+
+	return file;
 }
