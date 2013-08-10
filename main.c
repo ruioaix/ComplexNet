@@ -21,6 +21,7 @@ int main(int argc, char **argv)
 
 	//read data file;
 	struct NetFile *file=readFileLBL(datafilename);
+	
 
 	//create net;
 	//enum isDirect isD=directed;
