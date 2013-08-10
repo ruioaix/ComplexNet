@@ -1,7 +1,7 @@
 #ifndef COMPLEXNET_RANDOM_H
 #define COMPLEXNET_RANDOM_H
 
-#include <stdio.h>
+//#include <stdio.h>
 /* Period parameters */  
 #define N_MersenneTwister 624
 #define M_MersenneTwister 397

@@ -1,17 +1,19 @@
 #include "../inc/complexnet_dnet.h"
 #include "../inc/complexnet_dnet_spread.h"
+#include "../inc/complexnet_random.h"
 
+
+//1S,2I,3R
 int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
 	int spreadStep=0;
-	linesnumtype countMax = dNet->countMax;
-	//idtype *xVt=malloc(xNum*sizeof(idtype));
+	int countE2=1000000;
+	idtype *xVt=malloc(countE2*sizeof(idtype));
 	while(IS->num>0) {
 		++spreadStep;
 		idtype *oVt=IS->vt;
 		idtype oNum=IS->num;
 
-		//1S,2I,3R
 		idtype i, xNum=0;
 		//judge how many vt need to be try spread.
 		for (i=0; i<oNum; ++i) {
@@ -28,23 +30,25 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 
 		//get here means there are some vt need to be try.
 		//get the space for store every vt need to be try.
-		idtype *xVt=malloc(xNum*sizeof(idtype));
+		if (xNum>countE2) {
+			idtype *temp=realloc(xVt, xNum*sizeof(idtype));
+			if (temp!=NULL) xVt=temp;
+			countE2 = xNum;
+		}
 		xNum=0;
 		idtype j, neigh;
+		double r;
 		//begin to try to spread.
 		for (i=0; i<oNum; i++) {
 			idtype vt=oVt[i];
-
 			//I begin to spread to its neighbor
 			for (j=0; j<dNet->count[vt]; j++) {
 				neigh=dNet->to[vt][j];
 				//TODO 
-				double r=0;
-				//double r=mt_drand();
 				//only S neighbour need to try. if it's I/R, nothing to do.
 				if (dNet->status[neigh] == 1) {
 					//TODO
-					//r=mt_drand();
+					r=genrand_real1();
 					if (r<infectRate) {
 						//setVTinfect(Net, neigh);
 						dNet->status[neigh] = 2;

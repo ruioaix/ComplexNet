@@ -55,11 +55,11 @@ void init_by_array_MersenneTwister(unsigned long init_key[], int key_length)
 
     mt_MersenneTwister[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
 
-	printf("%lu\n", mti_MersenneTwister);
-	for(i=0; i<N_MersenneTwister; ++i) {
-		printf("%lu, ", mt_MersenneTwister[i]);
-	}
-	printf("\n");
+	//printf("%lu\n", mti_MersenneTwister);
+	//for(i=0; i<N_MersenneTwister; ++i) {
+	//	printf("%lu, ", mt_MersenneTwister[i]);
+	//}
+	//printf("\n");
 }
 
 /* generates a random number on [0,0xffffffff]-interval */
