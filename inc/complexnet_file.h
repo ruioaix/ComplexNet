@@ -7,11 +7,14 @@
 // for FILE fpos_t 
 #include <stdio.h>
 
-// for malloc, 
+// for malloc, remalloc
 #include <stdlib.h>
 
 // for assert.
 #include <assert.h>
+
+// for INT_MAX
+#include <limits.h>
 
 // for fileError, memError, isError
 #include "complexnet_error.h"
@@ -26,34 +29,36 @@
 //of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
 //you don't need to know the exactly line num of the file.
 #define LINES_LENGTH_EACH 10000000
-#define LINES_DAY 100000
+
+//if the net's vt id beyond the INT_MAX, or the line num beyond the INT_MAX, you can just change int to long. if you like, long long is also fine.
+//but int is suggested, because it's fastest.
+typedef int idtype;
+typedef int linesnumtype;
 
 struct LineInfo{
-	int vt1Id;
-	int vt2Id;
+	idtype vt1Id;
+	idtype vt2Id;
 //	int time;
 //	int weight;
 };
 
 struct NetFile{
-	int maxId;
-	int minId;
-	int linesNum;
+	idtype maxId;
+	idtype minId;
+	linesnumtype linesNum;
 	struct LineInfo *lines;
-}
+};
 
 //the following two functions is for reading file. 
-//fillLineInfo fill a line from a file.
-void fillLineInfo(char *line, struct LineInfo *LI, int *maxId, int *minId);
+//fillLineInfo fill a line from a file into a struct LineInfo object.
+void fillLineInfo(char *line, struct LineInfo *LI, idtype *maxId, idtype *minId);
 //for each line, readFileLBL call fillLineInfo to fill the LineInfo.
-//when finish, you get the edNum, vtMaxId, vtMinId and all information in LineInfo.
-//partNum means how many parts a line contains. 
-//the function can handle arbitrary partNum, you only need to change partNum, and modify LineInfo and fillLineInfo.
+//when finish, you get the linesNum, maxId, minId and all information in LineInfo.
+//for lines containing different partNum, you only need to modify LineInfo and fillLineInfo.
 //you don't need to change anything in readFileLBL function.
-//this function can handle file with arbitrary size, but maybe you need to think about physical memory in your PC.
-//the member in LineInfo is correspond to line's different part.
-//for line which is blank or contains less than partNum parts, the line will be ignored.
-//for line which contains more than partNum parts, only partNum parts will be read.
+//this function can handle file with arbitrary size, the only limit you need to think about is physical memory in your PC.
+//input is filename.
+//output is struct NetFile.
 struct NetFile *readFileLBL(char *filename);
 
 #endif

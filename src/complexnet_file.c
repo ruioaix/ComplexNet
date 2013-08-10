@@ -1,10 +1,10 @@
 #include "../inc/complexnet_file.h"
 
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
-void fillLineInfo(char *line, struct LineInfo *LI, int *vtMaxId, int *vtMinId)
+void fillLineInfo(char *line, struct LineInfo *LI, idtype *vtMaxId, idtype *vtMinId)
 {
-
 	//divide line to parts.
+	//strtok return a c string(end with a '\0').
 	char *delimiter="\t, ";
 	char *partsLine[2];
 	partsLine[0]=strtok(line, delimiter);
@@ -17,7 +17,7 @@ void fillLineInfo(char *line, struct LineInfo *LI, int *vtMaxId, int *vtMinId)
 	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
 	assert(pEnd[0]=='\0');
 	LI->vt2Id=strtol(partsLine[1], &pEnd, 10);
-	assert(pEnd[1]=='\0');
+	assert(pEnd[0]=='\0' || pEnd[0]=='\n');
 
 	//max/min Id
 	if (LI->vt1Id>LI->vt2Id) {
@@ -27,7 +27,6 @@ void fillLineInfo(char *line, struct LineInfo *LI, int *vtMaxId, int *vtMinId)
 		*vtMaxId=(*vtMaxId)>LI->vt2Id?(*vtMaxId):LI->vt2Id;
 		*vtMinId=(*vtMinId)<LI->vt1Id?(*vtMinId):LI->vt1Id;
 	}
-
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
@@ -41,9 +40,9 @@ struct NetFile *readFileLBL(char *filename)
 	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct LineInfo));
 	assert(LinesInfo!=NULL);
 
-	int lineNum=0;
-	int maxId=INT_MAX;
-	int minId=0;
+	linesnumtype lineNum=0;
+	idtype maxId=-1;
+	idtype minId=INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
@@ -63,7 +62,7 @@ struct NetFile *readFileLBL(char *filename)
 		}
 	}
 	lineNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("read file %s lines: %ld, Max: %ld, Min: %ld\n", filename, lineNum, maxId, minId); fflush(stdout);
+	printf("read file %s lines: %d, Max: %d, Min: %d\n", filename, lineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
 	struct NetFile *file=malloc(sizeof(struct NetFile));
