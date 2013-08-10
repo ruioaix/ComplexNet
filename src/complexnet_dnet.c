@@ -39,7 +39,7 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	}
 	free(temp_count);
 
-	struct DirectNet *dnet=malloc(sizeof(struct DirectNet))	idtype maxId;
+	struct DirectNet *dnet=malloc(sizeof(struct DirectNet));
 	dnet->maxId=maxId;
 	dnet->minId=minId;
 	dnet->edgesNum=linesNum;

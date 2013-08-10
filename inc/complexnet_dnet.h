@@ -3,6 +3,8 @@
 
 #include "../inc/complexnet_file.h"
 
+struct DirectNet *buildDNet(struct NetFile *file);
+
 struct DirectNet{
 	idtype maxId;
 	idtype minId;
@@ -11,6 +13,11 @@ struct DirectNet{
 	linesnumtype *count;
 	char *status;
 	idtype **to;
+};
+
+struct InfectSource {
+	idtype *vt;
+	idtype num;
 };
 
 #endif
