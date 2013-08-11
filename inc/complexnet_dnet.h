@@ -2,8 +2,7 @@
 #define COMPLEXNET_DNET_H
 
 #include "../inc/complexnet_file.h"
-
-struct DirectNet *buildDNet(struct NetFile *file);
+#include "../inc/complexnet_random.h"
 
 struct DirectNet{
 	idtype maxId;
@@ -19,5 +18,8 @@ struct InfectSource {
 	idtype *vt;
 	idtype num;
 };
+
+struct DirectNet *buildDNet(struct NetFile *file);
+int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate);
 
 #endif

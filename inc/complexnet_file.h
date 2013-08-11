@@ -19,7 +19,7 @@
 // for fileError, memError, isError
 #include "complexnet_error.h"
 
-#include "complexnet_sort.h"
+//#include "complexnet_sort.h"
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
 #define LINE_LENGTH_MAX 10000
