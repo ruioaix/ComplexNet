@@ -74,3 +74,42 @@ struct NetFile *readFileLBL(char *filename)
 
 	return file;
 }
+
+
+//read file to 
+struct InfectSource *readISfromFile(char *filename)
+{
+	//open file
+	FILE *fp=fopen(filename,"r");
+	fileError(fp, filename);
+	//record file begin position
+	fpos_t file_position;
+	fgetpos(fp, &file_position);
+
+	struct InfectSource *isfile=malloc(sizeof(struct InfectSource));
+	assert(isfile!=NULL);
+
+	char line[LINE_LENGTH_MAX];
+	int line_Num=0;
+	while(fgets(line, LINE_LENGTH_MAX, fp)) {
+		line_Num++;
+	}
+	isfile->vt=malloc(line_Num*sizeof(idtype));
+
+	fsetpos(fp, &file_position);
+	int linesNum=0;
+	while(fgets(line, LINE_LENGTH_MAX, fp)) {
+		char *delimiter="\t, ";
+		char *partsLine;
+		partsLine=strtok(line, delimiter);
+		assert(partsLine!=NULL);
+		char *pEnd;
+		isfile->vt[linesNum++]=strtol(partsLine, &pEnd, 10);
+		printf("%d\n", pEnd[0]);
+		assert(pEnd[0]=='\0' || pEnd[0]=='\n' || pEnd[0]=='\r');
+	}
+	fclose(fp);
+	isfile->num=linesNum;
+
+	return isfile;
+}

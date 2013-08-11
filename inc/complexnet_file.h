@@ -49,6 +49,11 @@ struct NetFile{
 	struct LineInfo *lines;
 };
 
+struct InfectSource {
+	idtype num;
+	idtype *vt;
+};
+
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file into a struct LineInfo object.
 void fillLineInfo(char *line, struct LineInfo *LI, idtype *maxId, idtype *minId);
@@ -60,5 +65,7 @@ void fillLineInfo(char *line, struct LineInfo *LI, idtype *maxId, idtype *minId)
 //input is filename.
 //output is struct NetFile.
 struct NetFile *readFileLBL(char *filename);
+
+struct InfectSource *readISfromFile(char *filename);
 
 #endif

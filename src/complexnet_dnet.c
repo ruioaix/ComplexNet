@@ -51,34 +51,48 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	return dnet;
 }
 
-//1S,2I,3R
+void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
+	idtype i=0;
+	for (i=0; i<is->num; ++i) {
+		dnet->status[is->vt[i]] = 1;
+	}
+}
+
+//0S,1I,2R
 int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
 	int spreadStep=0;
 	int countE2=1000000;
+	if (IS->num > countE2) {
+		countE2 = IS->num;
+	}
+	idtype *oVt=malloc(countE2*sizeof(idtype));
 	idtype *xVt=malloc(countE2*sizeof(idtype));
-	while(IS->num>0) {
-		idtype *oVt=IS->vt;
-		idtype oNum=IS->num;
+	memcpy(oVt, IS->vt, IS->num*sizeof(idtype));
+	free(IS->vt);
+	idtype oNum=IS->num;
+	idtype xNum;
 
-		idtype i, xNum=0;
+	while(oNum>0) {
+		
+		xNum=0;
+		idtype i;
 		//judge how many vt need to be try spread.
 		for (i=0; i<oNum; ++i) {
 			xNum+=dNet->count[oVt[i]];
 		}
-
-		//if no vt need to be try, spread stop.
-		if (xNum==0) {
-			break;
-		}
-
-		//get here means there are some vt need to be try.
-		//get the space for store every vt need to be try.
+		printf("xNum: %d\n", xNum);
+		if (xNum==0) break; 
 		if (xNum>countE2) {
-			idtype *temp=realloc(xVt, xNum*sizeof(idtype));
-			if (temp!=NULL) xVt=temp;
+			free(xVt);
+			xVt=malloc(xNum*sizeof(idtype));
+			//idtype *temp=realloc(xVt, xNum*sizeof(idtype));
+			//assert(temp!=NULL);
+			//if (temp!=NULL) xVt=temp;
 			countE2 = xNum;
 		}
+
+
 		xNum=0;
 		idtype j, neigh;
 		double r;
@@ -89,24 +103,97 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 			for (j=0; j<dNet->count[vt]; ++j) {
 				neigh=dNet->to[vt][j];
 				//only S neighbour need to try. if it's I/R, nothing to do.
-				if (dNet->status[neigh] == 1) {
+				if (dNet->status[neigh] == 0) {
 					r=genrand_real1();
 					if (r<infectRate) {
-						dNet->status[neigh] = 2;
+						dNet->status[neigh] = 1;
 						xVt[xNum++]=neigh;
 					}
 				}
 			}
-			dNet->status[vt] = 3;
+			dNet->status[vt] = 2;
 		}
 		
-		idtype *temp = IS->vt;
-		IS->vt = xVt;
+		idtype *temp = oVt;
+		oVt = xVt;
 		xVt = temp;
-		IS->num=xNum;
+		oNum=xNum;
+		++spreadStep;
 	}
-	free(IS->vt);
+
 	free(xVt);
-	++spreadStep;
+	free(oVt);
+	return spreadStep;
+}
+
+//0S,1I,2R
+int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+{
+	int spreadStep=0;
+	int countE2=1000000;
+	if (IS->num > countE2) {
+		countE2 = IS->num;
+	}
+	idtype *oVt=malloc(countE2*sizeof(idtype));
+	idtype *xVt=malloc(countE2*sizeof(idtype));
+	memcpy(oVt, IS->vt, IS->num*sizeof(idtype));
+	free(IS->vt);
+	idtype oNum=IS->num;
+	idtype xNum;
+
+	while(oNum>0) {
+		
+		xNum=0;
+		idtype i;
+		//judge how many vt need to be try spread.
+		for (i=0; i<oNum; ++i) {
+			xNum+=dNet->count[oVt[i]];
+		}
+		printf("xNum: %d\n", xNum);
+		if (xNum==0) break; 
+		if (xNum>countE2) {
+			free(xVt);
+			xVt=malloc(xNum*sizeof(idtype));
+			//idtype *temp=realloc(xVt, xNum*sizeof(idtype));
+			//assert(temp!=NULL);
+			//if (temp!=NULL) xVt=temp;
+			countE2 = xNum;
+		}
+
+
+		xNum=0;
+		idtype j, neigh;
+		double r, touchRate;
+		//begin to try to spread.
+		for (i=0; i<oNum; ++i) {
+			idtype vt=oVt[i];
+			touchRate=1/(double)pow(dNet->count[vt], 0.5);
+			//I begin to spread to its neighbor
+			for (j=0; j<dNet->count[vt]; ++j) {
+				neigh=dNet->to[vt][j];
+				//only S neighbour need to try. if it's I/R, nothing to do.
+				r=genrand_real1();
+				if (r<touchRate) {
+					if (dNet->status[neigh] == 0) {
+						r=genrand_real1();
+						if (r<infectRate) {
+							dNet->status[neigh] = 1;
+							xVt[xNum++]=neigh;
+						}
+					}
+				}
+			}
+			dNet->status[vt] = 2;
+		}
+		
+		idtype *temp = oVt;
+		oVt = xVt;
+		xVt = temp;
+		oNum=xNum;
+		++spreadStep;
+	}
+
+	free(xVt);
+	free(oVt);
 	return spreadStep;
 }
