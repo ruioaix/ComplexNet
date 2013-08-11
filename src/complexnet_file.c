@@ -17,7 +17,7 @@ void fillLineInfo(char *line, struct LineInfo *LI, idtype *vtMaxId, idtype *vtMi
 	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
 	assert(pEnd[0]=='\0');
 	LI->vt2Id=strtol(partsLine[1], &pEnd, 10);
-	assert(pEnd[0]=='\0' || pEnd[0]=='\n');
+	assert(pEnd[0]=='\0' || pEnd[0]=='\n' || pEnd[0]=='\r');
 
 	//max/min Id
 	if (LI->vt1Id>LI->vt2Id) {
@@ -94,7 +94,10 @@ struct InfectSource *readISfromFile(char *filename)
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		line_Num++;
 	}
+	assert(line_Num!=0);
+
 	isfile->vt=malloc(line_Num*sizeof(idtype));
+	assert(isfile->vt!=NULL);
 
 	fsetpos(fp, &file_position);
 	int linesNum=0;
@@ -105,11 +108,12 @@ struct InfectSource *readISfromFile(char *filename)
 		assert(partsLine!=NULL);
 		char *pEnd;
 		isfile->vt[linesNum++]=strtol(partsLine, &pEnd, 10);
-		printf("%d\n", pEnd[0]);
+		//printf("%d\n", pEnd[0]);
 		assert(pEnd[0]=='\0' || pEnd[0]=='\n' || pEnd[0]=='\r');
 	}
 	fclose(fp);
 	isfile->num=linesNum;
+	assert(linesNum!=0);
 
 	return isfile;
 }

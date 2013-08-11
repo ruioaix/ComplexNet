@@ -16,6 +16,7 @@ struct DirectNet{
 	idtype **to;
 };
 
+void freeDNet(struct DirectNet *dnet);
 struct DirectNet *buildDNet(struct NetFile *file);
 int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate);
 int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double infectRate);

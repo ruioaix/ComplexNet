@@ -1,5 +1,16 @@
 #include "../inc/complexnet_dnet.h"
 
+void freeDNet(struct DirectNet *dnet) {
+	free(dnet->count);
+	free(dnet->status);
+	idtype i=0;
+	for(i=0; i<dnet->maxId+1; ++i) {
+		free(dnet->to[i]);
+	}
+	free(dnet->to);
+	free(dnet);
+}
+
 struct DirectNet *buildDNet(struct NetFile *file) {
 	idtype maxId=file->maxId;
 	idtype minId=file->minId;
@@ -53,14 +64,26 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 
 void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 	idtype i=0;
+	int sign=0;
 	for (i=0; i<is->num; ++i) {
-		dnet->status[is->vt[i]] = 1;
+		idtype isvt=is->vt[i];
+		if (isvt > dnet->maxId) {
+			printf("InfectSource %d is not existed in the net, ignored.\n", isvt);
+			continue;
+		}
+		dnet->status[isvt] = 1;
+		++sign;
+	}
+	if (!sign) {
+		printf("no InfectSource existed in the net.");
+		exit(-1);
 	}
 }
 
 //0S,1I,2R
 int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
+	buildIStoDNet(IS, dNet);
 	int spreadStep=0;
 	int countE2=1000000;
 	if (IS->num > countE2) {
@@ -69,7 +92,6 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 	idtype *oVt=malloc(countE2*sizeof(idtype));
 	idtype *xVt=malloc(countE2*sizeof(idtype));
 	memcpy(oVt, IS->vt, IS->num*sizeof(idtype));
-	free(IS->vt);
 	idtype oNum=IS->num;
 	idtype xNum;
 
@@ -81,7 +103,7 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 		for (i=0; i<oNum; ++i) {
 			xNum+=dNet->count[oVt[i]];
 		}
-		printf("xNum: %d\n", xNum);
+		//printf("xNum: %d\n", xNum);
 		if (xNum==0) break; 
 		if (xNum>countE2) {
 			free(xVt);
@@ -149,7 +171,7 @@ int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double in
 		for (i=0; i<oNum; ++i) {
 			xNum+=dNet->count[oVt[i]];
 		}
-		printf("xNum: %d\n", xNum);
+		//printf("xNum: %d\n", xNum);
 		if (xNum==0) break; 
 		if (xNum>countE2) {
 			free(xVt);
