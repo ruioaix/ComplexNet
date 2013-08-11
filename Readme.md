@@ -1,6 +1,6 @@
-= scope of usage of dnet program
-== read file 
-=== dnet file
+# scope of usage of dnet program
+## read file 
+### dnet file
 * function readFileLBL.
 	* input: filename.
 	* output: a point to a struct NetFile object.
@@ -16,7 +16,7 @@
 * empty file will make the program stop, and throw a wrong message.
 * a file with a empty line will act as same as the empty file.
 
-=== infectsource file
+### infectsource file
 * function readISfromFile.
 	* input: filename.
 	* output: a point to a struct InfectSource object.
@@ -30,13 +30,13 @@
 * empty file will make the program stop, and throw a wrong message.
 * a file with a empty line will act as same as the empty file.
 
-== build net
+## build net
 * function buildDNet.
 	* input: a point to a struct NetFile object.
 	* output: a point to a struct DirectNet object.
 	* the DirectNet struct will be used to spread and other net work.
 
-== spread
+## spread
 * function buildIStoDNet.
 	* this function is used inside spread_touch_all and other spread function.
 	* input: a point to a struct InfectSource object, a point to a struct DirectNet object.
@@ -50,7 +50,7 @@
 
 * after spread, all the information can be fetched from the DirectNet struct. do that in main.c
 
-== main.c
+## main.c
 * read net file. readFileLBL
 * read InfectSource file. readISfromFile
 * build net.  buildDNet
