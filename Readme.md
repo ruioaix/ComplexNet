@@ -48,6 +48,14 @@
 	* input: InfectSource point, DirectNet point, infectRate.
 	* output: spread number.
 
+### what spread function done.
+* as we talk before, the program allow vertex id not "start at 0" and not "continuous". 
+* that means there will be some vertex id in the dnet which actually not valid.
+* but for these vertex ids, the count will be 0, and any valid vertex id will not point to these vertex ids. this feature make sure these vertex ids not valid will not effect our spread function.
+* there are two spread functions: spread_touch_all, spread_touch_part.
+	* spread_touch_all have touchRate as 1, that means every vertex will be touched.
+	* spread_touch_part have touchRate as 1/pow(count of this vertex).
+
 * after spread, all the information can be fetched from the DirectNet struct. do that in main.c
 
 ## main.c
@@ -56,3 +64,10 @@
 * build net.  buildDNet
 * begin spread. spread_touch_all or spread_touch_part
 * anaylsis net. whatever you want.
+
+## random generater
+* mersenne twrister random generater is used. 
+* to make main.c be simple, I use a default seed to generate random number.
+	* the advantage of this is faster, and all spread can be reappear.
+	* the disadvantage is all spread will be same.
+	* to change the default seed, you need to change complexnet_random.h, and you need to add init seed function to main.c
