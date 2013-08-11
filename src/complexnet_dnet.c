@@ -26,7 +26,7 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	for(i=0; i<linesNum; i++) {
 		++count[lines[i].vt1Id];
 	}
-	
+
 	idtype **to=calloc(maxId+1, sizeof(void *));
 	assert(to!=NULL);
 	linesnumtype countMax=0;
@@ -58,7 +58,7 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	dnet->count=count;
 	dnet->status=status;
 	dnet->to=to;
-	
+
 	return dnet;
 }
 
@@ -81,7 +81,7 @@ void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 }
 
 //0S,1I,2R
-int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+int spread_touch_all_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
 	buildIStoDNet(IS, dNet);
 	int spreadStep=0;
@@ -96,7 +96,7 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 	idtype xNum;
 
 	while(oNum>0) {
-		
+
 		xNum=0;
 		idtype i;
 		//judge how many vt need to be try spread.
@@ -135,7 +135,7 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 			}
 			dNet->status[vt] = 2;
 		}
-		
+
 		idtype *temp = oVt;
 		oVt = xVt;
 		xVt = temp;
@@ -149,7 +149,7 @@ int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double inf
 }
 
 //0S,1I,2R
-int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+int spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
 	int spreadStep=0;
 	int countE2=1000000;
@@ -164,7 +164,7 @@ int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double in
 	idtype xNum;
 
 	while(oNum>0) {
-		
+
 		xNum=0;
 		idtype i;
 		//judge how many vt need to be try spread.
@@ -207,7 +207,7 @@ int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double in
 			}
 			dNet->status[vt] = 2;
 		}
-		
+
 		idtype *temp = oVt;
 		oVt = xVt;
 		xVt = temp;
@@ -218,4 +218,84 @@ int spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double in
 	free(xVt);
 	free(oVt);
 	return spreadStep;
+}
+
+
+int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate) {
+	struct InfectSource *is = malloc(sizeof(struct InfectSource));
+	assert(is!=NULL);
+	is->num = 1;
+	is->vt = malloc(sizeof(idtype));
+	assert(is->vt!=NULL);
+
+	double IR[IS->num];
+
+	idtype i=0;
+	for (i=0; i<IS->num; ++i) {
+		is->vt[0] = IS->vt[i];
+		struct DirectNet *dNet_c = cloneDNet(dNet);
+		spread_touch_all_core(is, dNet_c, infectRate);
+
+		idtype j=0;
+		idtype R=0;
+		for (j=0; j<dNet_c->maxId+1; ++j) {
+			if (dNet_c->status[j] == 2) {
+				++R;
+			}
+		}
+		IR[i]=(double)R/(double)dNet_c->vtRealNum;
+
+		freeDNet(dNet_c);
+	}
+}
+
+void printDNetInfor(struct DirectNet *dnet) {
+	int R=0;
+	for (i=0; i<Net->vtMax+1; i++) {
+		if (isDeadVT(Net, i)) {
+			R++;
+		}
+	}
+	IR[j]=(double)R/(double)Net->vtRealNum;
+
+	double sp=0, s2p=0;
+	for (i=0; i<loopNum; i++) {
+		sp+=IR[i]/loopNum;
+		s2p+=IR[i]*IR[i]/loopNum;
+	}
+
+	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+	printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%d\n", k, infectRate, sp, s2p, result, spreadStep);
+
+}
+
+struct DirectNet *cloneDNet(struct DirectNet *dnet) {
+	assert(dnet!=NULL);
+
+	struct DirectNet *dnet_c = malloc(sizeof(struct DirectNet));
+	assert(dnet_c != NULL);
+
+	dnet_c = dnet;
+	dnet_c->count = malloc((dnet_c->maxId+1)*sizeof(linesnumtype));
+	assert(dnet_c->count != NULL);
+	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(linesnumtype));
+
+	dnet_c->status = malloc((dnet_c->maxId+1)*sizeof(char));
+	assert(dnet_c->status != NULL);
+	memcpy(dnet_c->status, dnet->status, (dnet_c->maxId+1)*sizeof(char));
+
+	dnet_c->to = malloc((dnet_c->maxId+1)*sizeof(void *));
+	assert(dnet_c->to !=NULL);
+	memcpy(dnet_c->to, dnet->to, (dnet_c->maxId+1)*sizeof(void *));
+
+	idtype i=0;
+	for (i=0; i<dnet_c->maxId+1; ++i) {
+		if(dnet_c->count[i] > 0) {
+			dnet_c->to[i] = malloc(dnet_c->count[i]*sizeof(idtype));
+			assert(dnet_c->to[i]);
+			memcpy(dnet_c->to[i], dnet->to[i], dnet_c->count[i]*sizeof(idtype));
+		}
+	}
+
+	return dnet_c;
 }
