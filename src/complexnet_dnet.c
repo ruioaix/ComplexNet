@@ -81,7 +81,7 @@ void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 }
 
 //0S,1I,2R
-int spread_touch_all_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+int dnet_spread_touch_all_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
 	buildIStoDNet(IS, dNet);
 	int spreadStep=0;
@@ -149,8 +149,9 @@ int spread_touch_all_core(struct InfectSource *IS, struct DirectNet *dNet, doubl
 }
 
 //0S,1I,2R
-int spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+int dnet_spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
 {
+	buildIStoDNet(IS, dNet);
 	int spreadStep=0;
 	int countE2=1000000;
 	if (IS->num > countE2) {
@@ -221,81 +222,99 @@ int spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet, doub
 }
 
 
-int spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate) {
+int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum, enum touchtype tt) {
 	struct InfectSource *is = malloc(sizeof(struct InfectSource));
 	assert(is!=NULL);
 	is->num = 1;
 	is->vt = malloc(sizeof(idtype));
 	assert(is->vt!=NULL);
 
-	double IR[IS->num];
+	//double IR[IS->num];
 
-	idtype i=0;
-	for (i=0; i<IS->num; ++i) {
-		is->vt[0] = IS->vt[i];
-		struct DirectNet *dNet_c = cloneDNet(dNet);
-		spread_touch_all_core(is, dNet_c, infectRate);
-
-		idtype j=0;
-		idtype R=0;
-		for (j=0; j<dNet_c->maxId+1; ++j) {
-			if (dNet_c->status[j] == 2) {
-				++R;
+	idtype i=0, j=0;
+	struct DirectNet *dNet_c = createDNetFormDNet(dNet);
+	if (tt == all) {
+		for (i=0; i<IS->num; ++i) {
+			is->vt[0] = IS->vt[i];
+			for( j=0; j<loopNum; ++j) {	
+				cloneDNet(dNet_c, dNet);
+				dnet_spread_touch_all_core(is, dNet_c, infectRate);
 			}
 		}
-		IR[i]=(double)R/(double)dNet_c->vtRealNum;
-
-		freeDNet(dNet_c);
 	}
-}
-
-void printDNetInfor(struct DirectNet *dnet) {
-	int R=0;
-	for (i=0; i<Net->vtMax+1; i++) {
-		if (isDeadVT(Net, i)) {
-			R++;
+	else if (tt==part) {
+		for (i=0; i<IS->num; ++i) {
+			is->vt[0] = IS->vt[i];
+			for( j=0; j<loopNum; ++j) {	
+				cloneDNet(dNet_c, dNet);
+				dnet_spread_touch_all_core(is, dNet_c, infectRate);
+			}
 		}
 	}
-	IR[j]=(double)R/(double)Net->vtRealNum;
+	freeDNet(dNet_c);
 
-	double sp=0, s2p=0;
-	for (i=0; i<loopNum; i++) {
-		sp+=IR[i]/loopNum;
-		s2p+=IR[i]*IR[i]/loopNum;
-	}
-
-	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
-	printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%d\n", k, infectRate, sp, s2p, result, spreadStep);
-
+	return 0;
 }
 
-struct DirectNet *cloneDNet(struct DirectNet *dnet) {
-	assert(dnet!=NULL);
+//void printDNetInfor(struct DirectNet *dnet) {
+//	int R=0;
+//	for (i=0; i<Net->vtMax+1; i++) {
+//		if (isDeadVT(Net, i)) {
+//			R++;
+//		}
+//	}
+//	IR[j]=(double)R/(double)Net->vtRealNum;
+//
+//	double sp=0, s2p=0;
+//	for (i=0; i<loopNum; i++) {
+//		sp+=IR[i]/loopNum;
+//		s2p+=IR[i]*IR[i]/loopNum;
+//	}
+//
+//	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+//	printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%d\n", k, infectRate, sp, s2p, result, spreadStep);
+//
+//}
 
+struct DirectNet *createDNetFormDNet(struct DirectNet *dnet) {
 	struct DirectNet *dnet_c = malloc(sizeof(struct DirectNet));
 	assert(dnet_c != NULL);
-
-	dnet_c = dnet;
 	dnet_c->count = malloc((dnet_c->maxId+1)*sizeof(linesnumtype));
 	assert(dnet_c->count != NULL);
-	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(linesnumtype));
-
 	dnet_c->status = malloc((dnet_c->maxId+1)*sizeof(char));
 	assert(dnet_c->status != NULL);
-	memcpy(dnet_c->status, dnet->status, (dnet_c->maxId+1)*sizeof(char));
-
 	dnet_c->to = malloc((dnet_c->maxId+1)*sizeof(void *));
 	assert(dnet_c->to !=NULL);
-	memcpy(dnet_c->to, dnet->to, (dnet_c->maxId+1)*sizeof(void *));
 
 	idtype i=0;
 	for (i=0; i<dnet_c->maxId+1; ++i) {
 		if(dnet_c->count[i] > 0) {
 			dnet_c->to[i] = malloc(dnet_c->count[i]*sizeof(idtype));
 			assert(dnet_c->to[i]);
-			memcpy(dnet_c->to[i], dnet->to[i], dnet_c->count[i]*sizeof(idtype));
 		}
 	}
 
 	return dnet_c;
+}
+
+void cloneDNet(struct DirectNet *dnet_c, struct DirectNet *dnet) {
+	assert(dnet!=NULL && dnet_c!=NULL);
+
+	dnet_c->maxId = dnet->maxId;
+	dnet_c->minId = dnet->minId;
+	dnet_c->countMax = dnet->countMax;
+	dnet_c->edgesNum = dnet->edgesNum;
+
+	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(linesnumtype));
+
+	memcpy(dnet_c->status, dnet->status, (dnet_c->maxId+1)*sizeof(char));
+
+	memcpy(dnet_c->to, dnet->to, (dnet_c->maxId+1)*sizeof(void *));
+
+	idtype i=0;
+	for (i=0; i<dnet_c->maxId+1; ++i) {
+		if(dnet_c->count[i] > 0) {
+			memcpy(dnet_c->to[i], dnet->to[i], dnet_c->count[i]*sizeof(idtype));
+		}
+	}
 }

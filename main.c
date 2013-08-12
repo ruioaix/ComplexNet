@@ -26,8 +26,8 @@ int main(int argc, char **argv)
 	//read origin file, create IS;
 	struct InfectSource *IS=readISfromFile(originfilename);
 
-	int spread = spread_touch_all(IS, dnet, 0.5);
-	printf("spread steps: %d\n", spread);
+	//int spread = spread_touch_all(IS, dnet, 0.5);
+	//printf("spread steps: %d\n", spread);
 
 	//analysis dnet to get information you want.
 	//TODO
