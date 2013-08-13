@@ -1,7 +1,7 @@
 #include "../inc/complexnet_file.h"
 
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
-void fillLineInfo(char *line, struct LineInfo *LI, idtype *vtMaxId, idtype *vtMinId)
+void fillLineInfo(char *line, struct LineInfo *LI, vttype *vtMaxId, vttype *vtMinId)
 {
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
@@ -40,9 +40,9 @@ struct NetFile *readFileLBL(char *filename)
 	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct LineInfo));
 	assert(LinesInfo!=NULL);
 
-	linesnumtype lineNum=0;
-	idtype maxId=-1;
-	idtype minId=INT_MAX;
+	edtype lineNum=0;
+	vttype maxId=-1;
+	vttype minId=INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
@@ -96,7 +96,7 @@ struct InfectSource *readISfromFile(char *filename)
 	}
 	assert(line_Num!=0);
 
-	isfile->vt=malloc(line_Num*sizeof(idtype));
+	isfile->vt=malloc(line_Num*sizeof(vttype));
 	assert(isfile->vt!=NULL);
 
 	fsetpos(fp, &file_position);

@@ -32,31 +32,31 @@
 
 //if the net's vt id beyond the INT_MAX, or the line num beyond the INT_MAX, you can just change int to long. if you like, long long is also fine.
 //but int is suggested, because it's fastest.
-typedef int idtype;
-typedef int linesnumtype;
+
+typedef int vttype;
+typedef int edtype;
+
 
 struct LineInfo{
-	idtype vt1Id;
-	idtype vt2Id;
-//	int time;
-//	int weight;
+	vttype vt1Id;
+	vttype vt2Id;
 };
 
 struct NetFile{
-	idtype maxId;
-	idtype minId;
-	linesnumtype linesNum;
+	vttype maxId;
+	vttype minId;
+	edtype linesNum;
 	struct LineInfo *lines;
 };
 
 struct InfectSource {
-	idtype num;
-	idtype *vt;
+	vttype num;
+	vttype *vt;
 };
 
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file into a struct LineInfo object.
-void fillLineInfo(char *line, struct LineInfo *LI, idtype *maxId, idtype *minId);
+void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId);
 //for each line, readFileLBL call fillLineInfo to fill the LineInfo.
 //when finish, you get the linesNum, maxId, minId and all information in LineInfo.
 //for lines containing different partNum, you only need to modify LineInfo and fillLineInfo.

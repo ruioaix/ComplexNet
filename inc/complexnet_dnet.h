@@ -7,14 +7,14 @@
 #include <math.h>
 
 struct DirectNet{
-	idtype maxId;
-	idtype minId;
-	idtype vtsNum;
-	linesnumtype edgesNum;
-	linesnumtype countMax;
-	linesnumtype *count;
+	vttype maxId;
+	vttype minId;
+	vttype vtsNum;
+	edtype edgesNum;
+	edtype countMax;
+	edtype *count;
 	char *status;
-	idtype **to;
+	vttype **to;
 };
 
 enum touchtype {all=0, part=1};
