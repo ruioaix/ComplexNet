@@ -1,9 +1,6 @@
-#define NDEBUG 
-#define VEXTER_FILE_DIRECTION_LEFT
-#define TOUCHTYPE_PART
-
 #include <stdio.h>
 #include <time.h>
+#include "inc/complexnet_config.h" //for config
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
 
@@ -29,7 +26,7 @@ int main(int argc, char **argv)
 	struct InfectSource *IS=readISfromFile(originfilename);
 
 	//IS, NET, infectRate, loopNum
-	dnet_spread(IS, dnet, 0.9, 200);
+	dnet_spread(IS, dnet, 0.9, 20);
 	//printf("spread steps: %d\n", spread);
 
 	//free;

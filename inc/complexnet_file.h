@@ -16,6 +16,7 @@
 // for INT_MAX
 #include <limits.h>
 
+#include "complexnet_config.h"
 // for fileError, memError, isError
 #include "complexnet_error.h"
 
