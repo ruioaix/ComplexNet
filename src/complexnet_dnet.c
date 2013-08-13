@@ -39,7 +39,7 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	vttype **to=calloc(maxId+1, sizeof(void *));
 	assert(to!=NULL);
 	edtype countMax=0;
-	for(i=0; i<maxId+1; i++) {
+	for(i=0; i<maxId+1; ++i) {
 		if (countMax<count[i]) {
 			countMax=count[i];
 		}
@@ -51,7 +51,7 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 
 	edtype *temp_count=calloc(maxId+1, sizeof(edtype));
 	assert(temp_count!=NULL);
-	for(i=0; i<linesNum; i++) {
+	for(i=0; i<linesNum; ++i) {
 		vttype id_from=lines[i].vt1Id;
 		vttype id_to=lines[i].vt2Id;
 		to[id_from][temp_count[id_from]]=id_to;
