@@ -1,4 +1,6 @@
 #define NDEBUG 
+#define VEXTER_FILE_DIRECTION_LEFT
+#define TOUCHTYPE_PART
 
 #include <stdio.h>
 #include <time.h>
@@ -27,11 +29,8 @@ int main(int argc, char **argv)
 	struct InfectSource *IS=readISfromFile(originfilename);
 
 	//IS, NET, infectRate, loopNum
-	dnet_spread_touch_all(IS, dnet, 0.5, 20);
+	dnet_spread(IS, dnet, 0.9, 200);
 	//printf("spread steps: %d\n", spread);
-
-	//analysis dnet to get information you want.
-	//TODO
 
 	//free;
 	free(IS->vt);
