@@ -119,9 +119,6 @@ int dnet_spread_touch_all_core(struct InfectSource *IS, struct DirectNet *dNet, 
 		if (xNum>countE2) {
 			free(xVt);
 			xVt=malloc(xNum*sizeof(vttype));
-			//vttype *temp=realloc(xVt, xNum*sizeof(vttype));
-			//assert(temp!=NULL);
-			//if (temp!=NULL) xVt=temp;
 			countE2 = xNum;
 		}
 
@@ -233,6 +230,7 @@ int dnet_spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet,
 
 
 int dnet_spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum) {
+	printf("begin to spread:\n");
 	struct InfectSource *is = malloc(sizeof(struct InfectSource));
 	assert(is!=NULL);
 	is->num = 1;
@@ -277,6 +275,7 @@ int dnet_spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, doubl
 }
 
 int dnet_spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum) {
+	printf("begin to spread:\n");
 	struct InfectSource *is = malloc(sizeof(struct InfectSource));
 	assert(is!=NULL);
 	is->num = 1;
