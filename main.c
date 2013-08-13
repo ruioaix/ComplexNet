@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 	//read origin file, create IS;
 	struct InfectSource *IS=readISfromFile(originfilename);
 
+	//IS, NET, infectRate, loopNum
 	dnet_spread_touch_all(IS, dnet, 0.5, 20);
 	//printf("spread steps: %d\n", spread);
 
