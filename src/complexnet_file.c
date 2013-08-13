@@ -62,7 +62,7 @@ struct NetFile *readFileLBL(char *filename)
 		}
 	}
 	lineNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("read file %s lines: %d, Max: %d, Min: %d\n", filename, lineNum, maxId, minId); fflush(stdout);
+	printf("read file %s lines: %d\n\tMax: %d, Min: %d\n", filename, lineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
 	struct NetFile *file=malloc(sizeof(struct NetFile));
