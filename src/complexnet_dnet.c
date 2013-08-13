@@ -194,7 +194,6 @@ int dnet_spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet,
 			countE2 = xNum;
 		}
 
-
 		xNum=0;
 		idtype j, neigh;
 		double r, touchRate;
@@ -245,13 +244,14 @@ int dnet_spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, doubl
 	idtype i=0, k=0, R=0;
 	int j=0;
 	int spreadstepsNum=0;
-	struct DirectNet *dNet_c = createDNetFormDNet(dNet);
+	struct DirectNet *dNet_c = cloneDNet(dNet);
 	for (i=0; i<IS->num; ++i) {
 		is->vt[0] = IS->vt[i];
 		spreadstepsNum=0;
 		for( j=0; j<loopNum; ++j) {	
 			R=0;
-			cloneDNet(dNet_c, dNet);
+			//cloneDNet(dNet_c, dNet);
+			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
 			spreadstepsNum += dnet_spread_touch_all_core(is, dNet_c, infectRate);
 			for (k=0; k<dNet_c->maxId+1; ++k) {
 				if (dNet_c->status[k]==2) {
@@ -260,13 +260,13 @@ int dnet_spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, doubl
 			}
 			IR[j]=(double)R/(double)dNet_c->vtsNum;
 		}
-
+	
 		double sp=0, s2p=0;
 		for (j=0; j<loopNum; ++j) {
 			sp+=IR[j]/loopNum;
 			s2p+=IR[j]*IR[j]/loopNum;
 		}
-
+	
 		double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
 		printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", i, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
 	}
@@ -288,13 +288,14 @@ int dnet_spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, doub
 	idtype i=0, k=0, R=0;
 	int j=0;
 	int spreadstepsNum=0;
-	struct DirectNet *dNet_c = createDNetFormDNet(dNet);
+	struct DirectNet *dNet_c = cloneDNet(dNet);
 	for (i=0; i<IS->num; ++i) {
 		is->vt[0] = IS->vt[i];
 		spreadstepsNum=0;
 		for( j=0; j<loopNum; ++j) {	
 			R=0;
-			cloneDNet(dNet_c, dNet);
+			//cloneDNet(dNet_c, dNet);
+			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
 			spreadstepsNum += dnet_spread_touch_part_core(is, dNet_c, infectRate);
 			for (k=0; k<dNet_c->maxId+1; ++k) {
 				if (dNet_c->status[k]==2) {
@@ -303,23 +304,26 @@ int dnet_spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, doub
 			}
 			IR[j]=(double)R/(double)dNet_c->vtsNum;
 		}
-
+	
 		double sp=0, s2p=0;
 		for (j=0; j<loopNum; ++j) {
 			sp+=IR[j]/loopNum;
 			s2p+=IR[j]*IR[j]/loopNum;
 		}
-
+	
 		double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
 		printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", i, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
 	}
 	freeDNet(dNet_c);
+	free(is->vt);
+	free(is);
 	return 0;
+
 }
 
-struct DirectNet *createDNetFormDNet(struct DirectNet *dnet) {
+struct DirectNet *cloneDNet(struct DirectNet *dnet) {
 	struct DirectNet *dnet_c = malloc(sizeof(struct DirectNet));
-	assert(dnet_c != NULL);
+	assert(dnet!=NULL && dnet_c!=NULL);
 
 	dnet_c->maxId = dnet->maxId;
 	dnet_c->minId = dnet->minId;
@@ -329,42 +333,21 @@ struct DirectNet *createDNetFormDNet(struct DirectNet *dnet) {
 
 	dnet_c->count = malloc((dnet_c->maxId+1)*sizeof(linesnumtype));
 	assert(dnet_c->count != NULL);
+	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(linesnumtype));
 
 	dnet_c->status = malloc((dnet_c->maxId+1)*sizeof(char));
 	assert(dnet_c->status != NULL);
-	dnet_c->to = malloc((dnet_c->maxId+1)*sizeof(void *));
-	assert(dnet_c->to !=NULL);
-
-	idtype i=0;
-	for (i=0; i<dnet_c->maxId+1; ++i) {
-		if(dnet->count[i] > 0) {
-			dnet_c->to[i] = malloc(dnet->count[i]*sizeof(idtype));
-			assert(dnet_c->to[i]);
-		}
-	}
-
-	return dnet_c;
-}
-
-void cloneDNet(struct DirectNet *dnet_c, struct DirectNet *dnet) {
-	assert(dnet!=NULL && dnet_c!=NULL);
-
-	dnet_c->maxId = dnet->maxId;
-	dnet_c->minId = dnet->minId;
-	dnet_c->countMax = dnet->countMax;
-	dnet_c->edgesNum = dnet->edgesNum;
-	dnet_c->vtsNum = dnet->vtsNum;
-
-	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(linesnumtype));
-
 	memcpy(dnet_c->status, dnet->status, (dnet_c->maxId+1)*sizeof(char));
 
-	memcpy(dnet_c->to, dnet->to, (dnet_c->maxId+1)*sizeof(void *));
-
+	dnet_c->to = calloc(dnet_c->maxId+1, sizeof(void *));
+	assert(dnet_c->to !=NULL);
 	idtype i=0;
 	for (i=0; i<dnet_c->maxId+1; ++i) {
 		if(dnet->count[i] > 0) {
-			memcpy(dnet_c->to[i], dnet->to[i], dnet->count[i]*sizeof(idtype));
+			dnet_c->to[i] = malloc(dnet_c->count[i]*sizeof(idtype));
+			assert(dnet_c->to[i]);
+			memcpy(dnet_c->to[i], dnet->to[i], dnet_c->count[i]*sizeof(idtype));
 		}
 	}
+	return dnet_c;
 }

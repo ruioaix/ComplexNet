@@ -30,7 +30,6 @@ int dnet_spread_touch_part_core(struct InfectSource *IS, struct DirectNet *dNet,
 int dnet_spread_touch_all(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum);
 int dnet_spread_touch_part(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum);
 
-struct DirectNet *createDNetFormDNet(struct DirectNet *dnet);
-void cloneDNet(struct DirectNet *dnet_c, struct DirectNet *dnet);
+struct DirectNet *cloneDNet(struct DirectNet *dnet);
 
 #endif
