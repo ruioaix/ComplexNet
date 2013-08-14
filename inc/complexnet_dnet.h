@@ -24,9 +24,9 @@ struct DirectNet *buildDNet(struct NetFile *file);
 
 void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet);
 
-int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate);
+int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam);
 
-int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum);
+int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum);
 
 struct DirectNet *cloneDNet(struct DirectNet *dnet);
 

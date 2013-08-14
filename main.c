@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 
 	//argv,argc process;
 	char *datafilename="data/data";
-	char *originfilename="data/origin1";
+	char *originfilename="data/origin";
 	if (argc==2) datafilename=argv[1];
 	if (argc==3) {
 		datafilename=argv[1];
@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	struct InfectSource *IS=readISfromFile(originfilename);
 
 	//IS, NET, infectRate, loopNum
-	dnet_spread(IS, dnet, 0.9, 20);
+	dnet_spread(IS, dnet, 0.9, 0, 20);
 	//printf("spread steps: %d\n", spread);
 
 	//free;

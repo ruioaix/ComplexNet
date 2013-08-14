@@ -101,7 +101,7 @@ void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 }
 
 //0S,1I,2R
-int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate)
+int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam)
 {
 	buildIStoDNet(IS, dNet);
 	int spreadStep=0;
@@ -135,23 +135,17 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 		xNum=0;
 		vttype j, neigh;
 		double r; 
-#ifdef TOUCHTYPE_PART
 		double touchRate;
-#endif
 		//begin to try to spread.
 		for (i=0; i<oNum; ++i) {
 			vttype vt=oVt[i];
-#ifdef TOUCHTYPE_PART
-			touchRate=1/(double)pow(dNet->count[vt], 0.5);
-#endif
+			touchRate=1/(double)pow(dNet->count[vt], touchParam);
 			//I begin to spread to its neighbor
 			for (j=0; j<dNet->count[vt]; ++j) {
 				neigh=dNet->to[vt][j];
 				//only S neighbour need to try. if it's I/R, nothing to do.
-#ifdef TOUCHTYPE_PART
 				r=genrand_real1();
 				if (r<touchRate) {
-#endif
 					if (dNet->status[neigh] == 0) {
 						r=genrand_real1();
 						if (r<infectRate) {
@@ -159,9 +153,7 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 							xVt[xNum++]=neigh;
 						}
 					}
-#ifdef TOUCHTYPE_PART
 				}
-#endif
 			}
 			dNet->status[vt] = 2;
 		}
@@ -178,7 +170,7 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 	return spreadStep;
 }
 
-int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, int loopNum) {
+int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum) {
 	printf("begin to spread:\n");
 	struct InfectSource *is = malloc(sizeof(struct InfectSource));
 	assert(is!=NULL);
@@ -199,7 +191,7 @@ int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRa
 			R=0;
 			//cloneDNet(dNet_c, dNet);
 			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
-			spreadstepsNum += dnet_spread_core(is, dNet_c, infectRate);
+			spreadstepsNum += dnet_spread_core(is, dNet_c, infectRate, touchParam);
 			for (k=0; k<dNet_c->maxId+1; ++k) {
 				if (dNet_c->status[k]==2) {
 					++R;
