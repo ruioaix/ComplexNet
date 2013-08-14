@@ -23,7 +23,7 @@
 //#include "complexnet_sort.h"
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
-#define LINE_LENGTH_MAX 10000
+#define LINE_LENGTH_MAX 100000
 //LINES_LENGTH_EACH is the stepLength. 
 //now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
 //if a file contans 1e8 lines, malloc will be called ten times.
@@ -55,6 +55,11 @@ struct InfectSource {
 	vttype *vt;
 };
 
+struct InfectSourceFile {
+	int ISsNum;
+	struct InfectSource *ISs;
+};
+
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file into a struct LineInfo object.
 void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId);
@@ -67,6 +72,7 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId)
 //output is struct NetFile.
 struct NetFile *readFileLBL(char *filename);
 
-struct InfectSource *readISfromFile(char *filename);
+struct InfectSourceFile *readISfromFile(char *filename);
+struct InfectSource fillISfromLine(char *line);
 
 #endif

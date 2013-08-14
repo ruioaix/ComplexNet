@@ -77,7 +77,7 @@ struct NetFile *readFileLBL(char *filename)
 
 
 //read file to 
-struct InfectSource *readISfromFile(char *filename)
+struct InfectSourceFile *readISfromFile(char *filename)
 {
 	//open file
 	FILE *fp=fopen(filename,"r");
@@ -86,7 +86,7 @@ struct InfectSource *readISfromFile(char *filename)
 	fpos_t file_position;
 	fgetpos(fp, &file_position);
 
-	struct InfectSource *isfile=malloc(sizeof(struct InfectSource));
+	struct InfectSourceFile *isfile=malloc(sizeof(struct InfectSourceFile));
 	assert(isfile!=NULL);
 
 	char line[LINE_LENGTH_MAX];
@@ -96,24 +96,56 @@ struct InfectSource *readISfromFile(char *filename)
 	}
 	assert(line_Num!=0);
 
-	isfile->vt=malloc(line_Num*sizeof(vttype));
-	assert(isfile->vt!=NULL);
+	isfile->ISs = calloc(line_Num, sizeof(struct InfectSource));
+	assert(isfile->ISs!=NULL);
 
 	fsetpos(fp, &file_position);
 	int linesNum=0;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		char *delimiter="\t, ";
-		char *partsLine;
-		partsLine=strtok(line, delimiter);
-		assert(partsLine!=NULL);
-		char *pEnd;
-		isfile->vt[linesNum++]=strtol(partsLine, &pEnd, 10);
-		//printf("%d\n", pEnd[0]);
-		assert(pEnd[0]=='\0' || pEnd[0]=='\n' || pEnd[0]=='\r');
+		struct InfectSource is = fillISfromLine(line);
+		if (is.num!=0) {
+			isfile->ISs[linesNum++]=is;
+		}
 	}
 	fclose(fp);
-	isfile->num=linesNum;
+	isfile->ISsNum=linesNum;
 	assert(linesNum!=0);
 
 	return isfile;
+}
+
+struct InfectSource fillISfromLine(char *line) {
+	struct InfectSource is;
+	int isMax=10000;
+	char *delimiter="\t, \r\n";
+	char **partsLine = calloc(isMax, sizeof(void *));
+	partsLine[0]=strtok(line, delimiter);
+	if (partsLine[0]==NULL) {
+		is.num = 0;
+		return is;
+	}
+	vttype i=1;
+	while((partsLine[i++]=strtok(NULL, delimiter))) {
+		if (i==isMax) {
+			isMax += 5000;
+			char **temp = realloc(partsLine, isMax*sizeof(void *));
+			assert(temp!=NULL);
+			partsLine=temp;
+		}
+	}
+
+	vttype num=i-1;
+	vttype *vt=malloc(num*sizeof(vttype));
+	vttype j=0;
+	char *pEnd;
+	for (j=0; j<num; ++j) {
+		vt[j]=strtol(partsLine[j], &pEnd, 10);
+		assert(pEnd[0]=='\0');
+	}
+
+	free(partsLine);
+
+	is.num=num;
+	is.vt=vt;
+	return is;
 }

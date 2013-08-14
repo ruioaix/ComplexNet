@@ -23,14 +23,23 @@ int main(int argc, char **argv)
 	struct DirectNet *dnet=buildDNet(file);
 
 	//read origin file, create IS;
-	struct InfectSource *IS=readISfromFile(originfilename);
+	struct InfectSourceFile *IS=readISfromFile(originfilename);
+	int i;
+	vttype j;
+	for (i=0; i<IS->ISsNum; ++i) {
+		vttype num=IS->ISs[i].num;
+		for (j=0; j<num; ++j) {
+			printf("%d, ",IS->ISs[i].vt[j]);
+		}
+		printf("\n");
+	}
 
 	//IS, NET, infectRate, loopNum
-	dnet_spread(IS, dnet, 0.9, 0, 20);
+	//dnet_spread(ISs, dnet, 0.9, 0, 20);
 	//printf("spread steps: %d\n", spread);
 
 	//free;
-	free(IS->vt);
+	//free(IS->vt);
 	free(IS);
 	free(file->lines);
 	free(file);
