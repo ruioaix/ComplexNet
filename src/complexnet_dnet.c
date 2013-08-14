@@ -101,41 +101,24 @@ void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 }
 
 //0S,1I,2R
+// simple IS, clean dNet. just one spread.
 int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam)
 {
 	buildIStoDNet(IS, dNet);
-	int spreadStep=0;
-	int countE2=1000000;
-	if (IS->num > countE2) {
-		countE2 = IS->num;
-	}
-	vttype *oVt=malloc(countE2*sizeof(vttype));
-	vttype *xVt=malloc(countE2*sizeof(vttype));
+
+	vttype *oVt=malloc(dNet->maxId*sizeof(vttype));
+	assert(IS->num<=dNet->maxId);
 	memcpy(oVt, IS->vt, IS->num*sizeof(vttype));
 	vttype oNum=IS->num;
+
+	vttype *xVt=malloc(dNet->maxId*sizeof(vttype));
 	vttype xNum;
 
+	int spreadStep=0;
 	while(oNum>0) {
-
 		xNum=0;
-		vttype i;
-		//judge how many vt need to be try spread.
-		for (i=0; i<oNum; ++i) {
-			xNum+=dNet->count[oVt[i]];
-		}
-		//printf("xNum: %d\n", xNum);
-		if (xNum==0) break; 
-		if (xNum>countE2) {
-			free(xVt);
-			xVt=malloc(xNum*sizeof(vttype));
-			countE2 = xNum;
-		}
-
-
-		xNum=0;
-		vttype j, neigh;
-		double r; 
-		double touchRate;
+		vttype i, j, neigh;
+		double r, touchRate;
 		//begin to try to spread.
 		for (i=0; i<oNum; ++i) {
 			vttype vt=oVt[i];
