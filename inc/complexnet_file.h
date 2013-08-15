@@ -70,11 +70,11 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId)
 //this function can handle file with arbitrary size, the only limit you need to think about is physical memory in your PC.
 //input is filename.
 //output is struct NetFile.
-struct NetFile *readFileLBL(char *filename);
+struct NetFile *readFileLBL(const char * const filename);
 void freeNetFile(struct NetFile *file);
 
 void freeISFile(struct InfectSourceFile *file);
-struct InfectSourceFile *readISfromFile(char *filename);
+struct InfectSourceFile *readISfromFile(const char * const filename);
 struct InfectSource fillISfromLine(char *line);
 
 #endif

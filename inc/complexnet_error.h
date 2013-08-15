@@ -10,8 +10,8 @@
 //for exit & EXIT_FAILURE
 #include <stdlib.h>
 
-void fileError(FILE *fp, char *filename);
+void fileError(FILE *fp, const char * const filename);
 void memError(void *p, char *errormsg);
-void isError(char *errormsg);
+void isError(const char * const errormsg);
 
 #endif

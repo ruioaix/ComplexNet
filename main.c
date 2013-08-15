@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 		originfilename=argv[2];
 	}
 	else if (argc>3) {
-		isError("two much args");
+		isError("two much args.\n");
 	}
 	
 

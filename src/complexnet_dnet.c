@@ -13,7 +13,7 @@ void freeDNet(struct DirectNet *dnet) {
 	free(dnet);
 }
 
-struct DirectNet *buildDNet(struct NetFile *file) {
+struct DirectNet *buildDNet(const struct NetFile * const file) {
 	vttype maxId=file->maxId;
 	vttype minId=file->minId;
 	edtype linesNum=file->linesNum;
@@ -82,12 +82,13 @@ struct DirectNet *buildDNet(struct NetFile *file) {
 	return dnet;
 }
 
-void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
+void buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) {
 	vttype i=0;
 	int sign=0;
 	for (i=0; i<is->num; ++i) {
 		vttype isvt=is->vt[i];
-		if (isvt > dnet->maxId) {
+		vttype count=dnet->count[isvt];
+		if (isvt > dnet->maxId || count == 0) {
 			printf("InfectSource %d is not existed in the net, ignored.\n", isvt);
 			continue;
 		}
@@ -95,23 +96,25 @@ void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet) {
 		++sign;
 	}
 	if (!sign) {
-		printf("no InfectSource existed in the net.");
+		printf("no InfectSource existed in the net.\n");
 		exit(-1);
 	}
 }
 
 //0S,1I,2R
 // simple IS, clean dNet. just one spread.
-int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam)
+int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam)
 {
 	buildIStoDNet(IS, dNet);
 
-	vttype *oVt=malloc(dNet->maxId*sizeof(vttype));
+	vttype *oVt=malloc((dNet->maxId+1)*sizeof(vttype));
+	assert(oVt!=NULL);
 	assert(IS->num<=dNet->maxId);
 	memcpy(oVt, IS->vt, IS->num*sizeof(vttype));
 	vttype oNum=IS->num;
 
-	vttype *xVt=malloc(dNet->maxId*sizeof(vttype));
+	vttype *xVt=malloc((dNet->maxId+1)*sizeof(vttype));
+	assert(xVt!=NULL);
 	vttype xNum;
 
 	int spreadStep=0;
@@ -141,9 +144,7 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 			dNet->status[vt] = 2;
 		}
 
-		vttype *temp = oVt;
-		oVt = xVt;
-		xVt = temp;
+		vttype *temp = oVt; oVt = xVt; xVt = temp;
 		oNum=xNum;
 		++spreadStep;
 	}
@@ -153,12 +154,9 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 	return spreadStep;
 }
 
-int dnet_spread(struct InfectSourceFile *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum) {
+int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum) {
 	printf("begin to spread:\n");
 	struct InfectSource is;
-	//is->num = 1;
-	//is->vt = malloc((dNet->maxId+1)*sizeof(vttype));
-	//assert(is->vt!=NULL);
 
 	double IR[loopNum];
 
@@ -167,13 +165,10 @@ int dnet_spread(struct InfectSourceFile *IS, struct DirectNet *dNet, double infe
 	int spreadstepsNum=0;
 	struct DirectNet *dNet_c = cloneDNet(dNet);
 	for (i=0; i<IS->ISsNum; ++i) {
-		//is->num = IS->ISs[i].num;
-		//is->vt[0] = IS->vt[i];
 		is=IS->lines[i];
 		spreadstepsNum=0;
 		for( j=0; j<loopNum; ++j) {	
 			R=0;
-			//cloneDNet(dNet_c, dNet);
 			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
 			spreadstepsNum += dnet_spread_core(&is, dNet_c, infectRate, touchParam);
 			for (k=0; k<dNet_c->maxId+1; ++k) {
@@ -183,23 +178,21 @@ int dnet_spread(struct InfectSourceFile *IS, struct DirectNet *dNet, double infe
 			}
 			IR[j]=(double)R/(double)dNet_c->vtsNum;
 		}
-	
+
 		double sp=0, s2p=0;
 		for (j=0; j<loopNum; ++j) {
 			sp+=IR[j]/loopNum;
 			s2p+=IR[j]*IR[j]/loopNum;
 		}
-	
 		double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+
 		printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", i, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
 	}
 	freeDNet(dNet_c);
-	//free(is->vt);
-	//free(is);
 	return 0;
 }
 
-struct DirectNet *cloneDNet(struct DirectNet *dnet) {
+struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
 	struct DirectNet *dnet_c = malloc(sizeof(struct DirectNet));
 	assert(dnet!=NULL && dnet_c!=NULL);
 

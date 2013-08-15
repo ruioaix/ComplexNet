@@ -20,14 +20,14 @@ struct DirectNet{
 enum touchtype {all=0, part=1};
 
 void freeDNet(struct DirectNet *dnet);
-struct DirectNet *buildDNet(struct NetFile *file);
+struct DirectNet *buildDNet(const struct NetFile * const file);
 
-void buildIStoDNet(struct InfectSource *is, struct DirectNet *dnet);
+void buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet);
 
-int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam);
+int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam);
 
-int dnet_spread(struct InfectSourceFile *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum);
+int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 
-struct DirectNet *cloneDNet(struct DirectNet *dnet);
+struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
 
 #endif

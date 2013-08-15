@@ -1,6 +1,6 @@
 #include "../inc/complexnet_error.h"
 
-void fileError(FILE *fp, char *filename)
+void fileError(FILE *fp, const char * const filename)
 {
 	if (fp==NULL) {
 		perror(filename);
@@ -16,7 +16,7 @@ void memError(void *p, char *errormsg)
 	}
 }
 
-void isError(char *errormsg)
+void isError(const char * const errormsg)
 {
 	fprintf(stderr, "error: %s\n", errormsg);
 	exit(EXIT_FAILURE);

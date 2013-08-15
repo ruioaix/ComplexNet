@@ -38,7 +38,7 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *vtMaxId, vttype *vtMi
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct NetFile *readFileLBL(char *filename)
+struct NetFile *readFileLBL(const char * const filename)
 {
 	//open file
 	FILE *fp=fopen(filename,"r");
@@ -95,7 +95,7 @@ void freeISFile(struct InfectSourceFile *file) {
 }
 
 //read file to 
-struct InfectSourceFile *readISfromFile(char *filename)
+struct InfectSourceFile *readISfromFile(const char * const filename)
 {
 	//open file
 	FILE *fp=fopen(filename,"r");
