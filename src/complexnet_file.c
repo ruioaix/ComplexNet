@@ -1,5 +1,13 @@
 #include "../inc/complexnet_file.h"
 
+//
+void freeNetFile(struct NetFile *file) {
+	if(file != NULL) {
+		free(file->lines);
+		free(file);
+	}
+}
+
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
 void fillLineInfo(char *line, struct LineInfo *LI, vttype *vtMaxId, vttype *vtMinId)
 {
@@ -75,6 +83,16 @@ struct NetFile *readFileLBL(char *filename)
 	return file;
 }
 
+void freeISFile(struct InfectSourceFile *file) {
+	int i;
+	if (file != NULL) {
+		for(i=0; i<file->ISsNum; ++i) {
+			free(file->lines[i].vt);
+		}
+		free(file->lines);
+		free(file);
+	}
+}
 
 //read file to 
 struct InfectSourceFile *readISfromFile(char *filename)
@@ -96,15 +114,15 @@ struct InfectSourceFile *readISfromFile(char *filename)
 	}
 	assert(line_Num!=0);
 
-	isfile->ISs = calloc(line_Num, sizeof(struct InfectSource));
-	assert(isfile->ISs!=NULL);
+	isfile->lines = calloc(line_Num, sizeof(struct InfectSource));
+	assert(isfile->lines!=NULL);
 
 	fsetpos(fp, &file_position);
 	int linesNum=0;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		struct InfectSource is = fillISfromLine(line);
 		if (is.num!=0) {
-			isfile->ISs[linesNum++]=is;
+			isfile->lines[linesNum++]=is;
 		}
 	}
 	fclose(fp);

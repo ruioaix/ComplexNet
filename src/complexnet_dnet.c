@@ -153,13 +153,12 @@ int dnet_spread_core(struct InfectSource *IS, struct DirectNet *dNet, double inf
 	return spreadStep;
 }
 
-int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum) {
+int dnet_spread(struct InfectSourceFile *IS, struct DirectNet *dNet, double infectRate, double touchParam, int loopNum) {
 	printf("begin to spread:\n");
-	struct InfectSource *is = malloc(sizeof(struct InfectSource));
-	assert(is!=NULL);
-	is->num = 1;
-	is->vt = malloc(sizeof(vttype));
-	assert(is->vt!=NULL);
+	struct InfectSource is;
+	//is->num = 1;
+	//is->vt = malloc((dNet->maxId+1)*sizeof(vttype));
+	//assert(is->vt!=NULL);
 
 	double IR[loopNum];
 
@@ -167,14 +166,16 @@ int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRa
 	int j=0;
 	int spreadstepsNum=0;
 	struct DirectNet *dNet_c = cloneDNet(dNet);
-	for (i=0; i<IS->num; ++i) {
-		is->vt[0] = IS->vt[i];
+	for (i=0; i<IS->ISsNum; ++i) {
+		//is->num = IS->ISs[i].num;
+		//is->vt[0] = IS->vt[i];
+		is=IS->lines[i];
 		spreadstepsNum=0;
 		for( j=0; j<loopNum; ++j) {	
 			R=0;
 			//cloneDNet(dNet_c, dNet);
 			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
-			spreadstepsNum += dnet_spread_core(is, dNet_c, infectRate, touchParam);
+			spreadstepsNum += dnet_spread_core(&is, dNet_c, infectRate, touchParam);
 			for (k=0; k<dNet_c->maxId+1; ++k) {
 				if (dNet_c->status[k]==2) {
 					++R;
@@ -193,8 +194,8 @@ int dnet_spread(struct InfectSource *IS, struct DirectNet *dNet, double infectRa
 		printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", i, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
 	}
 	freeDNet(dNet_c);
-	free(is->vt);
-	free(is);
+	//free(is->vt);
+	//free(is);
 	return 0;
 }
 

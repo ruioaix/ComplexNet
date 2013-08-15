@@ -11,12 +11,16 @@ int main(int argc, char **argv)
 
 	//argv,argc process;
 	char *datafilename="data/data";
-	char *originfilename="data/origin";
+	char *originfilename="data/origin1";
 	if (argc==2) datafilename=argv[1];
-	if (argc==3) {
+	else if (argc==3) {
 		datafilename=argv[1];
 		originfilename=argv[2];
 	}
+	else if (argc>3) {
+		isError("two much args");
+	}
+	
 
 	//read data file, create net;
 	struct NetFile *file=readFileLBL(datafilename);
@@ -24,25 +28,14 @@ int main(int argc, char **argv)
 
 	//read origin file, create IS;
 	struct InfectSourceFile *IS=readISfromFile(originfilename);
-	int i;
-	vttype j;
-	for (i=0; i<IS->ISsNum; ++i) {
-		vttype num=IS->ISs[i].num;
-		for (j=0; j<num; ++j) {
-			printf("%d, ",IS->ISs[i].vt[j]);
-		}
-		printf("\n");
-	}
 
-	//IS, NET, infectRate, loopNum
-	//dnet_spread(ISs, dnet, 0.9, 0, 20);
-	//printf("spread steps: %d\n", spread);
+	//ISs, NET, infectRate, loopNum
+	dnet_spread(IS, dnet, 0.9, 0, 20);
 
 	//free;
 	//free(IS->vt);
-	free(IS);
-	free(file->lines);
-	free(file);
+	freeISFile(IS);
+	freeNetFile(file);
 	freeDNet(dnet);
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);

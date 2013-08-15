@@ -57,7 +57,7 @@ struct InfectSource {
 
 struct InfectSourceFile {
 	int ISsNum;
-	struct InfectSource *ISs;
+	struct InfectSource *lines;
 };
 
 //the following two functions is for reading file. 
@@ -71,7 +71,9 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId)
 //input is filename.
 //output is struct NetFile.
 struct NetFile *readFileLBL(char *filename);
+void freeNetFile(struct NetFile *file);
 
+void freeISFile(struct InfectSourceFile *file);
 struct InfectSourceFile *readISfromFile(char *filename);
 struct InfectSource fillISfromLine(char *line);
 
