@@ -23,18 +23,18 @@ int main(int argc, char **argv)
 	
 
 	//read data file, create net;
-	struct NetFile *file=readFileLBL(datafilename);
+	struct NetFile *file=readNetFile(datafilename);
 	struct DirectNet *dnet=buildDNet(file);
 
 	//read origin file, create IS;
-	struct InfectSourceFile *IS=readISfromFile(originfilename);
+	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
 	//ISs, NET, infectRate, loopNum
-	dnet_spread(IS, dnet, 0.9, 0, 20);
+	dnet_spread(ISs, dnet, 0.9, 0, 20);
 
 	//free;
 	//free(IS->vt);
-	freeISFile(IS);
+	freeISFile(ISs);
 	freeNetFile(file);
 	freeDNet(dnet);
 	//printf end time;

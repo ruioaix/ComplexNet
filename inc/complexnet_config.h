@@ -9,3 +9,4 @@
 //if define TOUCHTYPE_PART, touchtype will be part type.
 //if not define TOUCHTYPE_PART, touchtype will be all type.
 #define TOUCHTYPE_PART
+

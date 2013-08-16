@@ -9,23 +9,42 @@ void freeNetFile(struct NetFile *file) {
 }
 
 //basically, for different line styled file, I only need to change this function and struct LineInfo.
-void fillLineInfo(char *line, struct LineInfo *LI, vttype *vtMaxId, vttype *vtMinId)
+void fillNetLineInfo(char *line, struct LineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId)
 {
+	static edtype fillNetLineInfo_call_count = 0;
+	++fillNetLineInfo_call_count;
+	edtype lineNum = *lNum+(each-1)*LINES_LENGTH_EACH;
+	struct LineInfo *LI = LI_origin+lineNum;
+
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
-	char *delimiter="\t, ";
+	char *delimiter="\t, \r\n";
 	char *partsLine[2];
 	partsLine[0]=strtok(line, delimiter);
-	assert(partsLine[0]!=NULL);
+	if (partsLine[0]==NULL) {
+		printf("\tline %d not valid, ignored (looks like a blank line).\n", fillNetLineInfo_call_count);
+		return;
+	}
 	partsLine[1]=strtok(NULL, delimiter);
-	assert(partsLine[1]!=NULL);
+	if (partsLine[1]==NULL) {
+		printf("\tline %d not valid, ignored (looks like only one number)\n", fillNetLineInfo_call_count);
+		return;
+	}
 
 	//transfor parts to num(double or int);
 	char *pEnd;
 	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
-	assert(pEnd[0]=='\0');
+	if (pEnd[0]!='\0') {
+		printf("\tline %d not valid, ignored (looks like contain some char which is not number).\n", fillNetLineInfo_call_count);
+		return;
+	}
 	LI->vt2Id=strtol(partsLine[1], &pEnd, 10);
-	assert(pEnd[0]=='\0' || pEnd[0]=='\n' || pEnd[0]=='\r');
+	if (pEnd[0]!='\0') {
+		printf("\tline %d  not valid, ignored (looks like contain some char which is not number).\n", fillNetLineInfo_call_count);
+		return;
+	}
+
+	++(*lNum);
 
 	//max/min Id
 	if (LI->vt1Id>LI->vt2Id) {
@@ -38,8 +57,9 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *vtMaxId, vttype *vtMi
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct NetFile *readFileLBL(const char * const filename)
+struct NetFile *readNetFile(const char * const filename)
 {
+	printf("read file %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -49,6 +69,7 @@ struct NetFile *readFileLBL(const char * const filename)
 	assert(LinesInfo!=NULL);
 
 	edtype lineNum=0;
+	edtype filelineNum=0;
 	vttype maxId=-1;
 	vttype minId=INT_MAX;
 
@@ -56,21 +77,20 @@ struct NetFile *readFileLBL(const char * const filename)
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		if (lineNum<LINES_LENGTH_EACH) {
-			fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, &maxId, &minId);
-			++lineNum;
+			fillNetLineInfo(line, LinesInfo, &lineNum, each, &maxId, &minId);
 		} else {
 			++each;
-			printf("read file %s lines: %d\r", filename, (each-1)*LINES_LENGTH_EACH); fflush(stdout);
+			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
 			struct LineInfo *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct LineInfo));
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			lineNum=0;
-			fillLineInfo(line, LinesInfo+lineNum+(each-1)*LINES_LENGTH_EACH, &maxId, &minId);
-			++lineNum;
+			fillNetLineInfo(line, LinesInfo, &lineNum, each, &maxId, &minId);
 		}
+		++filelineNum;
 	}
 	lineNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("read file %s lines: %d\n\tMax: %d, Min: %d\n", filename, lineNum, maxId, minId); fflush(stdout);
+	printf("\tread valid lines: %d, file lines: %d\n\tMax: %d, Min: %d\n", lineNum, filelineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
 	struct NetFile *file=malloc(sizeof(struct NetFile));
@@ -95,7 +115,7 @@ void freeISFile(struct InfectSourceFile *file) {
 }
 
 //read file to 
-struct InfectSourceFile *readISfromFile(const char * const filename)
+struct InfectSourceFile *readAllISfromFile(const char * const filename)
 {
 	//open file
 	FILE *fp=fopen(filename,"r");

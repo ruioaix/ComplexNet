@@ -62,7 +62,7 @@ struct InfectSourceFile {
 
 //the following two functions is for reading file. 
 //fillLineInfo fill a line from a file into a struct LineInfo object.
-void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId);
+void fillNetLineInfo(char *line, struct LineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId);
 //for each line, readFileLBL call fillLineInfo to fill the LineInfo.
 //when finish, you get the linesNum, maxId, minId and all information in LineInfo.
 //for lines containing different partNum, you only need to modify LineInfo and fillLineInfo.
@@ -70,11 +70,11 @@ void fillLineInfo(char *line, struct LineInfo *LI, vttype *maxId, vttype *minId)
 //this function can handle file with arbitrary size, the only limit you need to think about is physical memory in your PC.
 //input is filename.
 //output is struct NetFile.
-struct NetFile *readFileLBL(const char * const filename);
+struct NetFile *readNetFile(const char * const filename);
 void freeNetFile(struct NetFile *file);
 
 void freeISFile(struct InfectSourceFile *file);
-struct InfectSourceFile *readISfromFile(const char * const filename);
+struct InfectSourceFile *readAllISfromFile(const char * const filename);
 struct InfectSource fillISfromLine(char *line);
 
 #endif
