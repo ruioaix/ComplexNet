@@ -17,7 +17,7 @@ struct DirectNet *buildDNet(const struct NetFile * const file) {
 	vttype maxId=file->maxId;
 	vttype minId=file->minId;
 	edtype linesNum=file->linesNum;
-	struct LineInfo *lines=file->lines;
+	struct NetLineInfo *lines=file->lines;
 
 	edtype *count=calloc(maxId+1, sizeof(edtype));
 	char *status=calloc(maxId+1, sizeof(char));

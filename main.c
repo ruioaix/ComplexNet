@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <time.h>
-#include "inc/complexnet_config.h" //for config
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
 

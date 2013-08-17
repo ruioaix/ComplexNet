@@ -8,13 +8,14 @@ void freeNetFile(struct NetFile *file) {
 	}
 }
 
-//basically, for different line styled file, I only need to change this function and struct LineInfo.
-void fillNetLineInfo(char *line, struct LineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId)
+//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+void fillNetLineInfo(char *line, struct NetLineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId)
 {
 	static edtype fillNetLineInfo_call_count = 0;
 	++fillNetLineInfo_call_count;
+
 	edtype lineNum = *lNum+(each-1)*LINES_LENGTH_EACH;
-	struct LineInfo *LI = LI_origin+lineNum;
+	struct NetLineInfo *LI = LI_origin+lineNum;
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
@@ -30,7 +31,6 @@ void fillNetLineInfo(char *line, struct LineInfo *LI_origin,  edtype *lNum, int 
 		printf("\tline %d not valid, ignored (looks like only one number)\n", fillNetLineInfo_call_count);
 		return;
 	}
-
 	//transfor parts to num(double or int);
 	char *pEnd;
 	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
@@ -59,13 +59,13 @@ void fillNetLineInfo(char *line, struct LineInfo *LI_origin,  edtype *lNum, int 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct NetFile *readNetFile(const char * const filename)
 {
-	printf("read file %s: \n", filename);
+	printf("read Net file %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	struct LineInfo *LinesInfo=NULL;
-	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct LineInfo));
+	struct NetLineInfo *LinesInfo=NULL;
+	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct NetLineInfo));
 	assert(LinesInfo!=NULL);
 
 	edtype lineNum=0;
@@ -81,7 +81,7 @@ struct NetFile *readNetFile(const char * const filename)
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
-			struct LineInfo *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct LineInfo));
+			struct NetLineInfo *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct NetLineInfo));
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			lineNum=0;
@@ -117,6 +117,7 @@ void freeISFile(struct InfectSourceFile *file) {
 //read file to 
 struct InfectSourceFile *readAllISfromFile(const char * const filename)
 {
+	printf("read IS file %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -128,13 +129,13 @@ struct InfectSourceFile *readAllISfromFile(const char * const filename)
 	assert(isfile!=NULL);
 
 	char line[LINE_LENGTH_MAX];
-	int line_Num=0;
+	int filelines=0;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		line_Num++;
+		++filelines;
 	}
-	assert(line_Num!=0);
+	assert(filelines!=0);
 
-	isfile->lines = calloc(line_Num, sizeof(struct InfectSource));
+	isfile->lines = calloc(filelines, sizeof(struct InfectSource));
 	assert(isfile->lines!=NULL);
 
 	fsetpos(fp, &file_position);
@@ -148,22 +149,34 @@ struct InfectSourceFile *readAllISfromFile(const char * const filename)
 	fclose(fp);
 	isfile->ISsNum=linesNum;
 	assert(linesNum!=0);
+	printf("\ttotally %d groups of IS, file lines: %d\n", linesNum, filelines);
 
 	return isfile;
 }
 
 struct InfectSource fillISfromLine(char *line) {
+	static vttype fillISfromLine_call_count = 0;
+	++fillISfromLine_call_count;
+
 	struct InfectSource is;
+
+	if (strlen(line) == LINE_LENGTH_MAX-1) {
+		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, \n", fillISfromLine_call_count, LINE_LENGTH_MAX-1);
+		is.num = 0;
+		return is;
+	}
+
 	int isMax=10000;
 	char *delimiter="\t, \r\n";
 	char **partsLine = calloc(isMax, sizeof(void *));
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		is.num = 0;
+		printf("\tline %d not valid, ignored (looks like a blank line).\n", fillISfromLine_call_count);
 		return is;
 	}
-	vttype i=1;
-	while((partsLine[i++]=strtok(NULL, delimiter))) {
+	vttype i=0;
+	while((partsLine[++i]=strtok(NULL, delimiter))) {
 		if (i==isMax) {
 			isMax += 5000;
 			char **temp = realloc(partsLine, isMax*sizeof(void *));
@@ -172,13 +185,18 @@ struct InfectSource fillISfromLine(char *line) {
 		}
 	}
 
-	vttype num=i-1;
+	vttype num=i;
 	vttype *vt=malloc(num*sizeof(vttype));
 	vttype j=0;
 	char *pEnd;
 	for (j=0; j<num; ++j) {
 		vt[j]=strtol(partsLine[j], &pEnd, 10);
-		assert(pEnd[0]=='\0');
+		if (pEnd[0]!='\0') {
+			free(vt);
+			is.num = 0;
+			printf("\tline %d not valid, ignored (looks like contain some char which is not number).\n", fillISfromLine_call_count);
+			return is;
+		}
 	}
 
 	free(partsLine);
