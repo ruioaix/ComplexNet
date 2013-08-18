@@ -11,8 +11,14 @@ void freeNetFile(struct NetFile *file) {
 //basically, for different line styled file, I only need to change this function and struct NetLineInfo.
 void fillNetLineInfo(char *line, struct NetLineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId)
 {
+
 	static edtype fillNetLineInfo_call_count = 0;
 	++fillNetLineInfo_call_count;
+
+	if (strlen(line) == LINE_LENGTH_MAX-1) {
+		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fillNetLineInfo_call_count, LINE_LENGTH_MAX-1);
+		return;
+	}
 
 	edtype lineNum = *lNum+(each-1)*LINES_LENGTH_EACH;
 	struct NetLineInfo *LI = LI_origin+lineNum;
@@ -35,12 +41,12 @@ void fillNetLineInfo(char *line, struct NetLineInfo *LI_origin,  edtype *lNum, i
 	char *pEnd;
 	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %d not valid, ignored (looks like contain some char which is not number).\n", fillNetLineInfo_call_count);
+		printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillNetLineInfo_call_count, pEnd[0]);
 		return;
 	}
 	LI->vt2Id=strtol(partsLine[1], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %d  not valid, ignored (looks like contain some char which is not number).\n", fillNetLineInfo_call_count);
+		printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillNetLineInfo_call_count, pEnd[0]);
 		return;
 	}
 
@@ -162,7 +168,7 @@ struct InfectSource fillISfromLine(char *line) {
 	struct InfectSource is;
 
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
-		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, \n", fillISfromLine_call_count, LINE_LENGTH_MAX-1);
+		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fillISfromLine_call_count, LINE_LENGTH_MAX-1);
 		is.num = 0;
 		return is;
 	}
