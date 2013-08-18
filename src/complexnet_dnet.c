@@ -82,30 +82,38 @@ struct DirectNet *buildDNet(const struct NetFile * const file) {
 	return dnet;
 }
 
-void buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) {
+int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) {
 	vttype i=0;
 	int sign=0;
 	for (i=0; i<is->num; ++i) {
 		vttype isvt=is->vt[i];
 		vttype count=dnet->count[isvt];
 		if (isvt > dnet->maxId || count == 0) {
-			printf("InfectSource %d is not existed in the net, ignored.\n", isvt);
-			continue;
+			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->ISId, isvt);
+			return -2;
+		}
+		if (dnet->status[isvt] == 1) {
+			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->ISId, isvt);
+			return -3;
 		}
 		dnet->status[isvt] = 1;
 		++sign;
 	}
 	if (!sign) {
-		printf("no InfectSource existed in the net.\n");
-		exit(-1);
+		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->ISId);
+		return -1;
 	}
+	return 0;
 }
 
 //0S,1I,2R
 // simple IS, clean dNet. just one spread.
 int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam)
 {
-	buildIStoDNet(IS, dNet);
+	int buildistodent_sign = buildIStoDNet(IS, dNet);
+	if (buildistodent_sign<0) {
+		return buildistodent_sign;
+	}
 
 	vttype *oVt=malloc((dNet->maxId+1)*sizeof(vttype));
 	assert(oVt!=NULL);
@@ -171,12 +179,25 @@ int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet
 			R=0;
 			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
 			spreadstepsNum += dnet_spread_core(&is, dNet_c, infectRate, touchParam);
+			if (spreadstepsNum < 0) {
+				break;
+			}
 			for (k=0; k<dNet_c->maxId+1; ++k) {
 				if (dNet_c->status[k]==2) {
 					++R;
 				}
 			}
 			IR[j]=(double)R/(double)dNet_c->vtsNum;
+		}
+
+		if (spreadstepsNum == -1) {
+			continue;
+		}
+		else if (spreadstepsNum == -2) {
+			continue;
+		}
+		else if (spreadstepsNum == -3) {
+			continue;
 		}
 
 		double sp=0, s2p=0;
@@ -186,7 +207,7 @@ int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet
 		}
 		double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
 
-		printf("%d\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", i, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
+		printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", is.ISId, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
 	}
 	freeDNet(dNet_c);
 	return 0;

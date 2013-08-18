@@ -58,6 +58,7 @@ struct NetFile *readNetFile(const char * const filename);
 
 //for is file
 struct InfectSource {
+	int ISId;
 	vttype num;
 	vttype *vt;
 };

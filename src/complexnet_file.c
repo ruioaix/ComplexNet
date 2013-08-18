@@ -143,6 +143,7 @@ struct InfectSourceFile *readAllISfromFile(const char * const filename)
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		struct InfectSource is = fillISfromLine(line);
 		if (is.num!=0) {
+			is.ISId=linesNum;
 			isfile->lines[linesNum++]=is;
 		}
 	}

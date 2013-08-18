@@ -22,7 +22,7 @@ enum touchtype {all=0, part=1};
 void freeDNet(struct DirectNet *dnet);
 struct DirectNet *buildDNet(const struct NetFile * const file);
 
-void buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet);
+int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet);
 
 int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam);
 
