@@ -108,13 +108,22 @@ int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) 
 
 //0S,1I,2R
 // simple IS, clean dNet. 
-int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
+//int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
+void *dnet_spread_core(void *args_void)
 {
+	struct DNetSpreadCoreArgs *args = args_void;
+	struct DirectNet *dNet_origin = args->dNet;
+	struct InfectSource *IS = args->IS;
+	double infectRate = args->infectRate;
+	double touchParam = args->touchParam;
+	int loopNum = args->loopNum;
+
 	struct DirectNet *dNet = cloneDNet(dNet_origin);
 	if (buildIStoDNet(IS, dNet)< 0) {
 		freeDNet(dNet);
-		return -1;
+		return (void *)-1;
 	}
+
 
 	vttype *oVt=malloc((dNet->maxId+1)*sizeof(vttype));
 	assert(oVt!=NULL);
@@ -188,18 +197,27 @@ int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNe
 	free(xVt);
 	free(oVt);
 	freeDNet(dNet);
-	return 0;
+	return (void *)0;
 }
 
-int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum) {
+int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum) {
 	printf("begin to spread:\n");
+
+	struct DNetSpreadCoreArgs args;
+	args.dNet = dNet;
+	args.infectRate = infectRate;
+	args.touchParam = touchParam;
+	args.loopNum = loopNum;
 
 	struct InfectSource is;
 	vttype i=0;
 	for (i=0; i<IS->ISsNum; ++i) {
 		is=IS->lines[i];
-		dnet_spread_core(&is, dNet, infectRate, touchParam, loopNum);
+		args.IS = &is;
+		pthread_t tid;
+		pthread_create(&tid, NULL, dnet_spread_core, &args);
 	}
+	while(1);
 
 	return 0;
 }

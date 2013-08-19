@@ -21,7 +21,7 @@
 
 //if define VEXTER_FILE_DIRECTION_LEFT, data file's column 2 point to column 1, direction is left.
 //if not define, column 1 points column 2. that's normal.
-//#define VEXTER_FILE_DIRECTION_LEFT
+#define VEXTER_FILE_DIRECTION_LEFT
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
 #define LINE_LENGTH_MAX 100000

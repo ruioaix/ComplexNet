@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
 	//ISs, NET, infectRate, touchparam, loopNum
-	dnet_spread(ISs, dnet, 0.9, 0, 2);
+	dnet_spread(ISs, dnet, 0.9, 0, 20);
 
 	//free;
 	//free(IS->vt);
