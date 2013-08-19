@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 
 	//argv,argc process;
-	char *datafilename="data/data";
+	char *datafilename="data/data1";
 	char *originfilename="data/origin1";
 	if (argc==2) datafilename=argv[1];
 	else if (argc==3) {
@@ -28,8 +28,8 @@ int main(int argc, char **argv)
 	//read origin file, create IS;
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
-	//ISs, NET, infectRate, loopNum
-	dnet_spread(ISs, dnet, 0.9, 0, 20);
+	//ISs, NET, infectRate, touchparam, loopNum
+	dnet_spread(ISs, dnet, 0.9, 0, 2);
 
 	//free;
 	//free(IS->vt);

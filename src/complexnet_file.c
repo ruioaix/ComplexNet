@@ -201,7 +201,8 @@ struct InfectSource fillISfromLine(char *line) {
 		if (pEnd[0]!='\0') {
 			free(vt);
 			is.num = 0;
-			printf("\tline %d not valid, ignored (looks like contain some char which is not number), like: \"%c\"\n", fillISfromLine_call_count, pEnd[0]);
+			printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillISfromLine_call_count, pEnd[0]);
+			free(partsLine);
 			return is;
 		}
 	}

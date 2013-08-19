@@ -24,7 +24,7 @@ struct DirectNet *buildDNet(const struct NetFile * const file);
 
 int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet);
 
-int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam);
+int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 
 int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 

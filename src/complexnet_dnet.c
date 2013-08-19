@@ -107,109 +107,100 @@ int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) 
 }
 
 //0S,1I,2R
-// simple IS, clean dNet. just one spread.
-int dnet_spread_core(const struct InfectSource * const IS, struct DirectNet *dNet, const double infectRate, const double touchParam)
+// simple IS, clean dNet. 
+int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
 {
-	int buildistodent_sign = buildIStoDNet(IS, dNet);
-	if (buildistodent_sign<0) {
-		return buildistodent_sign;
+	struct DirectNet *dNet = cloneDNet(dNet_origin);
+	if (buildIStoDNet(IS, dNet)< 0) {
+		freeDNet(dNet);
+		return -1;
 	}
 
 	vttype *oVt=malloc((dNet->maxId+1)*sizeof(vttype));
 	assert(oVt!=NULL);
-	assert(IS->num<=dNet->maxId);
-	memcpy(oVt, IS->vt, IS->num*sizeof(vttype));
-	vttype oNum=IS->num;
+	vttype oNum;
 
 	vttype *xVt=malloc((dNet->maxId+1)*sizeof(vttype));
 	assert(xVt!=NULL);
 	vttype xNum;
 
+	double IR[loopNum];
+	int l=0;
 	int spreadStep=0;
-	while(oNum>0) {
-		xNum=0;
-		vttype i, j, neigh;
-		double r, touchRate;
-		//begin to try to spread.
-		for (i=0; i<oNum; ++i) {
-			vttype vt=oVt[i];
-			touchRate=1/(double)pow(dNet->count[vt], touchParam);
-			//I begin to spread to its neighbor
-			for (j=0; j<dNet->count[vt]; ++j) {
-				neigh=dNet->to[vt][j];
-				//only S neighbour need to try. if it's I/R, nothing to do.
-				r=genrand_real1();
-				if (r<touchRate) {
-					if (dNet->status[neigh] == 0) {
-						r=genrand_real1();
-						if (r<infectRate) {
-							dNet->status[neigh] = 1;
-							xVt[xNum++]=neigh;
+	for( l=0; l<loopNum; ++l) {	
+
+		memset(dNet->status, 0, (dNet->maxId+1)*sizeof(char));
+		buildIStoDNet(IS, dNet);
+
+		memcpy(oVt, IS->vt, IS->num*sizeof(vttype));
+		oNum=IS->num;
+
+		while(oNum>0) {
+			xNum=0;
+			vttype i, j, neigh;
+			double r, touchRate;
+			//begin to try to spread.
+			for (i=0; i<oNum; ++i) {
+				vttype vt=oVt[i];
+				touchRate=1/(double)pow(dNet->count[vt], touchParam);
+				//I begin to spread to its neighbor
+				for (j=0; j<dNet->count[vt]; ++j) {
+					neigh=dNet->to[vt][j];
+					//only S neighbour need to try. if it's I/R, nothing to do.
+					r=genrand_real1();
+					if (r<touchRate) {
+						if (dNet->status[neigh] == 0) {
+							r=genrand_real1();
+							if (r<infectRate) {
+								dNet->status[neigh] = 1;
+								xVt[xNum++]=neigh;
+							}
 						}
 					}
 				}
+				dNet->status[vt] = 2;
 			}
-			dNet->status[vt] = 2;
+
+			vttype *temp = oVt; oVt = xVt; xVt = temp;
+			oNum=xNum;
+			++spreadStep;
 		}
 
-		vttype *temp = oVt; oVt = xVt; xVt = temp;
-		oNum=xNum;
-		++spreadStep;
+		vttype k, R=0;
+		for (k=0; k<dNet->maxId+1; ++k) {
+			if (dNet->status[k]==2) {
+				++R;
+			}
+		}
+		IR[l]=(double)R/(double)dNet->vtsNum;
+
 	}
+	double sp=0, s2p=0;
+	for (l=0; l<loopNum; ++l) {
+		sp+=IR[l]/loopNum;
+		s2p+=IR[l]*IR[l]/loopNum;
+	}
+	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+
+	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);
+
 
 	free(xVt);
 	free(oVt);
-	return spreadStep;
+	freeDNet(dNet);
+	return 0;
 }
 
 int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum) {
 	printf("begin to spread:\n");
+
 	struct InfectSource is;
-
-	double IR[loopNum];
-
-	vttype i=0, k=0, R=0;
-	int j=0;
-	int spreadstepsNum=0;
-	struct DirectNet *dNet_c = cloneDNet(dNet);
+	vttype i=0;
 	for (i=0; i<IS->ISsNum; ++i) {
 		is=IS->lines[i];
-		spreadstepsNum=0;
-		for( j=0; j<loopNum; ++j) {	
-			R=0;
-			memset(dNet_c->status, 0, (dNet_c->maxId+1)*sizeof(char));
-			spreadstepsNum += dnet_spread_core(&is, dNet_c, infectRate, touchParam);
-			if (spreadstepsNum < 0) {
-				break;
-			}
-			for (k=0; k<dNet_c->maxId+1; ++k) {
-				if (dNet_c->status[k]==2) {
-					++R;
-				}
-			}
-			IR[j]=(double)R/(double)dNet_c->vtsNum;
-		}
-
-		if (spreadstepsNum == -1) {
-			continue;
-		}
-		else if (spreadstepsNum == -2) {
-			continue;
-		}
-		else if (spreadstepsNum == -3) {
-			continue;
-		}
-
-		double sp=0, s2p=0;
-		for (j=0; j<loopNum; ++j) {
-			sp+=IR[j]/loopNum;
-			s2p+=IR[j]*IR[j]/loopNum;
-		}
-		double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
-
-		printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", is.ISId, infectRate, sp, s2p, result, (double)spreadstepsNum/(double)loopNum);
+		dnet_spread_core(&is, dNet, infectRate, touchParam, loopNum);
 	}
-	freeDNet(dNet_c);
+
 	return 0;
 }
 
