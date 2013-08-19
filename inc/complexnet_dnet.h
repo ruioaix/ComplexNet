@@ -37,7 +37,8 @@ struct DNetSpreadCoreArgs {
 void *dnet_spread_core(void * args);
 //int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 
-int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum);
+//int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum);
+int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum, int threadMax);
 //int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 
 struct DirectNet *cloneDNet(const struct DirectNet * const dnet);

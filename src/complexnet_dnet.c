@@ -200,7 +200,7 @@ void *dnet_spread_core(void *args_void)
 	return (void *)0;
 }
 
-int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum) {
+int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum, int threadMax) {
 	printf("begin to spread:\n");
 
 	struct DNetSpreadCoreArgs args;
@@ -209,14 +209,31 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 	args.touchParam = touchParam;
 	args.loopNum = loopNum;
 
-	struct InfectSource is;
+	struct DNetSpreadCoreArgs args1;
+	args1.dNet = dNet;
+	args1.infectRate = infectRate;
+	args1.touchParam = touchParam;
+	args1.loopNum = loopNum;
+
+	struct DNetSpreadCoreArgs args2;
+	args2.dNet = dNet;
+	args2.infectRate = infectRate;
+	args2.touchParam = touchParam;
+	args2.loopNum = loopNum;
+
+
+
 	vttype i=0;
-	for (i=0; i<IS->ISsNum; ++i) {
-		is=IS->lines[i];
-		args.IS = &is;
-		pthread_t tid;
-		pthread_create(&tid, NULL, dnet_spread_core, &args);
-	}
+	pthread_t tid[IS->ISsNum];
+	args.IS =IS->lines+i;
+	pthread_create(tid+i, NULL, dnet_spread_core, &args);
+	++i;
+	args1.IS =IS->lines+i;
+	pthread_create(tid+i, NULL, dnet_spread_core, &args1);
+	//++i;
+	//args2.IS =IS->lines+i;
+	//pthread_create(tid+i, NULL, dnet_spread_core, &args2);
+
 	while(1);
 
 	return 0;
