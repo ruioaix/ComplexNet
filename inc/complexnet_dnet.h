@@ -42,5 +42,6 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 //int dnet_spread(const struct InfectSourceFile * const IS, const struct DirectNet * const dNet, const double infectRate, const double touchParam, const int loopNum);
 
 struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
+void *verifyDNet(void *arg);
 
 #endif

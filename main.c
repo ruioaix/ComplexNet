@@ -25,11 +25,11 @@ int main(int argc, char **argv)
 
 	//read data file, create net;
 	struct NetFile *file=readNetFile(datafilename);
+	struct DirectNet *dnet=buildDNet(file);
 
 	pthread_t tid;
-	pthread_create(&tid, NULL, getInforHT, file);
+	pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
 	
-	struct DirectNet *dnet=buildDNet(file);
 
 	//read origin file, create IS;
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);

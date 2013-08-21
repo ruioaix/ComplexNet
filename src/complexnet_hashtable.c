@@ -190,29 +190,20 @@ int getelementIndexHT(struct HashTable *ht, long element)
 	return -1;
 }
 
-void *getInforHT(void * arg) {
+void *writeContinuousNetFileHT(void * arg) {
 	struct NetFile *file = (struct NetFile *)arg;
-	struct HashTable *ht = createHashTable(file->maxId+1);
+	struct HashTable *ht = createHashTable(3000000);
 	edtype i;
 	for (i=0; i<file->linesNum; ++i) {
 		insertHEtoHT(ht, file->lines[i].vt1Id);
 		insertHEtoHT(ht, file->lines[i].vt2Id);
 	}
-	FILE *fp = fopen("1", "w");
-	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
-	elementNumSumHT(ht);
-	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
-	elementNumBackHT(ht);
-	fprintf(fp, "length: %d\n", ht->length);
-	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
-	for (i=0; i<ht->length; ++i) {
-		fprintf(fp, "%d: %d:\t", i, ht->elementNum[i]);
-		struct HashElement *he = ht->he[i];
-		while(he) {
-			fprintf(fp, "%ld,", he->element);
-			he=he->next;
-		}
-		fprintf(fp, "\n");
+	FILE *fp = fopen("result/continuousNetFile", "w");
+	fileError(fp, "result/continuousNetFile");
+	for (i=0; i<file->linesNum; ++i) {
+		int vt1Id = getelementIndexHT(ht, file->lines[i].vt1Id);
+		int vt2Id = getelementIndexHT(ht, file->lines[i].vt2Id);
+		fprintf(fp, "%d\t%d\n", vt1Id, vt2Id);
 	}
 	fclose(fp);
 	freeHashTable(ht);

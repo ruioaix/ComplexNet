@@ -31,5 +31,5 @@ void elementNumSumHT(struct HashTable *ht);
 int getelementIndexHT(struct HashTable *ht, long element);
 void elementNumBackHT(struct HashTable *ht);
 
-void *getInforHT(void * arg);
+void *writeContinuousNetFileHT(void * arg);
 #endif

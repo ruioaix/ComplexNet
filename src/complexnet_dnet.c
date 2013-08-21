@@ -24,6 +24,9 @@ struct DirectNet *buildDNet(const struct NetFile * const file) {
 	assert(count!=NULL);
 	assert(status!=NULL);
 
+	edtype *temp_count=calloc(maxId+1, sizeof(edtype));
+	assert(temp_count!=NULL);
+
 	edtype i;
 	for(i=0; i<linesNum; ++i) {
 #ifdef VEXTER_FILE_DIRECTION_LEFT
@@ -31,11 +34,13 @@ struct DirectNet *buildDNet(const struct NetFile * const file) {
 #else
 		++count[lines[i].vt1Id];
 #endif
+		++temp_count[lines[i].vt2Id];
+		++temp_count[lines[i].vt1Id];
 	}
 	vttype j;
 	vttype vtsNum=0;
 	for(j=0; j<maxId+1; ++j) {
-		if (count[j]>0) {
+		if (temp_count[j]>0) {
 			++vtsNum;
 		}
 	}
@@ -53,8 +58,7 @@ struct DirectNet *buildDNet(const struct NetFile * const file) {
 		}
 	}
 
-	edtype *temp_count=calloc(maxId+1, sizeof(edtype));
-	assert(temp_count!=NULL);
+	memset(temp_count, 0, (maxId+1)*sizeof(edtype));
 	for(i=0; i<linesNum; ++i) {
 #ifdef VEXTER_FILE_DIRECTION_LEFT
 		vttype id_from=lines[i].vt2Id;
@@ -270,4 +274,41 @@ struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
 		}
 	}
 	return dnet_c;
+}
+
+void *verifyDNet(void *arg) {
+	struct DirectNet *dnet = arg;
+	edtype i;
+	vttype j;
+	vttype *place = malloc((dnet->maxId+1)*sizeof(vttype));
+	memset(place, -1, dnet->maxId+1);
+	FILE *fp = fopen("result/duplicatePairsinDirectNet", "w");
+	fileError(fp, "verifyDNet");
+	fprintf(fp, "the following pairs are duplicate in the net file\n");
+	for (j=0; j<dnet->maxId; ++j) {
+		if (dnet->count[j]>0) {
+			memcpy(place, dnet->to[j],dnet->count[j]*sizeof(vttype));
+			for (i=0; i<dnet->count[j]; ++i) {
+				vttype origin = place[i];
+				vttype next = place[origin];
+				if (origin == i) {
+					continue;
+				}
+				else {
+					if (next != origin) {
+						place[origin]= origin;
+						place[i] = next;
+					}
+					else {
+						fprintf(fp, "%d\t%d\n", j, next);
+						break;
+					}
+				}
+			}
+			memset(place, -1, dnet->maxId+1);
+		}
+	}
+	free(place);
+	fclose(fp);
+	return (void *)0;
 }
