@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include "complexnet_error.h"
+#include "complexnet_file.h"
 
 struct HashElement {
 	long element;
@@ -23,11 +24,12 @@ struct HashTable *createHashTable(int length);
 void freeHashElement(struct HashElement *he);
 void freeHashTable(struct HashTable *ht);
 //insert and delete
-void insertHEtoHT(struct HashTable *ht, long element);
+int insertHEtoHT(struct HashTable *ht, long element);
 void deleteHEfromHT(struct HashTable *ht, long element);
 //get index
 void elementNumSumHT(struct HashTable *ht);
 int getelementIndexHT(struct HashTable *ht, long element);
 void elementNumBackHT(struct HashTable *ht);
 
+void *getInforHT(void * arg);
 #endif

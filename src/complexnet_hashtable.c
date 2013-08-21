@@ -44,7 +44,7 @@ struct HashTable *createHashTable(int length)
 	return ht;
 }
 
-void insertHEtoHT(struct HashTable *ht, long element)
+int insertHEtoHT(struct HashTable *ht, long element)
 {
 	elementNumBackHT(ht);
 
@@ -95,12 +95,13 @@ void insertHEtoHT(struct HashTable *ht, long element)
 					//if element existed, do nothing.
 					} else {
 						free(he);
-						break;
+						return -1;
 					}
 				}
 			}
 		} else {
 			free(he);
+			return -1;
 		}
 	} else {
 		//if no element, insert.
@@ -108,6 +109,7 @@ void insertHEtoHT(struct HashTable *ht, long element)
 		ht->he[index]=he;
 		++ht->elementNum[index];
 	}
+	return 0;
 }
 
 void deleteHEfromHT(struct HashTable *ht, long element)
@@ -186,4 +188,33 @@ int getelementIndexHT(struct HashTable *ht, long element)
 		r=r->next;
 	}
 	return -1;
+}
+
+void *getInforHT(void * arg) {
+	struct NetFile *file = (struct NetFile *)arg;
+	struct HashTable *ht = createHashTable(file->maxId+1);
+	edtype i;
+	for (i=0; i<file->linesNum; ++i) {
+		insertHEtoHT(ht, file->lines[i].vt1Id);
+		insertHEtoHT(ht, file->lines[i].vt2Id);
+	}
+	FILE *fp = fopen("1", "w");
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	elementNumSumHT(ht);
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	elementNumBackHT(ht);
+	fprintf(fp, "length: %d\n", ht->length);
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	for (i=0; i<ht->length; ++i) {
+		fprintf(fp, "%d: %d:\t", i, ht->elementNum[i]);
+		struct HashElement *he = ht->he[i];
+		while(he) {
+			fprintf(fp, "%ld,", he->element);
+			he=he->next;
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+	freeHashTable(ht);
+	return (void *)0;
 }
