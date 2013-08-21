@@ -215,11 +215,11 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 	args1.touchParam = touchParam;
 	args1.loopNum = loopNum;
 
-	struct DNetSpreadCoreArgs args2;
-	args2.dNet = dNet;
-	args2.infectRate = infectRate;
-	args2.touchParam = touchParam;
-	args2.loopNum = loopNum;
+	//struct DNetSpreadCoreArgs args2;
+	//args2.dNet = dNet;
+	//args2.infectRate = infectRate;
+	//args2.touchParam = touchParam;
+	//args2.loopNum = loopNum;
 
 
 
@@ -227,14 +227,16 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 	pthread_t tid[IS->ISsNum];
 	args.IS =IS->lines+i;
 	pthread_create(tid+i, NULL, dnet_spread_core, &args);
+	pthread_join(tid[i], NULL);
 	++i;
 	args1.IS =IS->lines+i;
 	pthread_create(tid+i, NULL, dnet_spread_core, &args1);
+	pthread_join(tid[i], NULL);
 	//++i;
 	//args2.IS =IS->lines+i;
 	//pthread_create(tid+i, NULL, dnet_spread_core, &args2);
 
-	while(1);
+	//while(1);
 
 	return 0;
 }

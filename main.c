@@ -1,7 +1,9 @@
+//#define NDEBUG
 #include <stdio.h>
 #include <time.h>
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
+#include "inc/complexnet_hashtable.h" //for buildDNet;
 
 int main(int argc, char **argv)
 {
@@ -23,6 +25,34 @@ int main(int argc, char **argv)
 
 	//read data file, create net;
 	struct NetFile *file=readNetFile(datafilename);
+	struct HashTable *ht = createHashTable(file->maxId/2);
+	edtype i;
+	for (i=0; i<file->linesNum; ++i) {
+		insertHEtoHT(ht, file->lines[i].vt1Id);
+		insertHEtoHT(ht, file->lines[i].vt2Id);
+	}
+	FILE *fp = fopen("1", "w");
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	elementNumSumHT(ht);
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	elementNumBackHT(ht);
+	fprintf(fp, "length: %d\n", ht->length);
+	fprintf(fp, "num: %d\n", ht->elementNum[ht->length-1]);
+	for (i=0; i<ht->length; ++i) {
+		fprintf(fp, "%d: %d:\t", i, ht->elementNum[i]);
+		int j;
+		struct HashElement *he = ht->he[i];
+		while(he) {
+			fprintf(fp, "%ld,", he->element);
+			he=he->next;
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
+	freeHashTable(ht);
+
+
+
 	struct DirectNet *dnet=buildDNet(file);
 
 	//read origin file, create IS;
