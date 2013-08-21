@@ -28,7 +28,8 @@ int main(int argc, char **argv)
 	struct DirectNet *dnet=buildDNet(file);
 
 	pthread_t tid;
-	pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
+	pthread_create(&tid, NULL, verifyDNet, dnet);
+	//pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
 	
 
 	//read origin file, create IS;

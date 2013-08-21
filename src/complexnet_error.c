@@ -18,6 +18,6 @@ void memError(void *p, char *errormsg)
 
 void isError(const char * const errormsg)
 {
-	fprintf(stderr, "error: %s\n", errormsg);
+	fprintf(stderr, "error:\n\t%s\n", errormsg);
 	exit(EXIT_FAILURE);
 }

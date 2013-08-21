@@ -282,33 +282,34 @@ void *verifyDNet(void *arg) {
 	vttype j;
 	vttype *place = malloc((dnet->maxId+1)*sizeof(vttype));
 	memset(place, -1, dnet->maxId+1);
-	FILE *fp = fopen("result/duplicatePairsinDirectNet", "w");
-	fileError(fp, "verifyDNet");
+	FILE *fp = fopen("data/duplicatePairsinDirectNet", "w");
+	fileError(fp, "data/duplicatePairsinDirectNet");
+	FILE *fp2 = fopen("data/NoDuplicatePairsNetFile", "w");
+	fileError(fp2, "data/NoDuplicatePairsNetFile");
 	fprintf(fp, "the following pairs are duplicate in the net file\n");
+	char sign=0;
 	for (j=0; j<dnet->maxId; ++j) {
 		if (dnet->count[j]>0) {
-			memcpy(place, dnet->to[j],dnet->count[j]*sizeof(vttype));
+			memset(place, -1, dnet->maxId+1);
 			for (i=0; i<dnet->count[j]; ++i) {
-				vttype origin = place[i];
+				vttype origin = dnet->to[j][i];
 				vttype next = place[origin];
-				if (origin == i) {
-					continue;
+				if (next == -1) {
+					place[origin]=origin;
+					fprintf(fp2, "%d\t%d\n", j,origin);
 				}
 				else {
-					if (next != origin) {
-						place[origin]= origin;
-						place[i] = next;
-					}
-					else {
-						fprintf(fp, "%d\t%d\n", j, next);
-						break;
-					}
+					fprintf(fp, "%d\t%d\n", j, next);
+					sign=1;
 				}
 			}
-			memset(place, -1, dnet->maxId+1);
 		}
 	}
 	free(place);
 	fclose(fp);
+	fclose(fp2);
+	if (sign == 1) {
+		isError("the file has duplicate pairs, you can check data/duplicatePairsinDirectNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
+	}
 	return (void *)0;
 }

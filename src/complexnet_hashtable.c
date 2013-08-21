@@ -198,8 +198,8 @@ void *writeContinuousNetFileHT(void * arg) {
 		insertHEtoHT(ht, file->lines[i].vt1Id);
 		insertHEtoHT(ht, file->lines[i].vt2Id);
 	}
-	FILE *fp = fopen("result/continuousNetFile", "w");
-	fileError(fp, "result/continuousNetFile");
+	FILE *fp = fopen("data/continuousNetFile", "w");
+	fileError(fp, "data/continuousNetFile");
 	for (i=0; i<file->linesNum; ++i) {
 		int vt1Id = getelementIndexHT(ht, file->lines[i].vt1Id);
 		int vt2Id = getelementIndexHT(ht, file->lines[i].vt2Id);
