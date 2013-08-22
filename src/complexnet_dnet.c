@@ -290,7 +290,7 @@ void *verifyDNet(void *arg) {
 	char sign=0;
 	for (j=0; j<dnet->maxId; ++j) {
 		if (dnet->count[j]>0) {
-			memset(place, -1, dnet->maxId+1);
+			memset(place, -1, (dnet->maxId+1)*sizeof(vttype));
 			for (i=0; i<dnet->count[j]; ++i) {
 				vttype origin = dnet->to[j][i];
 				vttype next = place[origin];
