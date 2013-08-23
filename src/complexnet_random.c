@@ -3,6 +3,8 @@
 /////////////----------------if you want to use the follow two init function, maybe you should uncomment the following two static, and comment the above two static.
 static unsigned long mt_MersenneTwister[N_MersenneTwister]; /* the array for the state vector  */
 static int mti_MersenneTwister=N_MersenneTwister+1; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
+static unsigned long mt_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister][N_MersenneTwister]; /* the array for the state vector  */
+static int mti_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister]; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
 
 //should not be used, if you don't want to different random number.
 /* initializes mt_MersenneTwister[N_MersenneTwister] with a seed */
@@ -56,6 +58,58 @@ void init_by_array_MersenneTwister(unsigned long init_key[], int key_length)
 	//printf("\n");
 }
 
+//should not be used, if you don't want to different random number.
+/* initializes mt_MersenneTwister[N_MersenneTwister] with a seed */
+void init_genrand_MersenneTwister_threadsafe(unsigned long s, int t)
+{
+    mt_MersenneTwister[0]= s & 0xffffffffUL;
+    for (mti_MersenneTwister=1; mti_MersenneTwister<N_MersenneTwister; mti_MersenneTwister++) {
+        mt_MersenneTwister[mti_MersenneTwister] = 
+	    (1812433253UL * (mt_MersenneTwister[mti_MersenneTwister-1] ^ (mt_MersenneTwister[mti_MersenneTwister-1] >> 30)) + mti_MersenneTwister); 
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt_MersenneTwister[].                        */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        mt_MersenneTwister[mti_MersenneTwister] &= 0xffffffffUL;
+        /* for >32 bit machines */
+    }
+}
+
+/* initialize by an array with array-length */
+/* init_key is the array for initializing keys */
+/* key_length is its length */
+/* slight change for C++, 2004/2/26 */
+void init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_length, int t)
+{
+    int i, j, k;
+    init_genrand_MersenneTwister_threadsafe(19650218UL, t);
+    i=1; j=0;
+    k = (N_MersenneTwister>key_length ? N_MersenneTwister : key_length);
+    for (; k; k--) {
+        mt_MersenneTwister[i] = (mt_MersenneTwister[i] ^ ((mt_MersenneTwister[i-1] ^ (mt_MersenneTwister[i-1] >> 30)) * 1664525UL))
+          + init_key[j] + j; /* non linear */
+        mt_MersenneTwister[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+        i++; j++;
+        if (i>=N_MersenneTwister) { mt_MersenneTwister[0] = mt_MersenneTwister[N_MersenneTwister-1]; i=1; }
+        if (j>=key_length) j=0;
+    }
+    for (k=N_MersenneTwister-1; k; k--) {
+        mt_MersenneTwister[i] = (mt_MersenneTwister[i] ^ ((mt_MersenneTwister[i-1] ^ (mt_MersenneTwister[i-1] >> 30)) * 1566083941UL))
+          - i; /* non linear */
+        mt_MersenneTwister[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+        i++;
+        if (i>=N_MersenneTwister) { mt_MersenneTwister[0] = mt_MersenneTwister[N_MersenneTwister-1]; i=1; }
+    }
+
+    mt_MersenneTwister[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
+
+	//printf("%lu\n", mti_MersenneTwister);
+	//for(i=0; i<N_MersenneTwister; ++i) {
+	//	printf("%luul, ", mt_MersenneTwister[i]);
+	//}
+	//printf("\n");
+}
+
 /* generates a random number on [0,1]-real-interval */
 double genrand_real1_threadsafe(int t)
 {
@@ -67,7 +121,7 @@ double genrand_real1_threadsafe(int t)
         int kk;
 
         if (mti_MersenneTwister == N_MersenneTwister+1)   /* if init_genrand_MersenneTwister() has not been called, */
-            init_genrand_MersenneTwister(5489UL); /* a default initial seed is used */
+            init_genrand_MersenneTwister_threadsafe(5489UL, t); /* a default initial seed is used */
 
         for (kk=0;kk<N_MersenneTwister-M_MersenneTwister;kk++) {
             y = (mt_MersenneTwister[kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister[kk+1]&LOWER_MASK_MersenneTwister);
