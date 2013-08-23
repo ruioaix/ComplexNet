@@ -26,22 +26,20 @@ int main(int argc, char **argv)
 	//read data file, create net;
 	struct NetFile *file=readNetFile(datafilename);
 	struct DirectNet *dnet=buildDNet(file);
+	freeNetFile(file);
 
-	pthread_t tid;
+	//pthread_t tid;
 	//pthread_create(&tid, NULL, verifyDNet, dnet);
-	pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
+	//pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
 
 	//read origin file, create IS;
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
 	//ISs, NET, infectRate, touchparam, loopNum, Thread_max.
-	dnet_spread(ISs, dnet, 0.9, 0, 500, 4);
+	dnet_spread(ISs, dnet, 0.9, 0, 2000, 4);
 
-	//free;
-	//free(IS->vt);
 	freeISFile(ISs);
-	pthread_join(tid, NULL);
-	freeNetFile(file);
+	//pthread_join(tid, NULL);
 	freeDNet(dnet);
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
