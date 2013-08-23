@@ -123,6 +123,12 @@ void *dnet_spread_core(void *args_void)
 	int loopNum = args->loopNum;
 	pthread_mutex_t *mutex = args->mutex;
 	pthread_cond_t *cond_thread = args->cond_thread;
+	vttype isId=args->isId;
+
+	//printf("thread %d begin: ", isId);fflush(stdout);
+
+	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
+	init_by_array_MersenneTwister_threadsafe(init, length, isId);
 
 	struct DirectNet *dNet = cloneDNet(dNet_origin);
 	if (buildIStoDNet(IS, dNet)< 0) {
@@ -142,7 +148,26 @@ void *dnet_spread_core(void *args_void)
 	double IR[loopNum];
 	int l=0;
 	int spreadStep=0;
-	printf("%d: just before loopNum----------------------\n", IS->ISId);fflush(stdout);
+
+	//char ttt[35];
+	//sprintf(ttt, "isId%d", isId);
+	//FILE *fp = fopen(ttt,"w");
+	//int ii;
+	//for (ii=0; ii<1000; ii++) {
+	//	fprintf(fp, "%10lu ", genrand_int32_threadsafe(isId));
+	//	if (ii%5==4) fprintf(fp, "\n");
+	//}
+	//fprintf(fp, "\n1000 outputs of genrand_real2()\n");
+	//for (ii=0; ii<1000; ii++) {
+	//	fprintf(fp, "%10.8f ", genrand_real2_threadsafe(isId));
+	//	if (ii%5==4) fprintf(fp, "\n");
+	//}
+	//pthread_mutex_lock(mutex);
+	////printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
+	//pthread_cond_signal(cond_thread);
+	//pthread_mutex_unlock(mutex);
+	//return (void *)0;
+
 	for( l=0; l<loopNum; ++l) {	
 
 		memset(dNet->status, 0, (dNet->maxId+1)*sizeof(char));
@@ -163,11 +188,11 @@ void *dnet_spread_core(void *args_void)
 				for (j=0; j<dNet->count[vt]; ++j) {
 					neigh=dNet->to[vt][j];
 					//only S neighbour need to try. if it's I/R, nothing to do.
-					r=genrand_real1();
+					r=genrand_real1_threadsafe(isId);
 					//r=0.5;
 					if (r<touchRate) {
 						if (dNet->status[neigh] == 0) {
-							r=genrand_real1();
+							r=genrand_real1_threadsafe(isId);
 							//r=0.5;
 							if (r<infectRate) {
 								dNet->status[neigh] = 1;
@@ -193,7 +218,7 @@ void *dnet_spread_core(void *args_void)
 		IR[l]=(double)R/(double)dNet->vtsNum;
 
 	}
-	printf("\t%d: just after loopNum----------------------\n", IS->ISId);fflush(stdout);
+	//printf("\t%d: just after loopNum----------------------\n", IS->ISId);fflush(stdout);
 	double sp=0, s2p=0;
 	for (l=0; l<loopNum; ++l) {
 		sp+=IR[l]/loopNum;
@@ -206,7 +231,7 @@ void *dnet_spread_core(void *args_void)
 	freeDNet(dNet);
 	
 	pthread_mutex_lock(mutex);
-	//printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
+	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	pthread_cond_signal(cond_thread);
 	pthread_mutex_unlock(mutex);
 
@@ -237,6 +262,7 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 			args_thread[isId].loopNum = loopNum;
 			args_thread[isId].mutex = &mutex;
 			args_thread[isId].cond_thread = &cond_thread;
+			args_thread[isId].isId= isId;
 			pthread_create(threads+isId, NULL, dnet_spread_core, args_thread+isId);
 			++threadNum;
 			++isId;
@@ -252,7 +278,7 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 	for (i=0; i<isNum; ++i) {
 		pthread_join(threads[i], NULL);
 	}
-	printf("OK! ALL!\n");
+	//printf("OK! ALL!\n");
 	return 0;
 }
 

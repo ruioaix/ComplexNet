@@ -62,15 +62,15 @@ void init_by_array_MersenneTwister(unsigned long init_key[], int key_length)
 /* initializes mt_MersenneTwister[N_MersenneTwister] with a seed */
 void init_genrand_MersenneTwister_threadsafe(unsigned long s, int t)
 {
-    mt_MersenneTwister[0]= s & 0xffffffffUL;
-    for (mti_MersenneTwister=1; mti_MersenneTwister<N_MersenneTwister; mti_MersenneTwister++) {
-        mt_MersenneTwister[mti_MersenneTwister] = 
-	    (1812433253UL * (mt_MersenneTwister[mti_MersenneTwister-1] ^ (mt_MersenneTwister[mti_MersenneTwister-1] >> 30)) + mti_MersenneTwister); 
+    mt_MersenneTwister_a[t][0]= s & 0xffffffffUL;
+    for (mti_MersenneTwister_a[t]=1; mti_MersenneTwister_a[t]<N_MersenneTwister; mti_MersenneTwister_a[t]++) {
+        mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]] = 
+	    (1812433253UL * (mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]-1] ^ (mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]-1] >> 30)) + mti_MersenneTwister_a[t]); 
         /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
         /* In the previous versions, MSBs of the seed affect   */
-        /* only MSBs of the array mt_MersenneTwister[].                        */
+        /* only MSBs of the array mt_MersenneTwister_a[t][].                        */
         /* 2002/01/09 modified by Makoto Matsumoto             */
-        mt_MersenneTwister[mti_MersenneTwister] &= 0xffffffffUL;
+        mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]] &= 0xffffffffUL;
         /* for >32 bit machines */
     }
 }
@@ -86,28 +86,67 @@ void init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_
     i=1; j=0;
     k = (N_MersenneTwister>key_length ? N_MersenneTwister : key_length);
     for (; k; k--) {
-        mt_MersenneTwister[i] = (mt_MersenneTwister[i] ^ ((mt_MersenneTwister[i-1] ^ (mt_MersenneTwister[i-1] >> 30)) * 1664525UL))
+        mt_MersenneTwister_a[t][i] = (mt_MersenneTwister_a[t][i] ^ ((mt_MersenneTwister_a[t][i-1] ^ (mt_MersenneTwister_a[t][i-1] >> 30)) * 1664525UL))
           + init_key[j] + j; /* non linear */
-        mt_MersenneTwister[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+        mt_MersenneTwister_a[t][i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
         i++; j++;
-        if (i>=N_MersenneTwister) { mt_MersenneTwister[0] = mt_MersenneTwister[N_MersenneTwister-1]; i=1; }
+        if (i>=N_MersenneTwister) { mt_MersenneTwister_a[t][0] = mt_MersenneTwister_a[t][N_MersenneTwister-1]; i=1; }
         if (j>=key_length) j=0;
     }
     for (k=N_MersenneTwister-1; k; k--) {
-        mt_MersenneTwister[i] = (mt_MersenneTwister[i] ^ ((mt_MersenneTwister[i-1] ^ (mt_MersenneTwister[i-1] >> 30)) * 1566083941UL))
+        mt_MersenneTwister_a[t][i] = (mt_MersenneTwister_a[t][i] ^ ((mt_MersenneTwister_a[t][i-1] ^ (mt_MersenneTwister_a[t][i-1] >> 30)) * 1566083941UL))
           - i; /* non linear */
-        mt_MersenneTwister[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+        mt_MersenneTwister_a[t][i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
         i++;
-        if (i>=N_MersenneTwister) { mt_MersenneTwister[0] = mt_MersenneTwister[N_MersenneTwister-1]; i=1; }
+        if (i>=N_MersenneTwister) { mt_MersenneTwister_a[t][0] = mt_MersenneTwister_a[t][N_MersenneTwister-1]; i=1; }
     }
 
-    mt_MersenneTwister[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
+    mt_MersenneTwister_a[t][0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
 
 	//printf("%lu\n", mti_MersenneTwister);
 	//for(i=0; i<N_MersenneTwister; ++i) {
-	//	printf("%luul, ", mt_MersenneTwister[i]);
+	//	printf("%luul, ", mt_MersenneTwister_a[t][i]);
 	//}
 	//printf("\n");
+}
+
+/* generates a random number on [0,0xffffffff]-interval */
+unsigned long genrand_int32_threadsafe(int t)
+{
+    unsigned long y;
+    static unsigned long mag01[2]={0x0UL, MATRIX_A_MersenneTwister};
+    /* mag01[x] = x * MATRIX_A_MersenneTwister  for x=0,1 */
+
+    if (mti_MersenneTwister_a[t] >= N_MersenneTwister) { /* generate N_MersenneTwister words at one time */
+        int kk;
+
+        if (mti_MersenneTwister_a[t] == N_MersenneTwister+1)   /* if init_genrand_MersenneTwister() has not been called, */
+            init_genrand_MersenneTwister_threadsafe(5489UL, t); /* a default initial seed is used */
+
+        for (kk=0;kk<N_MersenneTwister-M_MersenneTwister;kk++) {
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+M_MersenneTwister] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        for (;kk<N_MersenneTwister-1;kk++) {
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+(M_MersenneTwister-N_MersenneTwister)] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        y = (mt_MersenneTwister_a[t][N_MersenneTwister-1]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][0]&LOWER_MASK_MersenneTwister);
+        mt_MersenneTwister_a[t][N_MersenneTwister-1] = mt_MersenneTwister_a[t][M_MersenneTwister-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
+
+        mti_MersenneTwister_a[t] = 0;
+    }
+  
+    y = mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]++];
+
+    /* Tempering */
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680UL;
+    y ^= (y << 15) & 0xefc60000UL;
+    y ^= (y >> 18);
+
+    return y;
+    /* divided by 2^32-1 */ 
 }
 
 /* generates a random number on [0,1]-real-interval */
@@ -117,27 +156,27 @@ double genrand_real1_threadsafe(int t)
     static unsigned long mag01[2]={0x0UL, MATRIX_A_MersenneTwister};
     /* mag01[x] = x * MATRIX_A_MersenneTwister  for x=0,1 */
 
-    if (mti_MersenneTwister >= N_MersenneTwister) { /* generate N_MersenneTwister words at one time */
+    if (mti_MersenneTwister_a[t] >= N_MersenneTwister) { /* generate N_MersenneTwister words at one time */
         int kk;
 
-        if (mti_MersenneTwister == N_MersenneTwister+1)   /* if init_genrand_MersenneTwister() has not been called, */
+        if (mti_MersenneTwister_a[t] == N_MersenneTwister+1)   /* if init_genrand_MersenneTwister() has not been called, */
             init_genrand_MersenneTwister_threadsafe(5489UL, t); /* a default initial seed is used */
 
         for (kk=0;kk<N_MersenneTwister-M_MersenneTwister;kk++) {
-            y = (mt_MersenneTwister[kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister[kk+1]&LOWER_MASK_MersenneTwister);
-            mt_MersenneTwister[kk] = mt_MersenneTwister[kk+M_MersenneTwister] ^ (y >> 1) ^ mag01[y & 0x1UL];
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+M_MersenneTwister] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
         for (;kk<N_MersenneTwister-1;kk++) {
-            y = (mt_MersenneTwister[kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister[kk+1]&LOWER_MASK_MersenneTwister);
-            mt_MersenneTwister[kk] = mt_MersenneTwister[kk+(M_MersenneTwister-N_MersenneTwister)] ^ (y >> 1) ^ mag01[y & 0x1UL];
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+(M_MersenneTwister-N_MersenneTwister)] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
-        y = (mt_MersenneTwister[N_MersenneTwister-1]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister[0]&LOWER_MASK_MersenneTwister);
-        mt_MersenneTwister[N_MersenneTwister-1] = mt_MersenneTwister[M_MersenneTwister-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        y = (mt_MersenneTwister_a[t][N_MersenneTwister-1]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][0]&LOWER_MASK_MersenneTwister);
+        mt_MersenneTwister_a[t][N_MersenneTwister-1] = mt_MersenneTwister_a[t][M_MersenneTwister-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
 
-        mti_MersenneTwister = 0;
+        mti_MersenneTwister_a[t] = 0;
     }
   
-    y = mt_MersenneTwister[mti_MersenneTwister++];
+    y = mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]++];
 
     /* Tempering */
     y ^= (y >> 11);
@@ -148,6 +187,46 @@ double genrand_real1_threadsafe(int t)
     return y*(1.0/4294967295.0); 
     /* divided by 2^32-1 */ 
 }
+
+/* generates a random number on [0,1]-real-interval */
+double genrand_real2_threadsafe(int t)
+{
+    unsigned long y;
+    static unsigned long mag01[2]={0x0UL, MATRIX_A_MersenneTwister};
+    /* mag01[x] = x * MATRIX_A_MersenneTwister  for x=0,1 */
+
+    if (mti_MersenneTwister_a[t] >= N_MersenneTwister) { /* generate N_MersenneTwister words at one time */
+        int kk;
+
+        if (mti_MersenneTwister_a[t] == N_MersenneTwister+1)   /* if init_genrand_MersenneTwister() has not been called, */
+            init_genrand_MersenneTwister_threadsafe(5489UL, t); /* a default initial seed is used */
+
+        for (kk=0;kk<N_MersenneTwister-M_MersenneTwister;kk++) {
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+M_MersenneTwister] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        for (;kk<N_MersenneTwister-1;kk++) {
+            y = (mt_MersenneTwister_a[t][kk]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][kk+1]&LOWER_MASK_MersenneTwister);
+            mt_MersenneTwister_a[t][kk] = mt_MersenneTwister_a[t][kk+(M_MersenneTwister-N_MersenneTwister)] ^ (y >> 1) ^ mag01[y & 0x1UL];
+        }
+        y = (mt_MersenneTwister_a[t][N_MersenneTwister-1]&UPPER_MASK_MersenneTwister)|(mt_MersenneTwister_a[t][0]&LOWER_MASK_MersenneTwister);
+        mt_MersenneTwister_a[t][N_MersenneTwister-1] = mt_MersenneTwister_a[t][M_MersenneTwister-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
+
+        mti_MersenneTwister_a[t] = 0;
+    }
+  
+    y = mt_MersenneTwister_a[t][mti_MersenneTwister_a[t]++];
+
+    /* Tempering */
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680UL;
+    y ^= (y << 15) & 0xefc60000UL;
+    y ^= (y >> 18);
+
+    return y*(1.0/4294967296.0); 
+    /* divided by 2^32-1 */ 
+}
+
 
 
 /* generates a random number on [0,0xffffffff]-interval */

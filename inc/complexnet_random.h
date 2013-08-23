@@ -22,5 +22,7 @@ double genrand_res53(void);
 
 void init_genrand_MersenneTwister_threadsafe(unsigned long s, int t);
 void init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_length, int t);
+unsigned long genrand_int32_threadsafe(int t);
 double genrand_real1_threadsafe(int t);
+double genrand_real2_threadsafe(int t);
 #endif
