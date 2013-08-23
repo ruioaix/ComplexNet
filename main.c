@@ -10,6 +10,10 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 
+	//init MT random number generator
+	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
+	init_by_array_MersenneTwister(init, length);
+
 	//argv,argc process;
 	char *datafilename="data/data1";
 	char *originfilename="data/origin1";

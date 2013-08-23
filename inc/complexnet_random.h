@@ -19,4 +19,5 @@ double genrand_real2(void);
 double genrand_real3(void);
 double genrand_res53(void);
 
+double genrand_real1_threadsafe(int t);
 #endif
