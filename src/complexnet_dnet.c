@@ -93,18 +93,18 @@ int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) 
 		vttype isvt=is->vt[i];
 		vttype count=dnet->count[isvt];
 		if (isvt > dnet->maxId || count == 0) {
-			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->ISId, isvt);
+			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->ISId, isvt);fflush(stdout);
 			return -2;
 		}
 		if (dnet->status[isvt] == 1) {
-			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->ISId, isvt);
+			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->ISId, isvt);fflush(stdout);
 			return -3;
 		}
 		dnet->status[isvt] = 1;
 		++sign;
 	}
 	if (!sign) {
-		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->ISId);
+		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->ISId);fflush(stdout);
 		return -1;
 	}
 	return 0;
@@ -121,6 +121,8 @@ void *dnet_spread_core(void *args_void)
 	double infectRate = args->infectRate;
 	double touchParam = args->touchParam;
 	int loopNum = args->loopNum;
+	pthread_mutex_t *mutex = args->mutex;
+	pthread_cond_t *cond_thread = args->cond_thread;
 
 	struct DirectNet *dNet = cloneDNet(dNet_origin);
 	if (buildIStoDNet(IS, dNet)< 0) {
@@ -140,6 +142,7 @@ void *dnet_spread_core(void *args_void)
 	double IR[loopNum];
 	int l=0;
 	int spreadStep=0;
+	printf("just before loopNum----------------------");fflush(stdout);
 	for( l=0; l<loopNum; ++l) {	
 
 		memset(dNet->status, 0, (dNet->maxId+1)*sizeof(char));
@@ -188,6 +191,7 @@ void *dnet_spread_core(void *args_void)
 		IR[l]=(double)R/(double)dNet->vtsNum;
 
 	}
+	printf("just after loopNum----------------------\n");fflush(stdout);
 	double sp=0, s2p=0;
 	for (l=0; l<loopNum; ++l) {
 		sp+=IR[l]/loopNum;
@@ -195,55 +199,101 @@ void *dnet_spread_core(void *args_void)
 	}
 	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
 
-	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);
-
-
 	free(xVt);
 	free(oVt);
 	freeDNet(dNet);
+	
+	pthread_mutex_lock(mutex);
+	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
+	pthread_cond_signal(cond_thread);
+	pthread_mutex_unlock(mutex);
+
 	return (void *)0;
 }
+
+//int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum, int threadMax) {
+//	printf("begin to spread:\n");
+//
+//	struct DNetSpreadCoreArgs args;
+//	args.dNet = dNet;
+//	args.infectRate = infectRate;
+//	args.touchParam = touchParam;
+//	args.loopNum = loopNum;
+//
+//	struct DNetSpreadCoreArgs args1;
+//	args1.dNet = dNet;
+//	args1.infectRate = infectRate;
+//	args1.touchParam = touchParam;
+//	args1.loopNum = loopNum;
+//
+//	struct DNetSpreadCoreArgs args2;
+//	args2.dNet = dNet;
+//	args2.infectRate = infectRate;
+//	args2.touchParam = touchParam;
+//	args2.loopNum = loopNum;
+//
+//
+//
+//	vttype i=0;
+//	pthread_t tid[IS->ISsNum];
+//	args.IS =IS->lines+i;
+//	pthread_create(tid+i, NULL, dnet_spread_core, &args);
+//	++i;
+//	args1.IS =IS->lines+i;
+//	pthread_create(tid+i, NULL, dnet_spread_core, &args1);
+//
+//	++i;
+//	args2.IS =IS->lines+i;
+//	pthread_create(tid+i, NULL, dnet_spread_core, &args2);
+//
+//	pthread_join(tid[i-2], NULL);
+//	pthread_join(tid[i-1], NULL);
+//	pthread_join(tid[i], NULL);
+//	//while(1);
+//
+//	return 0;
+//}
 
 int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum, int threadMax) {
 	printf("begin to spread:\n");
 
-	struct DNetSpreadCoreArgs args;
-	args.dNet = dNet;
-	args.infectRate = infectRate;
-	args.touchParam = touchParam;
-	args.loopNum = loopNum;
+	vttype isNum=IS->ISsNum;
+	vttype isId=0;
+	pthread_t threads[isNum];
+	struct DNetSpreadCoreArgs args_thread[isNum];
 
-	struct DNetSpreadCoreArgs args1;
-	args1.dNet = dNet;
-	args1.infectRate = infectRate;
-	args1.touchParam = touchParam;
-	args1.loopNum = loopNum;
-
-	struct DNetSpreadCoreArgs args2;
-	args2.dNet = dNet;
-	args2.infectRate = infectRate;
-	args2.touchParam = touchParam;
-	args2.loopNum = loopNum;
-
-
-
-	vttype i=0;
-	pthread_t tid[IS->ISsNum];
-	args.IS =IS->lines+i;
-	pthread_create(tid+i, NULL, dnet_spread_core, &args);
-	++i;
-	args1.IS =IS->lines+i;
-	pthread_create(tid+i, NULL, dnet_spread_core, &args1);
-
-	++i;
-	args2.IS =IS->lines+i;
-	pthread_create(tid+i, NULL, dnet_spread_core, &args2);
-
-	pthread_join(tid[i-2], NULL);
-	pthread_join(tid[i-1], NULL);
-	pthread_join(tid[i], NULL);
-	//while(1);
-
+	pthread_mutex_t mutex;
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_t cond_thread;
+	pthread_cond_init(&cond_thread, NULL);
+	int threadNum = 0;
+	while (isNum-isId) {
+		pthread_mutex_lock(&mutex);
+		printf("%d, isID:%d, isNum:%d\n", threadNum, isId, isNum);fflush(stdout);
+		if (threadNum < threadMax) {
+			args_thread[isId].dNet = dNet;
+			args_thread[isId].IS= IS->lines+isId;
+			args_thread[isId].infectRate = infectRate;
+			args_thread[isId].touchParam = touchParam;
+			args_thread[isId].loopNum = loopNum;
+			args_thread[isId].mutex = &mutex;
+			args_thread[isId].cond_thread = &cond_thread;
+			pthread_create(threads+isId, NULL, dnet_spread_core, args_thread+isId);
+			++threadNum;
+			++isId;
+		}
+		else {
+			pthread_cond_wait(&cond_thread, &mutex);
+			--threadNum;
+		}
+		pthread_mutex_unlock(&mutex);
+	}
+	
+	vttype i;
+	for (i=0; i<isNum; ++i) {
+		pthread_join(threads[i], NULL);
+	}
+	printf("OK! ALL!\n");
 	return 0;
 }
 

@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
 	//ISs, NET, infectRate, touchparam, loopNum, Thread_max.
-	dnet_spread(ISs, dnet, 0.9, 0, 2, 4);
+	dnet_spread(ISs, dnet, 0.9, 0, 500, 4);
 
 	//free;
 	//free(IS->vt);
@@ -45,5 +45,6 @@ int main(int argc, char **argv)
 	freeDNet(dnet);
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
+	//pthread_exit(NULL);
 	return 0;
 }
