@@ -3,7 +3,9 @@
 #include <time.h>
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
+#include "inc/complexnet_random.h"
 #include "inc/complexnet_hashtable.h" //for buildDNet;
+#include "inc/complexnet_threadpool.h"
 
 int main(int argc, char **argv)
 {
@@ -41,7 +43,31 @@ int main(int argc, char **argv)
 
 
 	//ISs, NET, infectRate, touchparam, loopNum, Thread_max.
-	dnet_spread(ISs, dnet, 0.9, 0, 100, 10);
+	//dnet_spread(ISs, dnet, 0.9, 0, 30, 1);
+	double infectRate = 0.1;
+	double touchParam= 0;
+	int loopNum = 30;
+	int threadMax = 10;
+
+	init_MersenneTwister();
+
+	createThreadPool(threadMax);
+
+	vttype isNum=ISs->ISsNum;
+	struct DNetSpreadCoreArgs args_thread[isNum];
+	int i;
+	for(i=0; i<isNum; ++i) {
+		args_thread[i].dNet = dnet;
+		args_thread[i].IS= ISs->lines+i;
+		args_thread[i].infectRate = infectRate;
+		args_thread[i].touchParam = touchParam;
+		args_thread[i].loopNum = loopNum;
+		addWorktoThreadPool(dnet_spread_core, args_thread+i);
+	}
+
+	destroyThreadPool();
+
+
 
 	freeISFile(ISs);
 	//pthread_join(tid, NULL);

@@ -8,8 +8,11 @@ static unsigned long mt_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister][N_Mer
 static int mti_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister]; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
 
 static int MersenneTwister_Object_Num = 0;
-static int MersenneTwister_alreadyInit = 0;
 static pthread_mutex_t mutex;
+
+void init_MersenneTwister(void) {
+	pthread_mutex_init(&mutex, NULL);
+}
 
 //should not be used, if you don't want to different random number.
 /* initializes mt_MersenneTwister[N_MersenneTwister] with a seed */
@@ -86,13 +89,9 @@ void init_genrand_MersenneTwister_threadsafe(unsigned long s, int t)
 /* slight change for C++, 2004/2/26 */
 int init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_length)
 {
-	int t;
-	if (!MersenneTwister_alreadyInit) {
-		pthread_mutex_init(&mutex,NULL);
-		MersenneTwister_alreadyInit=1;
-	}
+	
 	pthread_mutex_lock(&mutex);
-	t = MersenneTwister_Object_Num++;
+	int t = MersenneTwister_Object_Num++;
 	pthread_mutex_unlock(&mutex);
 
     int i, j, k;

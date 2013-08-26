@@ -125,12 +125,11 @@ void *dnet_spread_core(void *args_void)
 	double infectRate = args->infectRate;
 	double touchParam = args->touchParam;
 	int loopNum = args->loopNum;
-	vttype isId=args->isId;
 
 	//printf("thread %d begin: ", isId);fflush(stdout);
 
 	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
-	isId = init_by_array_MersenneTwister_threadsafe(init, length);
+	vttype isId = init_by_array_MersenneTwister_threadsafe(init, length);
 
 	struct DirectNet *dNet = cloneDNet(dNet_origin);
 	if (buildIStoDNet(IS, dNet)< 0) {
@@ -236,6 +235,7 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 	printf("begin to spread:\n");
 
 	vttype isNum=IS->ISsNum;
+	init_MersenneTwister();
 
 	struct DNetSpreadCoreArgs args_thread[isNum];
 
@@ -253,43 +253,6 @@ int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double in
 
 	destroyThreadPool();
 
-	//pthread_t threads[isNum];
-	//struct DNetSpreadCoreArgs args_thread[isNum];
-
-	//pthread_mutex_t mutex;
-	//pthread_mutex_init(&mutex, NULL);
-	//pthread_cond_t cond_thread;
-	//pthread_cond_init(&cond_thread, NULL);
-	//int threadNum = 0;
-	//while (isNum-isId) {
-	//	pthread_mutex_lock(&mutex);
-	//	//printf("%d, isID:%d, isNum:%d\n", threadNum, isId, isNum);fflush(stdout);
-	//	if (threadNum < threadMax) {
-	//		args_thread[isId].dNet = dNet;
-	//		args_thread[isId].IS= IS->lines+isId;
-	//		args_thread[isId].infectRate = infectRate;
-	//		args_thread[isId].touchParam = touchParam;
-	//		args_thread[isId].loopNum = loopNum;
-	//		args_thread[isId].mutex = &mutex;
-	//		args_thread[isId].cond_thread = &cond_thread;
-	//		args_thread[isId].isId= isId;
-	//		pthread_create(threads+isId, NULL, dnet_spread_core, args_thread+isId);
-	//		++threadNum;
-	//		++isId;
-	//	}
-	//	else {
-	//		pthread_cond_wait(&cond_thread, &mutex);
-	//		--threadNum;
-	//	}
-	//	pthread_mutex_unlock(&mutex);
-	//}
-	//
-	//vttype i;
-	//for (i=0; i<isNum; ++i) {
-	//	pthread_join(threads[i], NULL);
-	//}
-	//printf("OK! ALL!\n");
-	//while(1);
 	return 0;
 }
 
