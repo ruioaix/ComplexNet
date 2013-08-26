@@ -1,10 +1,15 @@
 //modified by rui. 2013.08.09
 #include "../inc/complexnet_random.h"
+#include <pthread.h>
 /////////////----------------if you want to use the follow two init function, maybe you should uncomment the following two static, and comment the above two static.
 static unsigned long mt_MersenneTwister[N_MersenneTwister]; /* the array for the state vector  */
 static int mti_MersenneTwister=N_MersenneTwister+1; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
 static unsigned long mt_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister][N_MersenneTwister]; /* the array for the state vector  */
 static int mti_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister]; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
+
+static int MersenneTwister_Object_Num = 0;
+static int MersenneTwister_alreadyInit = 0;
+static pthread_mutex_t mutex;
 
 //should not be used, if you don't want to different random number.
 /* initializes mt_MersenneTwister[N_MersenneTwister] with a seed */
@@ -79,8 +84,17 @@ void init_genrand_MersenneTwister_threadsafe(unsigned long s, int t)
 /* init_key is the array for initializing keys */
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
-void init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_length, int t)
+int init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_length)
 {
+	int t;
+	if (!MersenneTwister_alreadyInit) {
+		pthread_mutex_init(&mutex,NULL);
+		MersenneTwister_alreadyInit=1;
+	}
+	pthread_mutex_lock(&mutex);
+	t = MersenneTwister_Object_Num++;
+	pthread_mutex_unlock(&mutex);
+
     int i, j, k;
     init_genrand_MersenneTwister_threadsafe(19650218UL, t);
     i=1; j=0;
@@ -108,6 +122,7 @@ void init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_
 	//	printf("%luul, ", mt_MersenneTwister_a[t][i]);
 	//}
 	//printf("\n");
+	return t;
 }
 
 /* generates a random number on [0,0xffffffff]-interval */

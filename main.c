@@ -39,8 +39,9 @@ int main(int argc, char **argv)
 	//read origin file, create IS;
 	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
 
+
 	//ISs, NET, infectRate, touchparam, loopNum, Thread_max.
-	dnet_spread(ISs, dnet, 0.9, 0, 1000, 1);
+	dnet_spread(ISs, dnet, 0.9, 0, 100, 10);
 
 	freeISFile(ISs);
 	//pthread_join(tid, NULL);

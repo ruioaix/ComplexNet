@@ -32,8 +32,6 @@ struct DNetSpreadCoreArgs {
 	double infectRate;
 	double touchParam;
 	int loopNum;
-	pthread_mutex_t *mutex;
-	pthread_cond_t *cond_thread;
 	vttype isId;
 };
 

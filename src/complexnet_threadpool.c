@@ -15,16 +15,17 @@ static void* thread_routine(void*arg) {
 		while(!TP->works && !TP->destroy){
 			pthread_cond_wait(&TP->haswork, &TP->mutex);
 		}
-		if(TP->destroy){
+		if(TP->works){
+			work=TP->works;
+			TP->works=TP->works->next;
 			pthread_mutex_unlock(&TP->mutex);
-			pthread_exit(NULL);
+			work->routine(work->arg);
+			free(work);
+			continue;
 		}
-		work=TP->works;
-		TP->works=TP->works->next;
-		pthread_mutex_unlock(&TP->mutex);
 
-		work->routine(work->arg);
-		free(work);
+		pthread_mutex_unlock(&TP->mutex);
+		pthread_exit(NULL);
 	}
 
 	return NULL;
