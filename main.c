@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 		args_thread[i].infectRate = infectRate;
 		args_thread[i].touchParam = touchParam;
 		args_thread[i].loopNum = loopNum;
-		addWorktoThreadPool(dnet_spread_core, args_thread+i);
+		addWorktoThreadPool(dnet_spread, args_thread+i);
 	}
 
 	destroyThreadPool();

@@ -117,7 +117,7 @@ int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet) 
 //0S,1I,2R
 // simple IS, clean dNet. 
 //int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
-void *dnet_spread_core(void *args_void)
+void *dnet_spread(void *args_void)
 {
 	struct DNetSpreadCoreArgs *args = args_void;
 	struct DirectNet *dNet_origin = args->dNet;
@@ -229,31 +229,6 @@ void *dnet_spread_core(void *args_void)
 	
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->ISId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;
-}
-
-int dnet_spread(struct InfectSourceFile * IS, struct DirectNet * dNet, double infectRate, double touchParam, int loopNum, int threadMax) {
-	printf("begin to spread:\n");
-
-	vttype isNum=IS->ISsNum;
-	init_MersenneTwister();
-
-	struct DNetSpreadCoreArgs args_thread[isNum];
-
-	createThreadPool(threadMax);
-	int i;
-	for(i=0; i<isNum; ++i) {
-		args_thread[i].dNet = dNet;
-		args_thread[i].IS= IS->lines+i;
-		args_thread[i].infectRate = infectRate;
-		args_thread[i].touchParam = touchParam;
-		args_thread[i].loopNum = loopNum;
-		args_thread[i].isId= i;
-		addWorktoThreadPool(dnet_spread_core, args_thread+i);
-	}
-
-	destroyThreadPool();
-
-	return 0;
 }
 
 struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
