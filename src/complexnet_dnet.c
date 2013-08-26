@@ -1,5 +1,8 @@
 #include "../inc/complexnet_dnet.h"
+
 #include "../inc/complexnet_threadpool.h"
+#include "../inc/complexnet_random.h"
+#include <math.h>
 
 void freeDNet(struct DirectNet *dnet) {
 	free(dnet->status);

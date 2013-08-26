@@ -2,11 +2,6 @@
 #define COMPLEXNET_DNET_H
 
 #include "../inc/complexnet_file.h"
-#include "../inc/complexnet_random.h"
-
-#include <math.h>
-#include <pthread.h>
-
 
 struct DirectNet{
 	vttype maxId;
