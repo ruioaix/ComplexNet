@@ -17,13 +17,10 @@ void free_iiLineFile(struct iiLineFile *file) {
 }
 
 //basically, for different line styled file, I only need to change this function and struct NetLineInfo.
-static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId)
+static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
-	static long fill_iiLine_call_count = 0;
-	++fill_iiLine_call_count;
-
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
-		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fill_iiLine_call_count, LINE_LENGTH_MAX-1);
+		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
 		return;
 	}
 
@@ -35,12 +32,12 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 	char *partsLine[2];
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like a blank line).\n", fill_iiLine_call_count);
+		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return;
 	}
 	partsLine[1]=strtok(NULL, delimiter);
 	if (partsLine[1]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only one number)\n", fill_iiLine_call_count);
+		printf("\tline %ld not valid, ignored (looks like only one number)\n", filelineNum);
 		return;
 	}
 
@@ -48,12 +45,12 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 	char *pEnd;
 	LI->i1=strtol(partsLine[0], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_iiLine_call_count, pEnd[0]);
+		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
 	LI->i2=strtol(partsLine[1], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_iiLine_call_count, pEnd[0]);
+		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
 
@@ -72,7 +69,7 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct iiLineFile *create_iiLineFile(const char * const filename)
 {
-	printf("read Net file %s: \n", filename);
+	printf("read iiLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -89,8 +86,9 @@ struct iiLineFile *create_iiLineFile(const char * const filename)
 	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
+		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId);
+			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
@@ -98,9 +96,8 @@ struct iiLineFile *create_iiLineFile(const char * const filename)
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId);
+			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		}
-		++filelineNum;
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
 	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
@@ -127,14 +124,11 @@ void free_innLineFile(struct innLineFile *file) {
 	}
 }
 
-static struct innLine fill_innLine(char *line) {
-	static long fill_innLine_call_count = 0;
-	++fill_innLine_call_count;
-
+static struct innLine fill_innLine(char *line, long filelineNum) {
 	struct innLine is;
 
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
-		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fill_innLine_call_count, LINE_LENGTH_MAX-1);
+		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
 		is.num = 0;
 		return is;
 	}
@@ -144,7 +138,7 @@ static struct innLine fill_innLine(char *line) {
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		is.num = 0;
-		printf("\tline %ld not valid, ignored (looks like a blank line).\n", fill_innLine_call_count);
+		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return is;
 	}
 	int i=0;
@@ -166,7 +160,7 @@ static struct innLine fill_innLine(char *line) {
 		if (pEnd[0]!='\0') {
 			free(vt);
 			is.num = 0;
-			printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_innLine_call_count, pEnd[0]);
+			printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 			free(partsLine);
 			return is;
 		}
@@ -182,7 +176,7 @@ static struct innLine fill_innLine(char *line) {
 //read file to 
 struct innLineFile *create_innLineFile(const char * const filename)
 {
-	printf("read IS file %s: \n", filename);
+	printf("read innLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -205,8 +199,9 @@ struct innLineFile *create_innLineFile(const char * const filename)
 
 	fsetpos(fp, &file_position);
 	long linesNum=0;
+	long filelineNum=0;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		struct innLine is = fill_innLine(line);
+		struct innLine is = fill_innLine(line, ++filelineNum);
 		if (is.num!=0) {
 			is.lineId=linesNum;
 			isfile->lines[linesNum++]=is;

@@ -31,10 +31,11 @@ int main(int argc, char **argv)
 
 	//read data file, create net;
 	struct iiLineFile *file=create_iiLineFile(datafilename);
-	addWorktoThreadPool(writeContinuousNetFileHT, file);
+	//addWorktoThreadPool(writeContinuousNetFileHT, file);
 
 	buildDNet(file);
 	addWorktoThreadPool(verifyDNet, NULL);
+	free_iiLineFile(file);
 
 	//read origin file, create IS;
 	struct innLineFile *ISs=create_innLineFile(originfilename);
@@ -49,13 +50,12 @@ int main(int argc, char **argv)
 		args_thread[i].IS= ISs->lines+i;
 		args_thread[i].infectRate = 0.1;
 		args_thread[i].touchParam = 0;
-		args_thread[i].loopNum = 30;
+		args_thread[i].loopNum = 3000;
 		addWorktoThreadPool(dnet_spread, args_thread+i);
 	}
 
 	destroyThreadPool();
 
-	free_iiLineFile(file);
 	free_innLineFile(ISs);
 	freeDNet();
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
