@@ -29,10 +29,9 @@ int main(int argc, char **argv)
 		isError("two much args.\n");
 	}
 	
-
 	//read data file, create net;
 	struct iiLineFile *file=create_iiLineFile(datafilename);
-	struct DirectNet *dnet=buildDNet(file);
+	buildDNet(file);
 
 	//pthread_t tid;
 	//pthread_create(&tid, NULL, verifyDNet, dnet);
@@ -57,9 +56,8 @@ int main(int argc, char **argv)
 	struct DNetSpreadArgs args_thread[isNum];
 	int i;
 	addWorktoThreadPool(writeContinuousNetFileHT, file);
-	addWorktoThreadPool(verifyDNet, dnet);
+	addWorktoThreadPool(verifyDNet, NULL);
 	for(i=0; i<isNum; ++i) {
-		args_thread[i].dNet = dnet;
 		args_thread[i].IS= ISs->lines+i;
 		args_thread[i].infectRate = infectRate;
 		args_thread[i].touchParam = touchParam;
@@ -69,12 +67,10 @@ int main(int argc, char **argv)
 
 	destroyThreadPool();
 
-
-
 	free_iiLineFile(file);
 	free_innLineFile(ISs);
 	//pthread_join(tid, NULL);
-	freeDNet(dnet);
+	freeDNet();
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	//pthread_exit(NULL);

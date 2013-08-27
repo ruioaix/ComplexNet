@@ -10,22 +10,23 @@ struct DirectNet{
 	long edgesNum;
 	long countMax;
 	long *count;
-	char *status;
 	int **to;
 };
 
-void freeDNet(struct DirectNet *dnet);
-struct DirectNet *buildDNet(const struct iiLineFile * const file);
+//void freeDNet(struct DirectNet *dnet);
+void freeDNet(void);
+//struct DirectNet *buildDNet(const struct iiLineFile * const file);
+void buildDNet(const struct iiLineFile * const file);
 struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
 int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet);
 
+struct DirectNet *getDirectNet(void);
+
 struct DNetSpreadArgs {
 	struct innLine *IS;
-	struct DirectNet *dNet;
 	double infectRate;
 	double touchParam;
 	int loopNum;
-	int isId;
 };
 //thread routine, args type is struct DNetSpreadArgs;
 void *dnet_spread(void * args);

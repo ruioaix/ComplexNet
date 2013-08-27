@@ -8,20 +8,24 @@
 #include <string.h>
 #include <stdio.h>
 
-void freeDNet(struct DirectNet *dnet) {
-	free(dnet->status);
-	int i=0;
-	for(i=0; i<dnet->maxId+1; ++i) {
-		if (dnet->count[i]>0) {
-			free(dnet->to[i]);
-		}
-	}
-	free(dnet->count);
-	free(dnet->to);
-	free(dnet);
+static struct DirectNet dnet;
+
+struct DirectNet *getDirectNet(void) {
+	return &dnet;
 }
 
-struct DirectNet *buildDNet(const struct iiLineFile * const file) {
+void freeDNet(void) {
+	int i=0;
+	for(i=0; i<dnet.maxId+1; ++i) {
+		if (dnet.count[i]>0) {
+			free(dnet.to[i]);
+		}
+	}
+	free(dnet.count);
+	free(dnet.to);
+}
+
+void buildDNet(const struct iiLineFile * const file) {
 	int maxId=file->iMax;
 	int minId=file->iMin;
 	long linesNum=file->linesNum;
@@ -80,40 +84,40 @@ struct DirectNet *buildDNet(const struct iiLineFile * const file) {
 	}
 	free(temp_count);
 
-	struct DirectNet *dnet=malloc(sizeof(struct DirectNet));
-	dnet->maxId=maxId;
-	dnet->minId=minId;
-	dnet->edgesNum=linesNum;
-	dnet->vtsNum=vtsNum;
-	dnet->countMax=countMax;
-	dnet->count=count;
-	dnet->status=status;
-	dnet->to=to;
+	//struct DirectNet *dnet=malloc(sizeof(struct DirectNet));
+	dnet.maxId=maxId;
+	dnet.minId=minId;
+	dnet.edgesNum=linesNum;
+	dnet.vtsNum=vtsNum;
+	dnet.countMax=countMax;
+	dnet.count=count;
+	dnet.to=to;
 	printf("build direct net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
 
-	return dnet;
 }
 
-int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet) {
+int buildISStatusStick(const struct innLine * const is, char *statusStick) {
+	assert(statusStick != NULL);
+
 	int i=0;
 	int sign=0;
 	for (i=0; i<is->num; ++i) {
 		int isvt=is->inn[i];
-		int count=dnet->count[isvt];
-		if (isvt > dnet->maxId || count == 0) {
+		int count=dnet.count[isvt];
+		if (isvt > dnet.maxId || count == 0) {
 			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
+			return -1;
+		}
+		if (statusStick[isvt] == 1) {
+			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
 			return -2;
 		}
-		if (dnet->status[isvt] == 1) {
-			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
-			return -3;
-		}
-		dnet->status[isvt] = 1;
+		statusStick[isvt] = 1;
 		++sign;
 	}
 	if (!sign) {
 		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->lineId);fflush(stdout);
-		return -1;
+		return -3;
 	}
 	return 0;
 }
@@ -124,29 +128,27 @@ int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet) {
 void *dnet_spread(void *args_void)
 {
 	struct DNetSpreadArgs *args = args_void;
-	struct DirectNet *dNet_origin = args->dNet;
 	struct innLine *IS = args->IS;
 	double infectRate = args->infectRate;
 	double touchParam = args->touchParam;
 	int loopNum = args->loopNum;
 
-	//printf("thread %d begin: ", isId);fflush(stdout);
-
 	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
 	int isId = init_by_array_MersenneTwister_threadsafe(init, length);
 
-	struct DirectNet *dNet = cloneDNet(dNet_origin);
-	if (buildIStoDNet(IS, dNet)< 0) {
-		freeDNet(dNet);
+	char *statusStick = calloc(dnet.maxId+1, sizeof(char));
+	assert(statusStick != NULL);
+
+	
+	if (buildISStatusStick(IS, statusStick)<0) {
 		return (void *)-1;
 	}
 
-
-	int *oVt=malloc((dNet->maxId+1)*sizeof(int));
+	int *oVt=malloc((dnet.maxId+1)*sizeof(int));
 	assert(oVt!=NULL);
 	int oNum;
 
-	int *xVt=malloc((dNet->maxId+1)*sizeof(int));
+	int *xVt=malloc((dnet.maxId+1)*sizeof(int));
 	assert(xVt!=NULL);
 	int xNum;
 
@@ -171,8 +173,8 @@ void *dnet_spread(void *args_void)
 
 	for( l=0; l<loopNum; ++l) {	
 
-		memset(dNet->status, 0, (dNet->maxId+1)*sizeof(char));
-		buildIStoDNet(IS, dNet);
+		memset(statusStick, 0, (dnet.maxId+1)*sizeof(char));
+		buildISStatusStick(IS, statusStick);
 
 		memcpy(oVt, IS->inn, IS->num*sizeof(int));
 		oNum=IS->num;
@@ -184,25 +186,25 @@ void *dnet_spread(void *args_void)
 			//begin to try to spread.
 			for (i=0; i<oNum; ++i) {
 				int vt=oVt[i];
-				touchRate=1/(double)pow(dNet->count[vt], touchParam);
+				touchRate=1/(double)pow(dnet.count[vt], touchParam);
 				//I begin to spread to its neighbor
-				for (j=0; j<dNet->count[vt]; ++j) {
-					neigh=dNet->to[vt][j];
+				for (j=0; j<dnet.count[vt]; ++j) {
+					neigh=dnet.to[vt][j];
 					//only S neighbour need to try. if it's I/R, nothing to do.
 					r=genrand_real1_threadsafe(isId);
 					//r=0.5;
 					if (r<touchRate) {
-						if (dNet->status[neigh] == 0) {
+						if (statusStick[neigh] == 0) {
 							r=genrand_real1_threadsafe(isId);
 							//r=0.5;
 							if (r<infectRate) {
-								dNet->status[neigh] = 1;
+								statusStick[neigh] = 1;
 								xVt[xNum++]=neigh;
 							}
 						}
 					}
 				}
-				dNet->status[vt] = 2;
+				statusStick[vt] = 2;
 			}
 
 			int *temp = oVt; oVt = xVt; xVt = temp;
@@ -211,12 +213,12 @@ void *dnet_spread(void *args_void)
 		}
 
 		int k, R=0;
-		for (k=0; k<dNet->maxId+1; ++k) {
-			if (dNet->status[k]==2) {
+		for (k=0; k<dnet.maxId+1; ++k) {
+			if (statusStick[k]==2) {
 				++R;
 			}
 		}
-		IR[l]=(double)R/(double)dNet->vtsNum;
+		IR[l]=(double)R/(double)dnet.vtsNum;
 
 	}
 	//printf("\t%d: just after loopNum----------------------\n", IS->ISId);fflush(stdout);
@@ -229,7 +231,6 @@ void *dnet_spread(void *args_void)
 
 	free(xVt);
 	free(oVt);
-	freeDNet(dNet);
 	
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;
@@ -249,10 +250,6 @@ struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
 	assert(dnet_c->count != NULL);
 	memcpy(dnet_c->count, dnet->count, (dnet_c->maxId+1)*sizeof(long));
 
-	dnet_c->status = malloc((dnet_c->maxId+1)*sizeof(char));
-	assert(dnet_c->status != NULL);
-	memcpy(dnet_c->status, dnet->status, (dnet_c->maxId+1)*sizeof(char));
-
 	dnet_c->to = calloc(dnet_c->maxId+1, sizeof(void *));
 	assert(dnet_c->to !=NULL);
 	int i=0;
@@ -267,22 +264,22 @@ struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
 }
 
 void *verifyDNet(void *arg) {
-	struct DirectNet *dnet = arg;
+	//struct DirectNet *dnet = arg;
 	long i;
 	int j;
-	int *place = malloc((dnet->maxId+1)*sizeof(int));
-	memset(place, -1, dnet->maxId+1);
+	int *place = malloc((dnet.maxId+1)*sizeof(int));
+	memset(place, -1, dnet.maxId+1);
 	FILE *fp = fopen("data/duplicatePairsinDirectNet", "w");
 	fileError(fp, "data/duplicatePairsinDirectNet");
 	FILE *fp2 = fopen("data/NoDuplicatePairsNetFile", "w");
 	fileError(fp2, "data/NoDuplicatePairsNetFile");
 	fprintf(fp, "the following pairs are duplicate in the net file\n");
 	char sign=0;
-	for (j=0; j<dnet->maxId; ++j) {
-		if (dnet->count[j]>0) {
-			memset(place, -1, (dnet->maxId+1)*sizeof(int));
-			for (i=0; i<dnet->count[j]; ++i) {
-				int origin = dnet->to[j][i];
+	for (j=0; j<dnet.maxId; ++j) {
+		if (dnet.count[j]>0) {
+			memset(place, -1, (dnet.maxId+1)*sizeof(int));
+			for (i=0; i<dnet.count[j]; ++i) {
+				int origin = dnet.to[j][i];
 				int next = place[origin];
 				if (next == -1) {
 					place[origin]=origin;
