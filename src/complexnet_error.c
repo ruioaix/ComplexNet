@@ -1,4 +1,6 @@
 #include "../inc/complexnet_error.h"
+#include <stddef.h> //for NULL
+#include <stdlib.h> //for exit & EXIT_FAILURE
 
 void fileError(FILE *fp, const char * const filename)
 {

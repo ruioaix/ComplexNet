@@ -14,14 +14,12 @@ struct DirectNet{
 	int **to;
 };
 
-enum touchtype {all=0, part=1};
-
 void freeDNet(struct DirectNet *dnet);
 struct DirectNet *buildDNet(const struct iiLineFile * const file);
-
+struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
 int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet);
 
-struct DNetSpreadCoreArgs {
+struct DNetSpreadArgs {
 	struct innLine *IS;
 	struct DirectNet *dNet;
 	double infectRate;
@@ -29,10 +27,9 @@ struct DNetSpreadCoreArgs {
 	int loopNum;
 	int isId;
 };
-
+//thread routine, args type is struct DNetSpreadArgs;
 void *dnet_spread(void * args);
-
-struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
+//thread routine, args type is struct DirectNet;
 void *verifyDNet(void *arg);
 
 #endif

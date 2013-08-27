@@ -123,7 +123,7 @@ int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet) {
 //int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
 void *dnet_spread(void *args_void)
 {
-	struct DNetSpreadCoreArgs *args = args_void;
+	struct DNetSpreadArgs *args = args_void;
 	struct DirectNet *dNet_origin = args->dNet;
 	struct innLine *IS = args->IS;
 	double infectRate = args->infectRate;
@@ -300,6 +300,9 @@ void *verifyDNet(void *arg) {
 	fclose(fp2);
 	if (sign == 1) {
 		isError("the file has duplicate pairs, you can check data/duplicatePairsinDirectNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
+	}
+	else {
+		printf("verifyDNet: perfect network.\n");
 	}
 	return (void *)0;
 }

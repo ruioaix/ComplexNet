@@ -1,10 +1,6 @@
 #ifndef COMPLEXNET_HASHTABLE_H
 #define COMPLEXNET_HASHTABLE_H
 
-#include <assert.h>
-#include "complexnet_error.h"
-#include "complexnet_file.h"
-
 struct HashElement {
 	long element;
 	struct HashElement *next;
@@ -27,9 +23,9 @@ void freeHashTable(struct HashTable *ht);
 int insertHEtoHT(struct HashTable *ht, long element);
 void deleteHEfromHT(struct HashTable *ht, long element);
 //get index
-void elementNumSumHT(struct HashTable *ht);
 int getelementIndexHT(struct HashTable *ht, long element);
-void elementNumBackHT(struct HashTable *ht);
 
+//thread routine, arg type is iiLineFile.
 void *writeContinuousNetFileHT(void * arg);
+
 #endif

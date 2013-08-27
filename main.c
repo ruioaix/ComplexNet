@@ -6,6 +6,7 @@
 #include "inc/complexnet_random.h"
 #include "inc/complexnet_hashtable.h" //for buildDNet;
 #include "inc/complexnet_threadpool.h"
+#include "inc/complexnet_error.h"
 
 int main(int argc, char **argv)
 {
@@ -32,7 +33,6 @@ int main(int argc, char **argv)
 	//read data file, create net;
 	struct iiLineFile *file=create_iiLineFile(datafilename);
 	struct DirectNet *dnet=buildDNet(file);
-	free_iiLineFile(file);
 
 	//pthread_t tid;
 	//pthread_create(&tid, NULL, verifyDNet, dnet);
@@ -54,8 +54,10 @@ int main(int argc, char **argv)
 	createThreadPool(threadMax);
 
 	int isNum=ISs->linesNum;
-	struct DNetSpreadCoreArgs args_thread[isNum];
+	struct DNetSpreadArgs args_thread[isNum];
 	int i;
+	addWorktoThreadPool(writeContinuousNetFileHT, file);
+	addWorktoThreadPool(verifyDNet, dnet);
 	for(i=0; i<isNum; ++i) {
 		args_thread[i].dNet = dnet;
 		args_thread[i].IS= ISs->lines+i;
@@ -69,6 +71,7 @@ int main(int argc, char **argv)
 
 
 
+	free_iiLineFile(file);
 	free_innLineFile(ISs);
 	//pthread_join(tid, NULL);
 	freeDNet(dnet);

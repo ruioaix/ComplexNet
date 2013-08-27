@@ -1,4 +1,40 @@
 #include "../inc/complexnet_hashtable.h"
+#include "../inc/complexnet_error.h"
+#include "../inc/complexnet_file.h"
+#include <assert.h>
+#include <stdlib.h>
+
+static void elementNumSumHT(struct HashTable *ht)
+{
+	if (!ht->sumSign) {
+		int i;
+		int ivalue=ht->elementNum[0];
+		ht->elementNum[0]=0;
+		for (i=1; i<ht->length; ++i) {
+			int temp=ht->elementNum[i];
+			ht->elementNum[i]=ivalue+ht->elementNum[i-1];
+			ivalue=temp;
+		}
+		ht->sumSign=1;
+	}
+}
+
+static void elementNumBackHT(struct HashTable *ht)
+{
+	if (ht->sumSign) {
+		int i;
+		for (i=1; i<ht->length; ++i) {
+			ht->elementNum[i-1]=ht->elementNum[i]-ht->elementNum[i-1];
+		}
+		ht->elementNum[ht->length-1]=0;
+		struct HashElement *he=ht->he[ht->length-1];
+		while(he) {
+			++ht->elementNum[ht->length-1];
+			he=he->next;
+		}
+		ht->sumSign=0;
+	}
+}
 
 //recursion free.
 void freeHashElement(struct HashElement *he)
@@ -142,38 +178,6 @@ void deleteHEfromHT(struct HashTable *ht, long element)
 	}
 }
 
-void elementNumSumHT(struct HashTable *ht)
-{
-	if (!ht->sumSign) {
-		int i;
-		int ivalue=ht->elementNum[0];
-		ht->elementNum[0]=0;
-		for (i=1; i<ht->length; ++i) {
-			int temp=ht->elementNum[i];
-			ht->elementNum[i]=ivalue+ht->elementNum[i-1];
-			ivalue=temp;
-		}
-		ht->sumSign=1;
-	}
-}
-
-void elementNumBackHT(struct HashTable *ht)
-{
-	if (ht->sumSign) {
-		int i;
-		for (i=1; i<ht->length; ++i) {
-			ht->elementNum[i-1]=ht->elementNum[i]-ht->elementNum[i-1];
-		}
-		ht->elementNum[ht->length-1]=0;
-		struct HashElement *he=ht->he[ht->length-1];
-		while(he) {
-			++ht->elementNum[ht->length-1];
-			he=he->next;
-		}
-		ht->sumSign=0;
-	}
-}
-
 int getelementIndexHT(struct HashTable *ht, long element)
 {
 	elementNumSumHT(ht);
@@ -191,7 +195,7 @@ int getelementIndexHT(struct HashTable *ht, long element)
 }
 
 void *writeContinuousNetFileHT(void * arg) {
-	struct iiLineFile *file = (struct iiLineFile *)arg;
+	struct iiLineFile *file = arg;
 	struct HashTable *ht = createHashTable(3000000);
 	long i;
 	for (i=0; i<file->linesNum; ++i) {
