@@ -1,16 +1,10 @@
 #include "../inc/complexnet_file.h"
-// for strtol, strtok
-#include <string.h>
-// for FILE fpos_t 
-#include <stdio.h>
-// for malloc, remalloc
-#include <stdlib.h>
-// for assert.
-#include <assert.h>
-// for INT_MAX
-#include <limits.h>
-// for fileError, memError, isError
-#include "../inc/complexnet_error.h"
+#include "../inc/complexnet_error.h" // for fileError, memError, isError
+#include <string.h> // for strtol, strtok
+#include <stdio.h> // for FILE fpos_t 
+#include <stdlib.h> // for malloc, remalloc
+#include <assert.h> // for assert.
+#include <limits.h> // for INT_MAX
 
 
 static char *delimiter="\t, \r\n";
@@ -25,7 +19,6 @@ void free_iiLineFile(struct iiLineFile *file) {
 //basically, for different line styled file, I only need to change this function and struct NetLineInfo.
 static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId)
 {
-
 	static long fill_iiLine_call_count = 0;
 	++fill_iiLine_call_count;
 
@@ -146,7 +139,7 @@ static struct innLine fill_innLine(char *line) {
 		return is;
 	}
 
-	int isMax=10000;
+	int isMax=5000;
 	char **partsLine = calloc(isMax, sizeof(void *));
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
@@ -226,4 +219,3 @@ struct innLineFile *create_innLineFile(const char * const filename)
 
 	return isfile;
 }
-

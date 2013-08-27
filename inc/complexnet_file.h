@@ -15,19 +15,7 @@
 //you don't need to know the exactly line num of the file.
 #define LINES_LENGTH_EACH 10000000
 
-//if the net's vt id beyond the INT_MAX, or the line num beyond the INT_MAX, you can just change int to long. if you like, long long is also fine.
-//but int is suggested, because it's fastest.
-//the edtype is for edges number in net, it's common to be 1e8, so int is ok, too. 
-//typedef int vttype;
-//typedef int edtype;
-
-
-//for net file
-//struct NetLineInfo{
-//	vttype vt1Id;
-//	vttype vt2Id;
-//};
-
+//for file containing two int in one line.
 struct iiLine {
 	int i1;
 	int i2;
@@ -39,20 +27,9 @@ struct iiLineFile {
 	struct iiLine *lines;
 };
 void free_iiLineFile(struct iiLineFile *file);
-//void fill_iiLine(char *line, struct File_Line_ii *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId);
 struct iiLineFile *create_iiLineFile(const char * const filename);
 
-//struct NetFile{
-//	vttype maxId;
-//	vttype minId;
-//	edtype linesNum;
-//	struct NetLineInfo *lines;
-//};
-
-//void freeNetFile(struct NetFile *file);
-//void fillNetLineInfo(char *line, struct NetLineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId);
-//struct NetFile *readNetFile(const char * const filename);
-
+//for file containing unlimited int in one line.
 struct innLine{
 	int lineId;
 	int num;
@@ -63,21 +40,6 @@ struct innLineFile {
 	struct innLine *lines;
 };
 void free_innLineFile(struct innLineFile *file);
-//struct innLine fill_innLine(char *line);
 struct innLineFile *create_innLineFile(const char * const filename);
-
-//for is file
-//struct InfectSource {
-//	int ISId;
-//	vttype num;
-//	vttype *vt;
-//};
-//struct InfectSourceFile {
-//	int ISsNum;
-//	struct InfectSource *lines;
-//};
-//void freeISFile(struct InfectSourceFile *file);
-//struct InfectSource fillISfromLine(char *line);
-//struct InfectSourceFile *readAllISfromFile(const char * const filename);
 
 #endif
