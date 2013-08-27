@@ -1,7 +1,21 @@
 #include "../inc/complexnet_file.h"
+// for strtol, strtok
+#include <string.h>
+// for FILE fpos_t 
+#include <stdio.h>
+// for malloc, remalloc
+#include <stdlib.h>
+// for assert.
+#include <assert.h>
+// for INT_MAX
+#include <limits.h>
+// for fileError, memError, isError
+#include "../inc/complexnet_error.h"
 
-//
-void freeNetFile(struct NetFile *file) {
+
+static char *delimiter="\t, \r\n";
+
+void free_iiLineFile(struct iiLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
 		free(file);
@@ -9,180 +23,138 @@ void freeNetFile(struct NetFile *file) {
 }
 
 //basically, for different line styled file, I only need to change this function and struct NetLineInfo.
-void fillNetLineInfo(char *line, struct NetLineInfo *LI_origin,  edtype *lNum, int each, vttype *vtMaxId, vttype *vtMinId)
+static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId)
 {
 
-	static edtype fillNetLineInfo_call_count = 0;
-	++fillNetLineInfo_call_count;
+	static long fill_iiLine_call_count = 0;
+	++fill_iiLine_call_count;
 
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
-		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fillNetLineInfo_call_count, LINE_LENGTH_MAX-1);
+		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fill_iiLine_call_count, LINE_LENGTH_MAX-1);
 		return;
 	}
 
-	edtype lineNum = *lNum+(each-1)*LINES_LENGTH_EACH;
-	struct NetLineInfo *LI = LI_origin+lineNum;
+	long linesNum = *lNum+(each-1)*LINES_LENGTH_EACH;
+	struct iiLine *LI = LI_origin+linesNum;
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
-	char *delimiter="\t, \r\n";
 	char *partsLine[2];
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
-		printf("\tline %d not valid, ignored (looks like a blank line).\n", fillNetLineInfo_call_count);
+		printf("\tline %ld not valid, ignored (looks like a blank line).\n", fill_iiLine_call_count);
 		return;
 	}
 	partsLine[1]=strtok(NULL, delimiter);
 	if (partsLine[1]==NULL) {
-		printf("\tline %d not valid, ignored (looks like only one number)\n", fillNetLineInfo_call_count);
+		printf("\tline %ld not valid, ignored (looks like only one number)\n", fill_iiLine_call_count);
 		return;
 	}
+
 	//transfor parts to num(double or int);
 	char *pEnd;
-	LI->vt1Id=strtol(partsLine[0], &pEnd, 10);
+	LI->i1=strtol(partsLine[0], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillNetLineInfo_call_count, pEnd[0]);
+		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_iiLine_call_count, pEnd[0]);
 		return;
 	}
-	LI->vt2Id=strtol(partsLine[1], &pEnd, 10);
+	LI->i2=strtol(partsLine[1], &pEnd, 10);
 	if (pEnd[0]!='\0') {
-		printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillNetLineInfo_call_count, pEnd[0]);
+		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_iiLine_call_count, pEnd[0]);
 		return;
 	}
 
 	++(*lNum);
 
 	//max/min Id
-	if (LI->vt1Id>LI->vt2Id) {
-		*vtMaxId=(*vtMaxId)>LI->vt1Id?(*vtMaxId):LI->vt1Id;
-		*vtMinId=(*vtMinId)<LI->vt2Id?(*vtMinId):LI->vt2Id;
+	if (LI->i1>LI->i2) {
+		*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
+		*vtMinId=(*vtMinId)<LI->i2?(*vtMinId):LI->i2;
 	} else {
-		*vtMaxId=(*vtMaxId)>LI->vt2Id?(*vtMaxId):LI->vt2Id;
-		*vtMinId=(*vtMinId)<LI->vt1Id?(*vtMinId):LI->vt1Id;
+		*vtMaxId=(*vtMaxId)>LI->i2?(*vtMaxId):LI->i2;
+		*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	}
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct NetFile *readNetFile(const char * const filename)
+struct iiLineFile *create_iiLineFile(const char * const filename)
 {
 	printf("read Net file %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	struct NetLineInfo *LinesInfo=NULL;
-	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct NetLineInfo));
+	struct iiLine *LinesInfo=NULL;
+	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct iiLine));
 	assert(LinesInfo!=NULL);
 
-	edtype lineNum=0;
-	edtype filelineNum=0;
-	vttype maxId=-1;
-	vttype minId=INT_MAX;
+	long linesNum=0;
+	long filelineNum=0;
+	int maxId=-1;
+	int minId=INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		if (lineNum<LINES_LENGTH_EACH) {
-			fillNetLineInfo(line, LinesInfo, &lineNum, each, &maxId, &minId);
+		if (linesNum<LINES_LENGTH_EACH) {
+			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
-			struct NetLineInfo *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct NetLineInfo));
+			struct iiLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct iiLine));
 			assert(temp!=NULL);
 			LinesInfo=temp;
-			lineNum=0;
-			fillNetLineInfo(line, LinesInfo, &lineNum, each, &maxId, &minId);
+			linesNum=0;
+			fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId);
 		}
 		++filelineNum;
 	}
-	lineNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("\tread valid lines: %d, file lines: %d\n\tMax: %d, Min: %d\n", lineNum, filelineNum, maxId, minId); fflush(stdout);
+	linesNum+=(each-1)*LINES_LENGTH_EACH;
+	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
-	struct NetFile *file=malloc(sizeof(struct NetFile));
+	struct iiLineFile *file=malloc(sizeof(struct iiLineFile));
 	assert(file!=NULL);
-	file->minId=minId;
-	file->maxId=maxId;
+	file->iMin=minId;
+	file->iMax=maxId;
 	file->lines=LinesInfo;
-	file->linesNum=lineNum;
+	file->linesNum=linesNum;
 
 	return file;
 }
 
-void freeISFile(struct InfectSourceFile *file) {
-	int i;
+void free_innLineFile(struct innLineFile *file) {
+	long i;
 	if (file != NULL) {
-		for(i=0; i<file->ISsNum; ++i) {
-			free(file->lines[i].vt);
+		for(i=0; i<file->linesNum; ++i) {
+			free(file->lines[i].inn);
 		}
 		free(file->lines);
 		free(file);
 	}
 }
 
-//read file to 
-struct InfectSourceFile *readAllISfromFile(const char * const filename)
-{
-	printf("read IS file %s: \n", filename);
-	//open file
-	FILE *fp=fopen(filename,"r");
-	fileError(fp, filename);
-	//record file begin position
-	fpos_t file_position;
-	fgetpos(fp, &file_position);
+static struct innLine fill_innLine(char *line) {
+	static long fill_innLine_call_count = 0;
+	++fill_innLine_call_count;
 
-	struct InfectSourceFile *isfile=malloc(sizeof(struct InfectSourceFile));
-	assert(isfile!=NULL);
-
-	char line[LINE_LENGTH_MAX];
-	int filelines=0;
-	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		++filelines;
-	}
-	assert(filelines!=0);
-
-	isfile->lines = calloc(filelines, sizeof(struct InfectSource));
-	assert(isfile->lines!=NULL);
-
-	fsetpos(fp, &file_position);
-	int linesNum=0;
-	while(fgets(line, LINE_LENGTH_MAX, fp)) {
-		struct InfectSource is = fillISfromLine(line);
-		if (is.num!=0) {
-			is.ISId=linesNum;
-			isfile->lines[linesNum++]=is;
-		}
-	}
-	fclose(fp);
-	isfile->ISsNum=linesNum;
-	assert(linesNum!=0);
-	printf("\ttotally %d groups of IS, file lines: %d\n", linesNum, filelines);
-
-	return isfile;
-}
-
-struct InfectSource fillISfromLine(char *line) {
-	static vttype fillISfromLine_call_count = 0;
-	++fillISfromLine_call_count;
-
-	struct InfectSource is;
+	struct innLine is;
 
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
-		printf("\tthe line %d has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fillISfromLine_call_count, LINE_LENGTH_MAX-1);
+		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", fill_innLine_call_count, LINE_LENGTH_MAX-1);
 		is.num = 0;
 		return is;
 	}
 
 	int isMax=10000;
-	char *delimiter="\t, \r\n";
 	char **partsLine = calloc(isMax, sizeof(void *));
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		is.num = 0;
-		printf("\tline %d not valid, ignored (looks like a blank line).\n", fillISfromLine_call_count);
+		printf("\tline %ld not valid, ignored (looks like a blank line).\n", fill_innLine_call_count);
 		return is;
 	}
-	vttype i=0;
+	int i=0;
 	while((partsLine[++i]=strtok(NULL, delimiter))) {
 		if (i==isMax) {
 			isMax += 5000;
@@ -192,16 +164,16 @@ struct InfectSource fillISfromLine(char *line) {
 		}
 	}
 
-	vttype num=i;
-	vttype *vt=malloc(num*sizeof(vttype));
-	vttype j=0;
+	int num=i;
+	int *vt=malloc(num*sizeof(int));
+	int j=0;
 	char *pEnd;
 	for (j=0; j<num; ++j) {
 		vt[j]=strtol(partsLine[j], &pEnd, 10);
 		if (pEnd[0]!='\0') {
 			free(vt);
 			is.num = 0;
-			printf("\tline %d not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fillISfromLine_call_count, pEnd[0]);
+			printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", fill_innLine_call_count, pEnd[0]);
 			free(partsLine);
 			return is;
 		}
@@ -210,6 +182,48 @@ struct InfectSource fillISfromLine(char *line) {
 	free(partsLine);
 
 	is.num=num;
-	is.vt=vt;
+	is.inn=vt;
 	return is;
 }
+
+//read file to 
+struct innLineFile *create_innLineFile(const char * const filename)
+{
+	printf("read IS file %s: \n", filename);
+	//open file
+	FILE *fp=fopen(filename,"r");
+	fileError(fp, filename);
+	//record file begin position
+	fpos_t file_position;
+	fgetpos(fp, &file_position);
+
+	struct innLineFile *isfile=malloc(sizeof(struct innLineFile));
+	assert(isfile!=NULL);
+
+	char line[LINE_LENGTH_MAX];
+	long filelines=0;
+	while(fgets(line, LINE_LENGTH_MAX, fp)) {
+		++filelines;
+	}
+	assert(filelines!=0);
+
+	isfile->lines = calloc(filelines, sizeof(struct innLine));
+	assert(isfile->lines!=NULL);
+
+	fsetpos(fp, &file_position);
+	long linesNum=0;
+	while(fgets(line, LINE_LENGTH_MAX, fp)) {
+		struct innLine is = fill_innLine(line);
+		if (is.num!=0) {
+			is.lineId=linesNum;
+			isfile->lines[linesNum++]=is;
+		}
+	}
+	fclose(fp);
+	isfile->linesNum=linesNum;
+	assert(linesNum!=0);
+	printf("\ttotally %ld groups of IS, file lines: %ld\n", linesNum, filelines);
+
+	return isfile;
+}
+

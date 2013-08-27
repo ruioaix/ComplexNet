@@ -191,19 +191,19 @@ int getelementIndexHT(struct HashTable *ht, long element)
 }
 
 void *writeContinuousNetFileHT(void * arg) {
-	struct NetFile *file = (struct NetFile *)arg;
+	struct iiLineFile *file = (struct iiLineFile *)arg;
 	struct HashTable *ht = createHashTable(3000000);
-	edtype i;
+	long i;
 	for (i=0; i<file->linesNum; ++i) {
-		insertHEtoHT(ht, file->lines[i].vt1Id);
-		insertHEtoHT(ht, file->lines[i].vt2Id);
+		insertHEtoHT(ht, file->lines[i].i1);
+		insertHEtoHT(ht, file->lines[i].i2);
 	}
 	FILE *fp = fopen("data/continuousNetFile", "w");
 	fileError(fp, "data/continuousNetFile");
 	for (i=0; i<file->linesNum; ++i) {
-		int vt1Id = getelementIndexHT(ht, file->lines[i].vt1Id);
-		int vt2Id = getelementIndexHT(ht, file->lines[i].vt2Id);
-		fprintf(fp, "%d\t%d\n", vt1Id, vt2Id);
+		int i1 = getelementIndexHT(ht, file->lines[i].i1);
+		int i2 = getelementIndexHT(ht, file->lines[i].i2);
+		fprintf(fp, "%d\t%d\n", i1, i2);
 	}
 	fclose(fp);
 	freeHashTable(ht);

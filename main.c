@@ -30,16 +30,16 @@ int main(int argc, char **argv)
 	
 
 	//read data file, create net;
-	struct NetFile *file=readNetFile(datafilename);
+	struct iiLineFile *file=create_iiLineFile(datafilename);
 	struct DirectNet *dnet=buildDNet(file);
-	freeNetFile(file);
+	free_iiLineFile(file);
 
 	//pthread_t tid;
 	//pthread_create(&tid, NULL, verifyDNet, dnet);
 	//pthread_create(&tid, NULL, writeContinuousNetFileHT, file);
 
 	//read origin file, create IS;
-	struct InfectSourceFile *ISs=readAllISfromFile(originfilename);
+	struct innLineFile *ISs=create_innLineFile(originfilename);
 
 
 	//ISs, NET, infectRate, touchparam, loopNum, Thread_max.
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 	createThreadPool(threadMax);
 
-	vttype isNum=ISs->ISsNum;
+	int isNum=ISs->linesNum;
 	struct DNetSpreadCoreArgs args_thread[isNum];
 	int i;
 	for(i=0; i<isNum; ++i) {
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
 
 
-	freeISFile(ISs);
+	free_innLineFile(ISs);
 	//pthread_join(tid, NULL);
 	freeDNet(dnet);
 	//printf end time;

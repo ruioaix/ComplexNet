@@ -4,30 +4,30 @@
 #include "../inc/complexnet_file.h"
 
 struct DirectNet{
-	vttype maxId;
-	vttype minId;
-	vttype vtsNum;
-	edtype edgesNum;
-	edtype countMax;
-	edtype *count;
+	int maxId;
+	int minId;
+	int vtsNum;
+	long edgesNum;
+	long countMax;
+	long *count;
 	char *status;
-	vttype **to;
+	int **to;
 };
 
 enum touchtype {all=0, part=1};
 
 void freeDNet(struct DirectNet *dnet);
-struct DirectNet *buildDNet(const struct NetFile * const file);
+struct DirectNet *buildDNet(const struct iiLineFile * const file);
 
-int buildIStoDNet(const struct InfectSource * const is, struct DirectNet *dnet);
+int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet);
 
 struct DNetSpreadCoreArgs {
-	struct InfectSource *IS;
+	struct innLine *IS;
 	struct DirectNet *dNet;
 	double infectRate;
 	double touchParam;
 	int loopNum;
-	vttype isId;
+	int isId;
 };
 
 void *dnet_spread(void * args);
