@@ -3,6 +3,7 @@
 #include <time.h>
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
+#include "inc/complexnet_dtnet.h" //for buildDNet;
 #include "inc/complexnet_random.h"
 #include "inc/complexnet_hashtable.h" //for buildDNet;
 #include "inc/complexnet_threadpool.h"
@@ -29,6 +30,12 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 
+	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	//addWorktoThreadPool(writeContinuousi4LineFileHT, file);
+	init_DirectTimeNet(file);
+	addWorktoThreadPool(verifyDTNet, NULL);
+	
+/*
 	//read data file, create net;
 	struct iiLineFile *file=create_iiLineFile(datafilename);
 	//addWorktoThreadPool(writeContinuousNetFileHT, file);
@@ -53,11 +60,11 @@ int main(int argc, char **argv)
 		args_thread[i].loopNum = 3000;
 		addWorktoThreadPool(dnet_spread, args_thread+i);
 	}
-
+*/
 	destroyThreadPool();
 
-	free_innLineFile(ISs);
-	freeDNet();
+//	free_innLineFile(ISs);
+//	freeDNet();
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	return 0;
 }

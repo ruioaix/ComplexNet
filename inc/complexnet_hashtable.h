@@ -26,6 +26,7 @@ void deleteHEfromHT(struct HashTable *ht, long element);
 int getelementIndexHT(struct HashTable *ht, long element);
 
 //thread routine, arg type is iiLineFile.
-void *writeContinuousNetFileHT(void * arg);
+void *writeContinuousiiLineFileHT(void * arg);
+void *writeContinuousi4LineFileHT(void * arg);
 
 #endif

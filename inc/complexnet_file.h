@@ -60,6 +60,4 @@ struct i4LineFile *create_i4LineFile(const char * const filename);
 
 
 
-
-
 #endif

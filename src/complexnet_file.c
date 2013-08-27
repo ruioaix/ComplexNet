@@ -262,12 +262,12 @@ static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int e
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
-	LI->i3=strtol(partsLine[1], &pEnd, 10);
+	LI->i3=strtol(partsLine[2], &pEnd, 10);
 	if (pEnd[0]!='\0') {
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
-	LI->i4=strtol(partsLine[1], &pEnd, 10);
+	LI->i4=strtol(partsLine[3], &pEnd, 10);
 	if (pEnd[0]!='\0') {
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
@@ -331,5 +331,3 @@ struct i4LineFile *create_i4LineFile(const char * const filename)
 
 	return file;
 }
-
-

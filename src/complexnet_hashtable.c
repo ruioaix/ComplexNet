@@ -194,7 +194,7 @@ int getelementIndexHT(struct HashTable *ht, long element)
 	return -1;
 }
 
-void *writeContinuousNetFileHT(void * arg) {
+void *writeContinuousiiLineFileHT(void * arg) {
 	struct iiLineFile *file = arg;
 	struct HashTable *ht = createHashTable(3000000);
 	long i;
@@ -202,12 +202,32 @@ void *writeContinuousNetFileHT(void * arg) {
 		insertHEtoHT(ht, file->lines[i].i1);
 		insertHEtoHT(ht, file->lines[i].i2);
 	}
-	FILE *fp = fopen("data/continuousNetFile", "w");
-	fileError(fp, "data/continuousNetFile");
+	FILE *fp = fopen("data/continuousiiLineFile", "w");
+	fileError(fp, "data/continuousiiLineFile");
 	for (i=0; i<file->linesNum; ++i) {
 		int i1 = getelementIndexHT(ht, file->lines[i].i1);
 		int i2 = getelementIndexHT(ht, file->lines[i].i2);
 		fprintf(fp, "%d\t%d\n", i1, i2);
+	}
+	fclose(fp);
+	freeHashTable(ht);
+	return (void *)0;
+}
+
+void *writeContinuousi4LineFileHT(void * arg) {
+	struct i4LineFile *file = arg;
+	struct HashTable *ht = createHashTable(3000000);
+	long i;
+	for (i=0; i<file->linesNum; ++i) {
+		insertHEtoHT(ht, file->lines[i].i1);
+		insertHEtoHT(ht, file->lines[i].i2);
+	}
+	FILE *fp = fopen("data/continuousi4LineFile", "w");
+	fileError(fp, "data/continuousi4LineFile");
+	for (i=0; i<file->linesNum; ++i) {
+		int i1 = getelementIndexHT(ht, file->lines[i].i1);
+		int i2 = getelementIndexHT(ht, file->lines[i].i2);
+		fprintf(fp, "%d\t%d\t%d\t%d\n", i1, i2, file->lines[i].i3, file->lines[i].i4);
 	}
 	fclose(fp);
 	freeHashTable(ht);
