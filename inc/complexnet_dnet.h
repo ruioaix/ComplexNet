@@ -12,14 +12,9 @@ struct DirectNet{
 	long *count;
 	int **to;
 };
-
-//void freeDNet(struct DirectNet *dnet);
 void freeDNet(void);
-//struct DirectNet *buildDNet(const struct iiLineFile * const file);
 void buildDNet(const struct iiLineFile * const file);
 struct DirectNet *cloneDNet(const struct DirectNet * const dnet);
-int buildIStoDNet(const struct innLine * const is, struct DirectNet *dnet);
-
 struct DirectNet *getDirectNet(void);
 
 struct DNetSpreadArgs {
@@ -29,8 +24,8 @@ struct DNetSpreadArgs {
 	int loopNum;
 };
 //thread routine, args type is struct DNetSpreadArgs;
-void *dnet_spread(void * args);
-//thread routine, args type is struct DirectNet;
+void *dnet_spread(void * arg);
+//thread routine, don't need arg, the routine will use dnet;
 void *verifyDNet(void *arg);
 
 #endif

@@ -10,6 +10,32 @@
 
 static struct DirectNet dnet;
 
+static int buildISStatusStick(const struct innLine * const is, char *statusStick) {
+	assert(statusStick != NULL);
+
+	int i=0;
+	int sign=0;
+	for (i=0; i<is->num; ++i) {
+		int isvt=is->inn[i];
+		int count=dnet.count[isvt];
+		if (isvt > dnet.maxId || count == 0) {
+			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
+			return -1;
+		}
+		if (statusStick[isvt] == 1) {
+			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
+			return -2;
+		}
+		statusStick[isvt] = 1;
+		++sign;
+	}
+	if (!sign) {
+		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->lineId);fflush(stdout);
+		return -3;
+	}
+	return 0;
+}
+
 struct DirectNet *getDirectNet(void) {
 	return &dnet;
 }
@@ -32,9 +58,7 @@ void buildDNet(const struct iiLineFile * const file) {
 	struct iiLine *lines=file->lines;
 
 	long *count=calloc(maxId+1, sizeof(long));
-	char *status=calloc(maxId+1, sizeof(char));
 	assert(count!=NULL);
-	assert(status!=NULL);
 
 	long *temp_count=calloc(maxId+1, sizeof(long));
 	assert(temp_count!=NULL);
@@ -96,35 +120,8 @@ void buildDNet(const struct iiLineFile * const file) {
 
 }
 
-int buildISStatusStick(const struct innLine * const is, char *statusStick) {
-	assert(statusStick != NULL);
-
-	int i=0;
-	int sign=0;
-	for (i=0; i<is->num; ++i) {
-		int isvt=is->inn[i];
-		int count=dnet.count[isvt];
-		if (isvt > dnet.maxId || count == 0) {
-			printf("IS Group %d:\tInfectSource %d is not existed in the net, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
-			return -1;
-		}
-		if (statusStick[isvt] == 1) {
-			printf("IS Group %d:\tInfectSource %d duplicate, ignored this IS Group.\n", is->lineId, isvt);fflush(stdout);
-			return -2;
-		}
-		statusStick[isvt] = 1;
-		++sign;
-	}
-	if (!sign) {
-		printf("IS Group %d:\tno valid is, ignored this IS Group.\n", is->lineId);fflush(stdout);
-		return -3;
-	}
-	return 0;
-}
-
-//0S,1I,2R
+// 0S,1I,2R
 // simple IS, clean dNet. 
-//int dnet_spread_core(const struct InfectSource * const IS, const struct DirectNet * const dNet_origin, const double infectRate, const double touchParam, const int loopNum)
 void *dnet_spread(void *args_void)
 {
 	struct DNetSpreadArgs *args = args_void;
@@ -231,6 +228,7 @@ void *dnet_spread(void *args_void)
 
 	free(xVt);
 	free(oVt);
+	free(statusStick);
 	
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;
@@ -264,7 +262,6 @@ struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {
 }
 
 void *verifyDNet(void *arg) {
-	//struct DirectNet *dnet = arg;
 	long i;
 	int j;
 	int *place = malloc((dnet.maxId+1)*sizeof(int));
