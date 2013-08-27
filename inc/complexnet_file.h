@@ -42,4 +42,24 @@ struct innLineFile {
 void free_innLineFile(struct innLineFile *file);
 struct innLineFile *create_innLineFile(const char * const filename);
 
+//for file containing four int in one line.
+struct i4Line {
+	int i1;
+	int i2;
+	int i3;
+	int i4;
+};
+struct i4LineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct i4Line *lines;
+};
+void free_i4LineFile(struct i4LineFile *file);
+struct i4LineFile *create_i4LineFile(const char * const filename);
+
+
+
+
+
 #endif
