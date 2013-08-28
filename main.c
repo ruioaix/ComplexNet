@@ -1,5 +1,6 @@
 //#define NDEBUG
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
@@ -30,11 +31,42 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 	
-	FILE *fp = fopen("Result/top10_100", "w");
+	FILE *fp = fopen("Result/top10_100_refer.dat", "w");
 	fileError(fp, "xxx");
 	static int l=0;
 
+	struct i5sdLineFile *file=create_i5sdLineFile("data/refer_uniq.dat");
+	int i;
+	int * status = calloc(file->iMax+1,sizeof(int));
+	//for (i=0; i<file->linesNum; ++i) {
+	//	int id = file->lines[i].i1;
+	//	if (!status[id]) {
+	//		fprintf(fp, "%d, %d, %d, %d, %d, %s, %f\n", file->lines[i].i1, file->lines[i].i2,file->lines[i].i3,file->lines[i].i4,file->lines[i].i5,file->lines[i].s6,file->lines[i].d7);
+	//		status[id]=1;
+	//	}
+	//}
+	struct iidiLineFile *file_top = create_iidiLineFile("data/top10_100");
+	int j;
+	char st=0;
+	int iii=0;
+	for (i=0; i<file_top->linesNum; ++i) {
+		int id = file_top->lines[i].i2;
+		st = 0;
+		for (j=0; j<file->linesNum; ++j) {
+			int idd = file->lines[j].i1;
+			if (id == idd) {
+				fprintf(fp, "%d,\t%d,\t%f,\t%d,\t%d/%d/%d,\t%d,\t%f\n", file_top->lines[i].i1, file_top->lines[i].i2,file_top->lines[i].d3,file_top->lines[i].i4,file->lines[j].i3,file->lines[j].i4,file->lines[j].i5,file->lines[j].i2,file->lines[j].d7);
+				st  = 1;
+			}
+		}
+		if (st == 0) {
+			++iii;
+			fprintf(fp, "%d,\t%d,\t%f,\t%d,\n", file_top->lines[i].i1, file_top->lines[i].i2,file_top->lines[i].d3,file_top->lines[i].i4);
+		}
+	}
+	printf("%d\n", iii);
 
+/*
 	int ii=0;
 	for (ii=0; ii<101; ++ii) {
 		char filename[100];
@@ -57,7 +89,7 @@ int main(int argc, char **argv)
 		}
 		free_idiLineFile(file);
 	}
-
+*/
 
 
 	//addWorktoThreadPool(writeContinuousi4LineFileHT, file);

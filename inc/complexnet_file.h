@@ -73,4 +73,40 @@ struct idiLineFile {
 void free_idiLineFile(struct idiLineFile *file);
 struct idiLineFile *create_idiLineFile(const char *const filename);
 
+//for file containing 5 int, char *, double
+struct i5sdLine {
+	int i1;
+	int i2;
+	int i3;
+	int i4;
+	int i5;
+	char s6[1000];
+	double  d7;
+};
+struct i5sdLineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct i5sdLine *lines;
+};
+void free_i5sdLineFile(struct i5sdLineFile *file);
+struct i5sdLineFile *create_i5sdLineFile(const char *const filename);
+
+//for file containing int,int, double,int
+struct iidiLine{
+	int i1;
+	int i2;
+	double d3;
+	int i4;
+};
+struct iidiLineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct iidiLine *lines;
+};
+void free_iidiLineFile(struct iidiLineFile *file);
+struct iidiLineFile *create_iidiLineFile(const char *const filename);
+
+
 #endif
