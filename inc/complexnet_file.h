@@ -6,14 +6,14 @@
 #define VEXTER_FILE_DIRECTION_LEFT
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
-#define LINE_LENGTH_MAX 1000000
+#define LINE_LENGTH_MAX 10000
 
 //LINES_LENGTH_EACH is the stepLength. 
 //now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
 //if a file contans 1e8 lines, malloc will be called ten times.
 //of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
 //you don't need to know the exactly line num of the file.
-#define LINES_LENGTH_EACH 10000
+#define LINES_LENGTH_EACH 1000000
 
 //for file containing two int in one line.
 struct iiLine {

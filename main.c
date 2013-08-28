@@ -18,6 +18,10 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 	
+	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	init_DirectTimeNet(file);
+	addWorktoThreadPool(verifyDTNet, NULL);
+
 	//destroy thread pool.
 	destroyThreadPool();
 

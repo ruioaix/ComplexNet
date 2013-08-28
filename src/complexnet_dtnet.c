@@ -96,11 +96,15 @@ void *verifyDTNet(void *arg) {
 	int j;
 
 	int *place = malloc((dtnet.maxId+1)*sizeof(int));
+	int *l1= malloc((dtnet.outCountMax+1)*sizeof(int));
+	int *l2= malloc((dtnet.outCountMax+1)*sizeof(int));
+	int *r1= malloc((dtnet.outCountMax+1)*sizeof(int));
+	int *r2= malloc((dtnet.outCountMax+1)*sizeof(int));
 	memset(place, -1, dtnet.maxId+1);
-	FILE *fp = fopen("data/duplicatePairsinDirectNet", "w");
-	fileError(fp, "data/duplicatePairsinDirectNet");
-	FILE *fp2 = fopen("data/NoDuplicatePairsNetFile", "w");
-	fileError(fp2, "data/NoDuplicatePairsNetFile");
+	FILE *fp = fopen("data/duplicatePairsinDirectTimeNet", "w");
+	fileError(fp, "data/duplicatePairsinDirectTimeNet");
+	FILE *fp2 = fopen("data/NoDuplicatePairsDirectTimeFile", "w");
+	fileError(fp2, "data/NoDuplicatePairsDirectTimeFile");
 	fprintf(fp, "the following pairs are duplicate in the net file\n");
 	char sign=0;
 
@@ -111,22 +115,41 @@ void *verifyDTNet(void *arg) {
 	printf("%ld, %ld\n", temp, dtnet.edgesNum);
 	for (j=0; j<dtnet.maxId; ++j) {
 		if (dtnet.outCount[j]>0) {
+			int l_i=dtnet.outCount[j];
 			memset(place, -1, (dtnet.maxId+1)*sizeof(int));
-			for (i=0; i<dtnet.outCount[j]; ++i) {
-				int origin = dtnet.out[j][i];
-				int next = place[origin];
-				if (next == -1) {
-					place[origin]=origin;
-					fprintf(fp2, "%d\t%d\n", j,origin);
+			memcpy(l1, dtnet.out[j], l_i*sizeof(int));
+			memcpy(l2, dtnet.outTime[j], l_i*sizeof(int));
+			int r_i=0;
+			do {
+				for (i=0; i<l_i; ++i) {
+					int id=l1[i];	
+					if (place[id] == -1) {
+						place[id] = l2[i];
+						fprintf(fp2, "%d\t%d\t1\t%d\n", j, id, l2[i]);
+					}
+					else if (place[id] == l2[i]) {
+						fprintf(fp, "%d\t%d\t1\t%d\n", j, id, l2[i]);
+						sign=1;
+					}
+					else {
+						r1[r_i]=l1[i];
+						r2[r_i]=l2[i];
+						++r_i;
+					}
 				}
-				else {
-					fprintf(fp, "%d\t%d\n", j, next);
-					sign=1;
-				}
-			}
+				memcpy(l1, r1, r_i*sizeof(int));
+				memcpy(l2, r2, r_i*sizeof(int));
+				memset(place, -1, (dtnet.maxId+1)*sizeof(int));
+				l_i=r_i;
+				r_i=0;
+			} while(l_i);
 		}
 	}
 	free(place);
+	free(l1);
+	free(l2);
+	free(r1);
+	free(r2);
 	fclose(fp);
 	fclose(fp2);
 	if (sign == 1) {
