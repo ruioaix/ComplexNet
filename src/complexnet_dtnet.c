@@ -89,6 +89,21 @@ void init_DirectTimeNet(const struct i4LineFile* const file) {
 	printf("\ttimeMax: %d, timeMin:%d\n", timeMax, timeMin); 
 	fflush(stdout);
 }
+void free_DirectTimeNet(void) {
+	
+	int i;
+	for (i=0; i<dtnet.maxId+1; ++i) {
+		if (dtnet.outCount[i]>0) {
+			free(dtnet.out[i]);
+			free(dtnet.outTime[i]);
+		}
+	}
+	free(dtnet.inTimeDoor);
+	free(dtnet.outCount);
+	free(dtnet.inCount);
+	free(dtnet.out);
+	free(dtnet.outTime);
+}
 
 void *verifyDTNet(void *arg) {
 
@@ -108,11 +123,6 @@ void *verifyDTNet(void *arg) {
 	fprintf(fp, "the following pairs are duplicate in the net file\n");
 	char sign=0;
 
-	long temp=0;
-	for (j=0; j<dtnet.maxId; ++j) {
-		temp+=dtnet.outCount[j];
-	}
-	printf("%ld, %ld\n", temp, dtnet.edgesNum);
 	for (j=0; j<dtnet.maxId; ++j) {
 		if (dtnet.outCount[j]>0) {
 			int l_i=dtnet.outCount[j];
@@ -153,7 +163,7 @@ void *verifyDTNet(void *arg) {
 	fclose(fp);
 	fclose(fp2);
 	if (sign == 1) {
-		isError("the file has duplicate pairs, you can check data/duplicatePairsinDirectNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
+		isError("the file has duplicate pairs, you can check data/duplicatePairsinDirectTimeNet.\n\twe generate a net file named data/NoDuplicatePairsDirectTimeFile which doesn't contain any duplicate pairsr.\n\tyou should use this file instead the origin wrong one.\n");
 	}
 	else {
 		printf("verifyDNet: perfect network.\n");

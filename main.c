@@ -8,6 +8,7 @@
 #include "inc/complexnet_error.h"
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 
 int main(int argc, char **argv)
 {
@@ -24,6 +25,8 @@ int main(int argc, char **argv)
 
 	//destroy thread pool.
 	destroyThreadPool();
+	free_i4LineFile(file);
+	free_DirectTimeNet();
 
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);

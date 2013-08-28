@@ -21,6 +21,7 @@ struct DirectTimeNet {
 
 
 void init_DirectTimeNet(const struct i4LineFile* const file);
+void free_DirectTimeNet(void);
 void *verifyDTNet(void *arg);
 
 #endif

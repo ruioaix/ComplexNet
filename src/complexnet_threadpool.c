@@ -25,7 +25,7 @@ static void* thread_routine(void*arg) {
 		}
 
 		pthread_mutex_unlock(&TP->mutex);
-		pthread_exit(NULL);
+		return NULL;
 	}
 
 	return NULL;
