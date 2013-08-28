@@ -15,24 +15,53 @@ int main(int argc, char **argv)
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 
 	//argv,argc process;
-	char *datafilename="data/data1";
-	char *originfilename="data/origin1";
-	if (argc==2) datafilename=argv[1];
-	else if (argc==3) {
-		datafilename=argv[1];
-		originfilename=argv[2];
-	}
-	else if (argc>3) {
-		isError("two much args.\n");
-	}
+	//char *datafilename="data/data1";
+	//char *originfilename="data/origin1";
+	//if (argc==2) datafilename=argv[1];
+	//else if (argc==3) {
+	//	datafilename=argv[1];
+	//	originfilename=argv[2];
+	//}
+	//else if (argc>3) {
+	//	isError("two much args.\n");
+	//}
 	
 	//create thread pool.
 	int threadMax = 10;
 	createThreadPool(threadMax);
+	
+	FILE *fp = fopen("Result/top10_100", "w");
+	fileError(fp, "xxx");
+	static int l=0;
 
-	struct i4LineFile *file=create_i4LineFile("data/eronClean2");
-	addWorktoThreadPool(writeContinuousi4LineFileHT, file);
-	init_DirectTimeNet(file);
+
+	int ii=0;
+	for (ii=0; ii<101; ++ii) {
+		char filename[100];
+		sprintf(filename, "data/items/items_0_0.0_1.0_0.0_1.0_0.0_0.0_%d.dat", ii);
+		struct idiLineFile *file=create_idiLineFile(filename);
+		double sort[file->linesNum];
+		int sort_index[file->linesNum];
+		long i;
+		for (i=0; i<file->linesNum; ++i) {
+			sort[i] = file->lines[i].d2;
+			sort_index[i]= file->lines[i].i1;
+		}
+		quick_sort_double_index(sort, 0, file->linesNum-1, sort_index);
+		//for (i=0; i<file->linesNum; ++i) {
+		//	printf("%f,%d\n", sort[i], sort_index[i]);
+		//}
+		for (i=1; i<11; ++i) {
+			int id=sort_index[file->linesNum-i];
+			fprintf(fp, "%d\t%d\t%.10f\t%d\n", ++l, file->lines[id].i1, file->lines[id].d2, file->lines[id].i3);
+		}
+		free_idiLineFile(file);
+	}
+
+
+
+	//addWorktoThreadPool(writeContinuousi4LineFileHT, file);
+	//init_DirectTimeNet(file);
 	//addWorktoThreadPool(verifyDTNet, NULL);
 	
 /*
