@@ -9,14 +9,7 @@
 
 static char *delimiter="\t, \r\n";
 
-void free_iiLineFile(struct iiLineFile *file) {
-	if(file != NULL) {
-		free(file->lines);
-		free(file);
-	}
-}
-
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//int int=============================================================================================================================================================
 static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -65,8 +58,6 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 		*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct iiLineFile *create_iiLineFile(const char * const filename)
 {
 	printf("read iiLineFile %s: \n", filename);
@@ -112,18 +103,15 @@ struct iiLineFile *create_iiLineFile(const char * const filename)
 
 	return file;
 }
-
-void free_innLineFile(struct innLineFile *file) {
-	long i;
-	if (file != NULL) {
-		for(i=0; i<file->linesNum; ++i) {
-			free(file->lines[i].inn);
-		}
+void free_iiLineFile(struct iiLineFile *file) {
+	if(file != NULL) {
 		free(file->lines);
 		free(file);
 	}
 }
 
+
+//unlimit int=============================================================================================================================================================
 static struct innLine fill_innLine(char *line, long filelineNum) {
 	struct innLine is;
 
@@ -172,8 +160,6 @@ static struct innLine fill_innLine(char *line, long filelineNum) {
 	is.inn=vt;
 	return is;
 }
-
-//read file to 
 struct innLineFile *create_innLineFile(const char * const filename)
 {
 	printf("read innLineFile %s: \n", filename);
@@ -214,8 +200,18 @@ struct innLineFile *create_innLineFile(const char * const filename)
 
 	return isfile;
 }
+void free_innLineFile(struct innLineFile *file) {
+	long i;
+	if (file != NULL) {
+		for(i=0; i<file->linesNum; ++i) {
+			free(file->lines[i].inn);
+		}
+		free(file->lines);
+		free(file);
+	}
+}
 
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//four int in one line=============================================================================================================================================================
 static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -284,8 +280,6 @@ static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int e
 		*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct i4LineFile *create_i4LineFile(const char * const filename)
 {
 	printf("read i4LineFile %s: \n", filename);
@@ -339,8 +333,7 @@ void free_i4LineFile(struct i4LineFile *file) {
 	}
 }
 
-
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//int, double, int=============================================================================================================================================================
 static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -401,8 +394,6 @@ static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int
 	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	//}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct idiLineFile *create_idiLineFile(const char * const filename)
 {
 	printf("read idiLineFile %s: \n", filename);
@@ -448,7 +439,6 @@ struct idiLineFile *create_idiLineFile(const char * const filename)
 
 	return file;
 }
-
 void free_idiLineFile(struct idiLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
@@ -456,7 +446,7 @@ void free_idiLineFile(struct idiLineFile *file) {
 	}
 }
 
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//five int, one string, one double=============================================================================================================================================================
 static void fill_i5sdLine(char *line, struct i5sdLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -488,22 +478,22 @@ static void fill_i5sdLine(char *line, struct i5sdLine *LI_origin,  long *lNum, i
 	}
 	partsLine[3]=strtok(NULL, delimiter_i5sd);
 	if (partsLine[3]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only three number)\n", filelineNum);
 		return;
 	}
 	partsLine[4]=strtok(NULL, delimiter_i5sd);
 	if (partsLine[4]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only four number)\n", filelineNum);
 		return;
 	}
 	partsLine[5]=strtok(NULL, delimiter_i5sd);
 	if (partsLine[5]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like no string contain)\n", filelineNum);
 		return;
 	}
 	partsLine[6]=strtok(NULL, delimiter_i5sd);
 	if (partsLine[6]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like miss the last double number)\n", filelineNum);
 		return;
 	}
 
@@ -535,10 +525,6 @@ static void fill_i5sdLine(char *line, struct i5sdLine *LI_origin,  long *lNum, i
 		return;
 	}
 	strncpy(LI->s6, partsLine[5], sizeof(LI->s6));
-	if (pEnd[0]!='\0') {
-		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
-		return;
-	}
 	LI->d7=strtod(partsLine[6], &pEnd);
 	if (pEnd[0]!='\0') {
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
@@ -558,8 +544,6 @@ static void fill_i5sdLine(char *line, struct i5sdLine *LI_origin,  long *lNum, i
 	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	//}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct i5sdLineFile *create_i5sdLineFile(const char * const filename)
 {
 	printf("read i5sdLineFile %s: \n", filename);
@@ -605,7 +589,6 @@ struct i5sdLineFile *create_i5sdLineFile(const char * const filename)
 
 	return file;
 }
-
 void free_i5sdLineFile(struct i5sdLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
@@ -613,8 +596,7 @@ void free_i5sdLineFile(struct i5sdLineFile *file) {
 	}
 }
 
-
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//int int double int=============================================================================================================================================================
 static void fill_iidiLine(char *line, struct iidiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -645,7 +627,7 @@ static void fill_iidiLine(char *line, struct iidiLine *LI_origin,  long *lNum, i
 	}
 	partsLine[3]=strtok(NULL, delimiter);
 	if (partsLine[3]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only three number)\n", filelineNum);
 		return;
 	}
 
@@ -685,8 +667,6 @@ static void fill_iidiLine(char *line, struct iidiLine *LI_origin,  long *lNum, i
 	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	//}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct iidiLineFile *create_iidiLineFile(const char * const filename)
 {
 	printf("read iidiLineFile %s: \n", filename);
@@ -732,7 +712,6 @@ struct iidiLineFile *create_iidiLineFile(const char * const filename)
 
 	return file;
 }
-
 void free_iidiLineFile(struct iidiLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
@@ -740,8 +719,7 @@ void free_iidiLineFile(struct iidiLineFile *file) {
 	}
 }
 
-
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
+//five int, two string=============================================================================================================================================================
 static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -773,22 +751,22 @@ static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, i
 	}
 	partsLine[3]=strtok(NULL, delimiter_i5ss);
 	if (partsLine[3]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only three number)\n", filelineNum);
 		return;
 	}
 	partsLine[4]=strtok(NULL, delimiter_i5ss);
 	if (partsLine[4]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only four number)\n", filelineNum);
 		return;
 	}
 	partsLine[5]=strtok(NULL, delimiter_i5ss);
 	if (partsLine[5]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like no string)\n", filelineNum);
 		return;
 	}
 	partsLine[6]=strtok(NULL, delimiter_i5ss);
 	if (partsLine[6]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like miss the last string)\n", filelineNum);
 		return;
 	}
 
@@ -820,15 +798,7 @@ static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, i
 		return;
 	}
 	strncpy(LI->s6, partsLine[5], sizeof(LI->s6));
-	if (pEnd[0]!='\0') {
-		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
-		return;
-	}
 	strncpy(LI->s7, partsLine[6], sizeof(LI->s7));
-	if (pEnd[0]!='\0') {
-		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
-		return;
-	}
 
 	++(*lNum);
 
@@ -843,8 +813,6 @@ static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, i
 	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	//}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
 struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 {
 	printf("read i5ssLineFile %s: \n", filename);
@@ -890,7 +858,6 @@ struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 
 	return file;
 }
-
 void free_i5ssLineFile(struct i5ssLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
@@ -898,8 +865,8 @@ void free_i5ssLineFile(struct i5ssLineFile *file) {
 	}
 }
 
-//basically, for different line styled file, I only need to change this function and struct NetLineInfo.
-static void fill_i7d2sLine(char *line, struct i7d2sLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
+//seven int, two double, one string=============================================================================================================================================================
+static void fill_i7ddsLine(char *line, struct i7ddsLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
 		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
@@ -907,7 +874,7 @@ static void fill_i7d2sLine(char *line, struct i7d2sLine *LI_origin,  long *lNum,
 	}
 
 	long linesNum = *lNum+(each-1)*LINES_LENGTH_EACH;
-	struct i7d2sLine *LI = LI_origin+linesNum;
+	struct i7ddsLine *LI = LI_origin+linesNum;
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
@@ -930,37 +897,37 @@ static void fill_i7d2sLine(char *line, struct i7d2sLine *LI_origin,  long *lNum,
 	}
 	partsLine[3]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[3]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only three number)\n", filelineNum);
 		return;
 	}
 	partsLine[4]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[4]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only four number)\n", filelineNum);
 		return;
 	}
 	partsLine[5]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[5]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only five number)\n", filelineNum);
 		return;
 	}
 	partsLine[6]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[6]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only six number)\n", filelineNum);
 		return;
 	}
 	partsLine[7]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[7]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only seven number)\n", filelineNum);
 		return;
 	}
 	partsLine[8]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[8]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only eight number)\n", filelineNum);
 		return;
 	}
 	partsLine[9]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[9]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like miss the last string)\n", filelineNum);
 		return;
 	}
 
@@ -1026,17 +993,15 @@ static void fill_i7d2sLine(char *line, struct i7d2sLine *LI_origin,  long *lNum,
 	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	//}
 }
-
-//if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct i7d2sLineFile *create_i7d2sLineFile(const char * const filename)
+struct i7ddsLineFile *create_i7ddsLineFile(const char * const filename)
 {
-	printf("read i7d2sLineFile %s: \n", filename);
+	printf("read i7ddsLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	struct i7d2sLine *LinesInfo=NULL;
-	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct i7d2sLine));
+	struct i7ddsLine *LinesInfo=NULL;
+	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct i7ddsLine));
 	assert(LinesInfo!=NULL);
 
 	long linesNum=0;
@@ -1049,22 +1014,22 @@ struct i7d2sLineFile *create_i7d2sLineFile(const char * const filename)
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_i7d2sLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i7ddsLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
-			struct i7d2sLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct i7d2sLine));
+			struct i7ddsLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct i7ddsLine));
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_i7d2sLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i7ddsLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
 	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
-	struct i7d2sLineFile *file=malloc(sizeof(struct i7d2sLineFile));
+	struct i7ddsLineFile *file=malloc(sizeof(struct i7ddsLineFile));
 	assert(file!=NULL);
 	file->iMin=minId;
 	file->iMax=maxId;
@@ -1073,8 +1038,7 @@ struct i7d2sLineFile *create_i7d2sLineFile(const char * const filename)
 
 	return file;
 }
-
-void free_i7d2sLineFile(struct i7d2sLineFile *file) {
+void free_i7ddsLineFile(struct i7ddsLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
 		free(file);

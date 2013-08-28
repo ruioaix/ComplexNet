@@ -128,7 +128,7 @@ void free_i5ssLineFile(struct i5ssLineFile *file);
 struct i5ssLineFile *create_i5ssLineFile(const char *const filename);
 
 //for file containing int/int/int/int/int/int/int/double/double
-struct i7d2sLine {
+struct i7ddsLine {
 	int i1;
 	int i2;
 	int i3;
@@ -140,14 +140,14 @@ struct i7d2sLine {
 	double d9;
 	char s10[100];
 };
-struct i7d2sLineFile {
+struct i7ddsLineFile {
 	int iMax;
 	int iMin;
 	long linesNum;
-	struct i7d2sLine *lines;
+	struct i7ddsLine *lines;
 };
-void free_i7d2sLineFile(struct i7d2sLineFile *file);
-struct i7d2sLineFile *create_i7d2sLineFile(const char *const filename);
+void free_i7ddsLineFile(struct i7ddsLineFile *file);
+struct i7ddsLineFile *create_i7ddsLineFile(const char *const filename);
 
 
 #endif
