@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	//}
 
 	struct iiLineFile *paperid = create_iiLineFile("data/paperid.dat");
-	struct i7d2LineFile *file= create_i7d2LineFile("data/top10_100_refer_withPhys.dat");
+	struct i7d2sLineFile *file= create_i7d2sLineFile("data/top10_100_refer_withPhys.dat");
 /*
 	int begin, end;
 	int door=10;

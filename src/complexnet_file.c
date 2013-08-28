@@ -899,7 +899,7 @@ void free_i5ssLineFile(struct i5ssLineFile *file) {
 }
 
 //basically, for different line styled file, I only need to change this function and struct NetLineInfo.
-static void fill_i7d2Line(char *line, struct i7d2Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
+static void fill_i7d2sLine(char *line, struct i7d2sLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
 		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
@@ -907,58 +907,58 @@ static void fill_i7d2Line(char *line, struct i7d2Line *LI_origin,  long *lNum, i
 	}
 
 	long linesNum = *lNum+(each-1)*LINES_LENGTH_EACH;
-	struct i7d2Line *LI = LI_origin+linesNum;
+	struct i7d2sLine *LI = LI_origin+linesNum;
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
-	char *delimiter_i7d2="\t,/\r\n";
+	char *delimiter_i7d2s="\t,/\r\n";
 	char *partsLine[10];
-	partsLine[0]=strtok(line, delimiter_i7d2);
+	partsLine[0]=strtok(line, delimiter_i7d2s);
 	if (partsLine[0]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return;
 	}
-	partsLine[1]=strtok(NULL, delimiter_i7d2);
+	partsLine[1]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[1]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only one number)\n", filelineNum);
 		return;
 	}
-	partsLine[2]=strtok(NULL, delimiter_i7d2);
+	partsLine[2]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[2]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[3]=strtok(NULL, delimiter_i7d2);
+	partsLine[3]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[3]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[4]=strtok(NULL, delimiter_i7d2);
+	partsLine[4]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[4]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[5]=strtok(NULL, delimiter_i7d2);
+	partsLine[5]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[5]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[6]=strtok(NULL, delimiter_i7d2);
+	partsLine[6]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[6]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[7]=strtok(NULL, delimiter_i7d2);
+	partsLine[7]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[7]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[8]=strtok(NULL, delimiter_i7d2);
+	partsLine[8]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[8]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
 	}
-	partsLine[9]=strtok(NULL, delimiter_i7d2);
+	partsLine[9]=strtok(NULL, delimiter_i7d2s);
 	if (partsLine[9]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like only two number)\n", filelineNum);
 		return;
@@ -1028,15 +1028,15 @@ static void fill_i7d2Line(char *line, struct i7d2Line *LI_origin,  long *lNum, i
 }
 
 //if data is stored in each line and each line contain only num & delimiter, there is no need to change this function.
-struct i7d2LineFile *create_i7d2LineFile(const char * const filename)
+struct i7d2sLineFile *create_i7d2sLineFile(const char * const filename)
 {
-	printf("read i7d2LineFile %s: \n", filename);
+	printf("read i7d2sLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	struct i7d2Line *LinesInfo=NULL;
-	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct i7d2Line));
+	struct i7d2sLine *LinesInfo=NULL;
+	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct i7d2sLine));
 	assert(LinesInfo!=NULL);
 
 	long linesNum=0;
@@ -1049,22 +1049,22 @@ struct i7d2LineFile *create_i7d2LineFile(const char * const filename)
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_i7d2Line(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i7d2sLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
-			struct i7d2Line *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct i7d2Line));
+			struct i7d2sLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct i7d2sLine));
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_i7d2Line(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i7d2sLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
 	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
-	struct i7d2LineFile *file=malloc(sizeof(struct i7d2LineFile));
+	struct i7d2sLineFile *file=malloc(sizeof(struct i7d2sLineFile));
 	assert(file!=NULL);
 	file->iMin=minId;
 	file->iMax=maxId;
@@ -1074,7 +1074,7 @@ struct i7d2LineFile *create_i7d2LineFile(const char * const filename)
 	return file;
 }
 
-void free_i7d2LineFile(struct i7d2LineFile *file) {
+void free_i7d2sLineFile(struct i7d2sLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
 		free(file);
