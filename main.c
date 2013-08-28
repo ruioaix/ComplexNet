@@ -31,13 +31,71 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 	
-	FILE *fp = fopen("Result/top10_100_refer.dat", "w");
+	FILE *fp = fopen("Result/top10_100_refer_id.dat", "w");
 	fileError(fp, "xxx");
-	static int l=0;
+	int i,j;
+	struct i5ssLineFile *paperinfo=create_i5ssLineFile("data/paper_rui.dat");
+	//for (j=0; j<paperinfo->linesNum; ++j) {
+		//printf("%d/%d/%d,\t%d,\t%s,\t%s\n", paperinfo->lines[j].i2, paperinfo->lines[j].i3, paperinfo->lines[j].i4, paperinfo->lines[j].i5, paperinfo->lines[j].s6, paperinfo->lines[j].s7);
+	//}
 
+	struct iiLineFile *paperid = create_iiLineFile("data/paperid.dat");
+	struct i7d2LineFile *file= create_i7d2LineFile("data/top10_100_refer_withPhys.dat");
+/*
+	int begin, end;
+	int door=10;
+	int downloads=0, age=0,ct=0;
+	double IF=0.0;
+	for (i=0; i<file->linesNum; ++i) {
+		if (file->lines[i].i1<=door) {
+			downloads+=file->lines[i].i3;
+			age+=((2013-file->lines[i].i6)*12 + (4-file->lines[i].i5))*30;
+			IF+=file->lines[i].d8;
+			ct+=file->lines[i].i7;
+		}
+		else {
+			printf("%d,%d,%d,%f\n", downloads, age, ct, IF);
+			downloads=0;
+			age=0;
+			IF=0;
+			ct=0;
+			door+=10;
+			--i;
+		}
+	}
+	printf("%d,%d,%d,%f\n", downloads, age, ct, IF);
+*/
+
+	int oldid, newid=-1;
+	for (i=0; i<file->linesNum; ++i) {
+		newid = -1;
+		oldid= file->lines[i].i2;
+		for (j=0; j<paperid->linesNum; ++j) {
+			if (paperid->lines[j].i1==oldid) {
+				newid= paperid->lines[j].i2;
+				break;
+			}
+		}
+		if (newid != -1) {
+			for (j=0; j<paperinfo->linesNum; ++j) {
+				if (paperinfo->lines[j].i1 == newid) {
+					break;
+				}
+			}
+			
+			fprintf(fp, "%d,\t%d,\t%d,\t%d/%d/%d,\t%d,\t%f,\t%f,\t%s,\t%d/%d/%d,\t%d,\t%s,\t%s\n", file->lines[i].i1, newid,file->lines[i].i3,file->lines[i].i4,file->lines[i].i5,file->lines[i].i6,file->lines[i].i7,file->lines[i].d8,file->lines[i].d9,file->lines[i].s10, paperinfo->lines[j].i2, paperinfo->lines[j].i3, paperinfo->lines[j].i4, paperinfo->lines[j].i5, paperinfo->lines[j].s6, paperinfo->lines[j].s7);
+		}
+		else {
+			printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n");
+		}
+	}
+
+/*
+	FILE *fp = fopen("Result/top10_100_refer_withPhys.dat", "w");
+	fileError(fp, "xxx");
 	struct i5sdLineFile *file=create_i5sdLineFile("data/refer_uniq.dat");
 	int i;
-	int * status = calloc(file->iMax+1,sizeof(int));
+	//int * status = calloc(file->iMax+1,sizeof(int));
 	//for (i=0; i<file->linesNum; ++i) {
 	//	int id = file->lines[i].i1;
 	//	if (!status[id]) {
@@ -55,7 +113,7 @@ int main(int argc, char **argv)
 		for (j=0; j<file->linesNum; ++j) {
 			int idd = file->lines[j].i1;
 			if (id == idd) {
-				fprintf(fp, "%d,\t%d,\t%f,\t%d,\t%d/%d/%d,\t%d,\t%f\n", file_top->lines[i].i1, file_top->lines[i].i2,file_top->lines[i].d3,file_top->lines[i].i4,file->lines[j].i3,file->lines[j].i4,file->lines[j].i5,file->lines[j].i2,file->lines[j].d7);
+				fprintf(fp, "%d,\t%d,\t%f,\t%d,\t%d/%d/%d,\t%d,\t%f,\t%s\n", file_top->lines[i].i1, file_top->lines[i].i2,file_top->lines[i].d3,file_top->lines[i].i4,file->lines[j].i3,file->lines[j].i4,file->lines[j].i5,file->lines[j].i2,file->lines[j].d7, file->lines[j].s6);
 				st  = 1;
 			}
 		}
@@ -65,8 +123,9 @@ int main(int argc, char **argv)
 		}
 	}
 	printf("%d\n", iii);
-
+*/
 /*
+	int l=0;
 	int ii=0;
 	for (ii=0; ii<101; ++ii) {
 		char filename[100];

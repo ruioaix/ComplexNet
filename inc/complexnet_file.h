@@ -6,14 +6,14 @@
 #define VEXTER_FILE_DIRECTION_LEFT
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
-#define LINE_LENGTH_MAX 100000
+#define LINE_LENGTH_MAX 1000000
 
 //LINES_LENGTH_EACH is the stepLength. 
 //now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
 //if a file contans 1e8 lines, malloc will be called ten times.
 //of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
 //you don't need to know the exactly line num of the file.
-#define LINES_LENGTH_EACH 10000000
+#define LINES_LENGTH_EACH 10000
 
 //for file containing two int in one line.
 struct iiLine {
@@ -107,6 +107,47 @@ struct iidiLineFile {
 };
 void free_iidiLineFile(struct iidiLineFile *file);
 struct iidiLineFile *create_iidiLineFile(const char *const filename);
+
+//for file containing 5 int, char *, char *
+struct i5ssLine {
+	int i1;
+	int i2;
+	int i3;
+	int i4;
+	int i5;
+	char s6[100];
+	char s7[1000];
+};
+struct i5ssLineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct i5ssLine *lines;
+};
+void free_i5ssLineFile(struct i5ssLineFile *file);
+struct i5ssLineFile *create_i5ssLineFile(const char *const filename);
+
+//for file containing int/int/int/int/int/int/int/double/double
+struct i7d2Line {
+	int i1;
+	int i2;
+	int i3;
+	int i4;
+	int i5;
+	int i6;
+	int i7;
+	double d8;
+	double d9;
+	char s10[100];
+};
+struct i7d2LineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct i7d2Line *lines;
+};
+void free_i7d2LineFile(struct i7d2LineFile *file);
+struct i7d2LineFile *create_i7d2LineFile(const char *const filename);
 
 
 #endif
