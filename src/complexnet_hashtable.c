@@ -217,19 +217,25 @@ void *writeContinuousiiLineFileHT(void * arg) {
 void *writeContinuousi4LineFileHT(void * arg) {
 	struct i4LineFile *file = arg;
 	struct HashTable *ht = createHashTable(3000000);
+	//struct HashTable *ht_i4 = createHashTable(300000);
 	long i;
+
 	for (i=0; i<file->linesNum; ++i) {
 		insertHEtoHT(ht, file->lines[i].i1);
 		insertHEtoHT(ht, file->lines[i].i2);
+	//	insertHEtoHT(ht_i4,file->lines[i].i4);
 	}
 	FILE *fp = fopen("data/continuousi4LineFile", "w");
 	fileError(fp, "data/continuousi4LineFile");
 	for (i=0; i<file->linesNum; ++i) {
 		int i1 = getelementIndexHT(ht, file->lines[i].i1);
 		int i2 = getelementIndexHT(ht, file->lines[i].i2);
+	//	int i4 = getelementIndexHT(ht_i4, file->lines[i].i4);
+	//	fprintf(fp, "%d\t%d\t%d\t%d\n", i1, i2, file->lines[i].i3, i4);
 		fprintf(fp, "%d\t%d\t%d\t%d\n", i1, i2, file->lines[i].i3, file->lines[i].i4);
 	}
 	fclose(fp);
 	freeHashTable(ht);
+	//freeHashTable(ht_i4);
 	return (void *)0;
 }

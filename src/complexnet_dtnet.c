@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 static struct DirectTimeNet dtnet;
 
@@ -16,6 +17,8 @@ void init_DirectTimeNet(const struct i4LineFile* const file) {
 	long edgesNum=file->linesNum;
 	long inCountMax=-1;
 	long outCountMax=-1;
+	int timeMax=-1;
+	int timeMin=INT_MAX;
 	int *inTimeDoor = calloc(maxId+1, sizeof(int));
 	assert(inTimeDoor != NULL);
 	long *outCount = calloc(maxId+1, sizeof(long));
@@ -36,6 +39,8 @@ void init_DirectTimeNet(const struct i4LineFile* const file) {
 		if (inTimeDoor[line->i2] < line->i4) {
 			inTimeDoor[line->i2] = line->i4;
 		}
+		timeMax=timeMin<line->i4?line->i4:timeMax;
+		timeMin=timeMin>line->i4?line->i4:timeMin;
 	}
 	int j;
 	for (j=0; j<maxId+1; ++j) {
@@ -76,15 +81,20 @@ void init_DirectTimeNet(const struct i4LineFile* const file) {
 	dtnet.outCount=outCount;
 	dtnet.out=out;
 	dtnet.outTime=outTime;
+	dtnet.timeMax=timeMax;
+	dtnet.timeMin=timeMin;
 
-	printf("build direct time net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, inCountMax: %ld, outCountMax: %ld\n", maxId, minId, vtsNum, edgesNum, inCountMax, outCountMax); fflush(stdout);
+	printf("build direct time net:\n\tMax: %d, Min: %d, vtsNum: %d\n", maxId, minId, vtsNum); 
+	printf("\tedgesNum: %ld, inCountMax: %ld, outCountMax: %ld\n", edgesNum, inCountMax, outCountMax);
+	printf("\ttimeMax: %d, timeMin:%d\n", timeMax, timeMin); 
+	fflush(stdout);
 }
 
 void *verifyDTNet(void *arg) {
 
-	unsigned int *statusStick = createBitSign(dtnet.edgesNum);
 	long i;
 	int j;
+
 	int *place = malloc((dtnet.maxId+1)*sizeof(int));
 	memset(place, -1, dtnet.maxId+1);
 	FILE *fp = fopen("data/duplicatePairsinDirectNet", "w");

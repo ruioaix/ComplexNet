@@ -30,10 +30,10 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 
-	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
-	//addWorktoThreadPool(writeContinuousi4LineFileHT, file);
+	struct i4LineFile *file=create_i4LineFile("data/eronClean2");
+	addWorktoThreadPool(writeContinuousi4LineFileHT, file);
 	init_DirectTimeNet(file);
-	addWorktoThreadPool(verifyDTNet, NULL);
+	//addWorktoThreadPool(verifyDTNet, NULL);
 	
 /*
 	//read data file, create net;

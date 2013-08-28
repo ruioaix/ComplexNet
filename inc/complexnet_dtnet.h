@@ -10,6 +10,8 @@ struct DirectTimeNet {
 	long edgesNum;
 	long inCountMax;
 	long outCountMax;
+	int timeMax;
+	int timeMin;
 	int *inTimeDoor;
 	long *outCount;
 	long *inCount;
