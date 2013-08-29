@@ -26,5 +26,7 @@ int init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_l
 unsigned long genrand_int32_threadsafe(int t);
 double genrand_real1_threadsafe(int t);
 double genrand_real2_threadsafe(int t);
+void PrintCurrent_MersenneTwister_ID(void);
+void free_MersenneTwister_threadsafe(int t);
 
 #endif

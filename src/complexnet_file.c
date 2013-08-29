@@ -282,7 +282,7 @@ static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int e
 }
 struct i4LineFile *create_i4LineFile(const char * const filename)
 {
-	printf("read i4LineFile %s: \n", filename);
+	printf("read i4LineFile: %s \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -325,7 +325,6 @@ struct i4LineFile *create_i4LineFile(const char * const filename)
 
 	return file;
 }
-
 void free_i4LineFile(struct i4LineFile *file) {
 	if(file != NULL) {
 		free(file->lines);

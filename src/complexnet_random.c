@@ -1,17 +1,29 @@
 //modified by rui. 2013.08.09
 #include "../inc/complexnet_random.h"
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 /////////////----------------if you want to use the follow two init function, maybe you should uncomment the following two static, and comment the above two static.
 static unsigned long mt_MersenneTwister[N_MersenneTwister]; /* the array for the state vector  */
 static int mti_MersenneTwister=N_MersenneTwister+1; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
 static unsigned long mt_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister][N_MersenneTwister]; /* the array for the state vector  */
 static int mti_MersenneTwister_a[Thread_Safe_MAX_MersenneTwister]; /* mti_MersenneTwister==N_MersenneTwister+1 means mt_MersenneTwister[N_MersenneTwister] is not initialized */
 
-static int MersenneTwister_Object_Num = 0;
+static int MersenneTwister_Valid_ID[Thread_Safe_MAX_MersenneTwister];
+static int MersenneTwister_Using_ID[Thread_Safe_MAX_MersenneTwister];
+static int MersenneTwister_Valid_IdNum;
+static int MersenneTwister_Using_IdNum;
+
 static pthread_mutex_t mutex;
 
 void init_MersenneTwister(void) {
 	pthread_mutex_init(&mutex, NULL);
+	MersenneTwister_Valid_IdNum=Thread_Safe_MAX_MersenneTwister;
+	int i;
+	for (i=0;i<Thread_Safe_MAX_MersenneTwister; ++i) {
+		MersenneTwister_Valid_ID[i]=i;
+	}
+	MersenneTwister_Using_IdNum=0;
 }
 
 //should not be used, if you don't want to different random number.
@@ -91,7 +103,14 @@ int init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_l
 {
 	
 	pthread_mutex_lock(&mutex);
-	int t = MersenneTwister_Object_Num++;
+	--MersenneTwister_Valid_IdNum;
+	if (MersenneTwister_Valid_ID<0) {
+		printf("too much threads for MT PRNG\n");
+		exit(-1);
+	}
+	int t = MersenneTwister_Valid_ID[MersenneTwister_Valid_IdNum];
+	MersenneTwister_Using_ID[MersenneTwister_Using_IdNum]=t;
+	++MersenneTwister_Using_IdNum;
 	pthread_mutex_unlock(&mutex);
 
     int i, j, k;
@@ -122,6 +141,37 @@ int init_by_array_MersenneTwister_threadsafe(unsigned long init_key[], int key_l
 	//}
 	//printf("\n");
 	return t;
+}
+
+void free_MersenneTwister_threadsafe(int t) {
+	pthread_mutex_lock(&mutex);
+	MersenneTwister_Valid_ID[MersenneTwister_Valid_IdNum] = t;
+	++MersenneTwister_Valid_IdNum;
+	if (MersenneTwister_Valid_IdNum>Thread_Safe_MAX_MersenneTwister) {
+		printf("it looks like you free too much MT PRNG.\n");
+		exit(-1);
+	}
+	int i;
+	for (i=0; i<MersenneTwister_Using_IdNum; ++i) {
+		if (MersenneTwister_Using_ID[i] == t) {
+			MersenneTwister_Using_ID[i] = MersenneTwister_Using_ID[--MersenneTwister_Using_IdNum];
+		}
+	}
+	pthread_mutex_unlock(&mutex);
+}
+
+void PrintCurrent_MersenneTwister_ID(void) {
+	pthread_mutex_lock(&mutex);
+	int i;
+	for (i=0; i<MersenneTwister_Valid_IdNum; ++i) {
+		printf("%d\t", MersenneTwister_Valid_ID[i]);
+	}
+	printf("\n%d\n", MersenneTwister_Valid_IdNum);
+	for (i=0; i<MersenneTwister_Using_IdNum; ++i) {
+		printf("%d\t", MersenneTwister_Using_ID[i]);
+	}
+	printf("\n%d\n", MersenneTwister_Using_IdNum);
+	pthread_mutex_unlock(&mutex);
 }
 
 /* generates a random number on [0,0xffffffff]-interval */

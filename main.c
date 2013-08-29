@@ -19,14 +19,27 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 	
-	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
-	init_DirectTimeNet(file);
-	addWorktoThreadPool(verifyDTNet, NULL);
+	//struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	//init_DirectTimeNet(file);
+	struct iiLineFile *file=create_iiLineFile("data/digg_friendd.txt");
+	struct innLineFile *is=create_innLineFile("data/digg_friendsDRTopAllTop1000Overlap.txt");
+	init_MersenneTwister();
+	buildDNet(file);
+	int i;
+	struct DNetSpreadArgs args[is->linesNum];
+	for (i=0; i<is->linesNum; ++i) {
+		args[i].IS=is->lines+i;	
+		args[i].infectRate=0.1;
+		args[i].touchParam=0;
+		args[i].loopNum=10;
+		addWorktoThreadPool(dnet_spread, args+i);
+	}
 
 	//destroy thread pool.
 	destroyThreadPool();
-	free_i4LineFile(file);
-	free_DirectTimeNet();
+	free_iiLineFile(file);
+	free_innLineFile(is);
+	freeDNet();
 
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);

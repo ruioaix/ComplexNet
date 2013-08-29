@@ -229,7 +229,9 @@ void *dnet_spread(void *args_void)
 	free(xVt);
 	free(oVt);
 	free(statusStick);
+
 	
+	free_MersenneTwister_threadsafe(isId);
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;
 }
