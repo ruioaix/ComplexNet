@@ -129,6 +129,7 @@ void *dnet_spread(void *args_void)
 	double infectRate = args->infectRate;
 	double touchParam = args->touchParam;
 	int loopNum = args->loopNum;
+	FILE *fp=args->fp;
 
 	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
 	int isId = init_by_array_MersenneTwister_threadsafe(init, length);
@@ -224,7 +225,13 @@ void *dnet_spread(void *args_void)
 		sp+=IR[l]/loopNum;
 		s2p+=IR[l]*IR[l]/loopNum;
 	}
-	double result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+	double result;
+	if (loopNum==1) {
+		result=0;
+	}
+	else {
+		result=pow((s2p-pow(sp, 2))/(loopNum-1), 0.5);
+	}
 
 	free(xVt);
 	free(oVt);
@@ -233,6 +240,7 @@ void *dnet_spread(void *args_void)
 	
 	free_MersenneTwister_threadsafe(isId);
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
+	fprintf(fp, "IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;
 }
 

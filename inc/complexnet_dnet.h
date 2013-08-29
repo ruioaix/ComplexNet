@@ -2,6 +2,7 @@
 #define COMPLEXNET_DNET_H
 
 #include "../inc/complexnet_file.h"
+#include "stdio.h"
 
 struct DirectNet{
 	int maxId;
@@ -22,6 +23,7 @@ struct DNetSpreadArgs {
 	double infectRate;
 	double touchParam;
 	int loopNum;
+	FILE *fp;
 };
 //thread routine, args type is struct DNetSpreadArgs;
 void *dnet_spread(void * arg);

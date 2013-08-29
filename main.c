@@ -26,17 +26,30 @@ int main(int argc, char **argv)
 	init_MersenneTwister();
 	buildDNet(file);
 	int i;
-	struct DNetSpreadArgs args[is->linesNum];
-	for (i=0; i<is->linesNum; ++i) {
-		args[i].IS=is->lines+i;	
-		args[i].infectRate=0.1;
-		args[i].touchParam=0;
-		args[i].loopNum=10;
-		addWorktoThreadPool(dnet_spread, args+i);
+	struct DNetSpreadArgs args[10][is->linesNum];
+	int j;
+	FILE *fp[10];
+	for (j=0; j<10; ++j) {
+		char filename[50];
+		sprintf(filename, "Result/dnet_spread_%.2f.txt", 0.02+0.02*j); 
+		fp[j] = fopen(filename,"w");
+		fileError(fp[j], filename);
+		for (i=0; i<is->linesNum; ++i) {
+			args[j][i].IS=is->lines+i;	
+			args[j][i].infectRate=0.02+0.02*j;
+			args[j][i].touchParam=0;
+			args[j][i].loopNum=2;
+			args[j][i].fp=fp[j];
+			addWorktoThreadPool(dnet_spread, args[j]+i);
+		}
 	}
 
 	//destroy thread pool.
 	destroyThreadPool();
+	for (j=0; j<10; ++j) {
+		fclose(fp[j]);
+	}
+
 	free_iiLineFile(file);
 	free_innLineFile(is);
 	freeDNet();
