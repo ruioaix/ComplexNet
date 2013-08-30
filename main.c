@@ -19,40 +19,17 @@ int main(int argc, char **argv)
 	int threadMax = 10;
 	createThreadPool(threadMax);
 	
-	//struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
-	//init_DirectTimeNet(file);
-	struct iiLineFile *file=create_iiLineFile("data/digg_friendd.txt");
-	struct innLineFile *is=create_innLineFile("data/digg_friendsDRTopAllTop1000Overlap.txt");
-	init_MersenneTwister();
-	buildDNet(file);
-	int i;
-	struct DNetSpreadArgs args[10][is->linesNum];
-	int j;
-	FILE *fp[10];
-	for (j=0; j<10; ++j) {
-		char filename[50];
-		sprintf(filename, "Result/dnet_spread_%.2f.txt", 0.02+0.02*j); 
-		fp[j] = fopen(filename,"w");
-		fileError(fp[j], filename);
-		for (i=0; i<is->linesNum; ++i) {
-			args[j][i].IS=is->lines+i;	
-			args[j][i].infectRate=0.02+0.02*j;
-			args[j][i].touchParam=0;
-			args[j][i].loopNum=2;
-			args[j][i].fp=fp[j];
-			addWorktoThreadPool(dnet_spread, args[j]+i);
-		}
-	}
+	//struct i4LineFile *file=create_i4LineFile("data/testdtnet");
+	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	init_DirectTemporalNet(file);
 
+	//addWorktoThreadPool(verifyDTNet, NULL);
+	printf("%d\n", shortpath_11_DTNet(3, 2));
+	
 	//destroy thread pool.
 	destroyThreadPool();
-	for (j=0; j<10; ++j) {
-		fclose(fp[j]);
-	}
-
-	free_iiLineFile(file);
-	free_innLineFile(is);
-	freeDNet();
+	free_i4LineFile(file);
+	free_DirectTemporalNet();
 
 	//printf end time;
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
