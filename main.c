@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	init_DirectTemporalNet(file);
 
 	//addWorktoThreadPool(verifyDTNet, NULL);
-	printf("%d\n", shortpath_11_DTNet(3, 2));
+	//printf("%d\n", shortpath_11_DTNet(3, 2));
 	
 	//destroy thread pool.
 	destroyThreadPool();

@@ -14,6 +14,8 @@ struct DirectTemporalNet {
 	int timeMin;
 	int *inDoorMax;
 	int *inDoorMin;
+	int *outDoorMax;
+	int *outDoorMin;
 	long *outCount;
 	long *inCount;
 	int **out;
@@ -25,6 +27,6 @@ void init_DirectTemporalNet(const struct i4LineFile* const file);
 void free_DirectTemporalNet(void);
 void *verifyDTNet(void *arg);
 
-int shortpath_11_DTNet(int id_from, int id_to);
+int shortpath_1n_DTNet(int id_from, int id_to);
 
 #endif

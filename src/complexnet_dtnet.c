@@ -21,11 +21,16 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	int timeMin=INT_MAX;
 	int *inDoorMax = calloc(maxId+1, sizeof(int));
 	assert(inDoorMax != NULL);
+	int *outDoorMax = calloc(maxId+1, sizeof(int));
+	assert(outDoorMax != NULL);
 	int *inDoorMin = malloc((maxId+1)*sizeof(int));
 	assert(inDoorMin != NULL);
+	int *outDoorMin = malloc((maxId+1)*sizeof(int));
+	assert(outDoorMin != NULL);
 	long i;
 	for (i=0; i<maxId+1; ++i) {
 		inDoorMin[i] = INT_MAX;
+		outDoorMin[i] = INT_MAX;
 	}
 	long *outCount = calloc(maxId+1, sizeof(long));
 	assert(outCount != NULL);
@@ -43,6 +48,8 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 		++inCount[line->i2];
 		inDoorMax[line->i2] = inDoorMax[line->i2]<line->i4?line->i4:inDoorMax[line->i2];
 		inDoorMin[line->i2] = inDoorMin[line->i2]>line->i4?line->i4:inDoorMin[line->i2];
+		outDoorMax[line->i1] = outDoorMax[line->i1]<line->i4?line->i4:outDoorMax[line->i1];
+		outDoorMin[line->i1] = outDoorMin[line->i1]>line->i4?line->i4:outDoorMin[line->i1];
 		timeMax=timeMin<line->i4?line->i4:timeMax;
 		timeMin=timeMin>line->i4?line->i4:timeMin;
 	}
@@ -82,6 +89,8 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	dtnet.outCountMax=outCountMax;
 	dtnet.inDoorMax=inDoorMax;
 	dtnet.inDoorMin=inDoorMin;
+	dtnet.outDoorMax=outDoorMax;
+	dtnet.outDoorMin=outDoorMin;
 	dtnet.inCount=inCount;
 	dtnet.outCount=outCount;
 	dtnet.out=out;
@@ -177,107 +186,6 @@ void *verifyDTNet(void *arg) {
 	return (void *)0;
 }
 
-int shortpath_11_DTNet(int id_from, int id_to) {
-	int door = dtnet.inDoorMax[id_to];
-	int ground = INT_MAX;
-	int *lt = malloc((dtnet.maxId+1)*sizeof(int));
-	int *rt = malloc((dtnet.maxId+1)*sizeof(int));
-	char *status = calloc((dtnet.maxId+1), sizeof(char));
-	char *status_l = calloc((dtnet.maxId+1), sizeof(char));
-	char *status_r = calloc((dtnet.maxId+1), sizeof(char));
-	int l_num=0, r_num=0;
-	int i;
-	for (i=0; i<dtnet.outCount[id_from]; ++i) {
-		int t = dtnet.outTemporal[id_from][i];
-		int v = dtnet.out[id_from][i];
-		if (t> door) {
-			continue;
-		}
-		ground = ground>t?t:ground;
-		if (status_l[v] == 1) {
-			lt[v]= lt[v]>t?t:lt[v];
-		}
-		else {
-			lt[v]=t;
-			status_l[v]=1;
-			++l_num;
-		}
-	}
-	status[id_from]=1;
-
-	for(i=0; i<dtnet.maxId+1; ++i) {
-		if (status_l[i] == 1) {
-			printf("%d,%d|||", i, lt[i]);
-		}
-	}
-	printf("\n");fflush(stdout);
-	printf("door: %d\n", door);
-
-	int j=0;
-	for (i=0; i<dtnet.maxId+1; ++i) {
-		if (dtnet.inCount[i] == 0 && dtnet.outCount[i] !=0) {
-			++j;
-		}
-	}
-	printf("j:%d\n", j);
-	exit(-1);
-	char sign = 0;
-	int ground2=INT_MAX;
-	while(l_num) {
-		ground2=INT_MAX;
-		printf("l_num: %d,%d,%d,%d,%d\n", l_num, door, ground, dtnet.inDoorMin[3], dtnet.inDoorMax[3]);
-		/*
-		for(i=0; i<dtnet.maxId+1; ++i) {
-			if (status_l[i] == 1) {
-				printf("%d,%d|||", i, lt[i]);
-			}
-		}
-		printf("\n");
-		*/
-		for(i=0; i<dtnet.maxId+1; ++i) {
-			if (status_l[i] == 0) {
-				continue;
-			}
-			int point_t = lt[i];
-			if (i == id_to) {
-				if (point_t==dtnet.inDoorMin[id_to]) {
-					return point_t;
-				}
-				else {
-					door = point_t;
-					sign = 1;
-				}
-			}
-			for (j=0; j<dtnet.outCount[i];++j) {
-				int neigh = dtnet.out[i][j];
-				int neigh_t = dtnet.outTemporal[i][j];
-				if (neigh_t>=point_t && neigh_t<=door && status[neigh] == 0) {
-					ground2 = ground2>neigh_t?neigh_t:ground2;
-					if (status_r[neigh] == 1) {
-						rt[neigh] = rt[neigh]>neigh_t?neigh_t:rt[neigh];
-					}
-					else {
-						rt[neigh]=neigh_t;
-						++r_num;
-						status_r[neigh] = 1;
-					}
-				}
-			}
-			//if (dtnet.outDoorMax[i]<ground) {
-			//	status[i]=1;
-			//}
-		}
-		ground = ground2;
-		l_num=r_num;
-		char *temp;
-		temp=status_l; status_l=status_r; status_r=temp;
-		int *temp_t;
-		temp_t=lt; lt=rt; rt=temp_t;
-		memset(status_r, 0, dtnet.maxId+1);
-		r_num=0;
-	}
-	if (sign ==1) {
-		return door;
-	}
-	return -1;
+int shortpath_1n_DTNet(int id_from, int id_to) {
+	return 0;
 }
