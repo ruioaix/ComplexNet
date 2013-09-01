@@ -18,6 +18,11 @@ int main(int argc, char **argv)
 	//create thread pool.
 	int threadMax = 10;
 	createThreadPool(threadMax);
+
+	if (argc != 3) isError("not right args");
+	char *pEnd;
+	int begin=strtol(argv[1], &pEnd, 10);
+	int end=strtol(argv[2], &pEnd, 10);
 	
 	//struct i4LineFile *file=create_i4LineFile("data/testdtnet");
 	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
@@ -27,7 +32,7 @@ int main(int argc, char **argv)
 	//printf("%d\n", shortpath_11_DTNet(3, 2));
 	int i;
 	int maxId=getMaxId_DirectTemporalNet();
-	for (i=0; i<maxId+1; ++i) {
+	for (i=begin; i<=end; ++i) {
 		addWorktoThreadPool(shortpath_1n_DTNet, (void *)i);
 	}
 	
