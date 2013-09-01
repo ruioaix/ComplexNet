@@ -19,19 +19,7 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	long outCountMax=-1;
 	int timeMax=-1;
 	int timeMin=INT_MAX;
-	int *inDoorMax = calloc(maxId+1, sizeof(int));
-	assert(inDoorMax != NULL);
-	int *outDoorMax = calloc(maxId+1, sizeof(int));
-	assert(outDoorMax != NULL);
-	int *inDoorMin = malloc((maxId+1)*sizeof(int));
-	assert(inDoorMin != NULL);
-	int *outDoorMin = malloc((maxId+1)*sizeof(int));
-	assert(outDoorMin != NULL);
 	long i;
-	for (i=0; i<maxId+1; ++i) {
-		inDoorMin[i] = INT_MAX;
-		outDoorMin[i] = INT_MAX;
-	}
 	long *outCount = calloc(maxId+1, sizeof(long));
 	assert(outCount != NULL);
 	long *inCount = calloc(maxId+1, sizeof(long));
@@ -46,10 +34,6 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 		line=file->lines+i;
 		++outCount[line->i1];
 		++inCount[line->i2];
-		inDoorMax[line->i2] = inDoorMax[line->i2]<line->i4?line->i4:inDoorMax[line->i2];
-		inDoorMin[line->i2] = inDoorMin[line->i2]>line->i4?line->i4:inDoorMin[line->i2];
-		outDoorMax[line->i1] = outDoorMax[line->i1]<line->i4?line->i4:outDoorMax[line->i1];
-		outDoorMin[line->i1] = outDoorMin[line->i1]>line->i4?line->i4:outDoorMin[line->i1];
 		timeMax=timeMin<line->i4?line->i4:timeMax;
 		timeMin=timeMin>line->i4?line->i4:timeMin;
 	}
@@ -87,10 +71,6 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	dtnet.edgesNum=edgesNum;
 	dtnet.inCountMax=inCountMax;
 	dtnet.outCountMax=outCountMax;
-	dtnet.inDoorMax=inDoorMax;
-	dtnet.inDoorMin=inDoorMin;
-	dtnet.outDoorMax=outDoorMax;
-	dtnet.outDoorMin=outDoorMin;
 	dtnet.inCount=inCount;
 	dtnet.outCount=outCount;
 	dtnet.out=out;
@@ -112,8 +92,6 @@ void free_DirectTemporalNet(void) {
 			free(dtnet.outTemporal[i]);
 		}
 	}
-	free(dtnet.inDoorMax);
-	free(dtnet.inDoorMin);
 	free(dtnet.outCount);
 	free(dtnet.inCount);
 	free(dtnet.out);
@@ -186,6 +164,80 @@ void *verifyDTNet(void *arg) {
 	return (void *)0;
 }
 
-int shortpath_1n_DTNet(int id_from, int id_to) {
-	return 0;
+void *shortpath_1n_DTNet(void *arg) {
+
+	int id_from = (int)arg;
+
+	if (dtnet.outCount[id_from] == 0) {
+		printf("%d have no out edges.\n", id_from);
+		return (void *)1;
+	}
+	char *status = calloc(dtnet.maxId+1, sizeof(char));
+	assert(status!=NULL);
+	int *sp = malloc((dtnet.maxId+1)*sizeof(int));
+	assert(sp!=NULL);
+
+	int tMin=INT_MAX;
+	int vMin;
+	int i;
+	for (i=0; i<dtnet.outCount[id_from]; ++i) {
+		int v=dtnet.out[id_from][i];
+		int t=dtnet.outTemporal[id_from][i];
+		if (tMin>t) {
+			tMin=t;
+			vMin=v;
+		}
+		if (status[v] == 0) {
+			sp[v]=t;
+			status[v] = 1;
+		}
+		else if (status[v] == 1) {
+			sp[v]=sp[v]>t?t:sp[v];
+		}
+	}
+	int j=0;
+	while (tMin != INT_MAX) {
+		for (i=0; i<dtnet.outCount[vMin]; ++i) {
+			int v=dtnet.out[vMin][i];
+			int t=dtnet.outTemporal[vMin][i];
+			if (status[v] == 0) {
+				sp[v]=t;
+				status[v] = 1;
+			}
+			else if (status[v] == 1) {
+				sp[v]=sp[v]>t?t:sp[v];
+			}
+		}
+		status[vMin]=2;
+		tMin = INT_MAX;
+		for (i=0; i<dtnet.maxId+1; ++i) {
+			if (status[i] == 1) {
+				if(tMin>sp[i]) {
+					tMin=sp[i];
+					vMin=i;
+				}
+			}
+		}
+		++j;
+	}
+
+	char filename[100];
+	sprintf(filename, "RESULT/shortpath_1n_dtnet_%d", id_from);
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "shortpath_1n_DTNet");
+
+	for (i=0; i<dtnet.maxId+1; ++i) {
+		if (status[i] == 2) {
+			fprintf(fp, "%d\t%d\t%d\n", id_from, i, sp[i]);
+		}
+	}
+	printf("%d done\n", id_from);fflush(stdout);
+	
+	free(status);
+	free(sp);
+	return (void *)0;
+}
+
+int getMaxId_DirectTemporalNet() {
+	return dtnet.maxId;
 }

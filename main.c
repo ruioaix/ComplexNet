@@ -25,6 +25,11 @@ int main(int argc, char **argv)
 
 	//addWorktoThreadPool(verifyDTNet, NULL);
 	//printf("%d\n", shortpath_11_DTNet(3, 2));
+	int i;
+	int maxId=getMaxId_DirectTemporalNet();
+	for (i=0; i<maxId+1; ++i) {
+		addWorktoThreadPool(shortpath_1n_DTNet, (void *)i);
+	}
 	
 	//destroy thread pool.
 	destroyThreadPool();
