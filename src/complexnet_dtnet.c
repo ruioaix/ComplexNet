@@ -200,12 +200,14 @@ void *shortpath_1n_DTNet(void *arg) {
 		for (i=0; i<dtnet.outCount[vMin]; ++i) {
 			int v=dtnet.out[vMin][i];
 			int t=dtnet.outTemporal[vMin][i];
-			if (status[v] == 0) {
-				sp[v]=t;
-				status[v] = 1;
-			}
-			else if (status[v] == 1) {
-				sp[v]=sp[v]>t?t:sp[v];
+			if (t>=tMin) {
+				if (status[v] == 0) {
+					sp[v]=t;
+					status[v] = 1;
+				}
+				else if (status[v] == 1) {
+					sp[v]=sp[v]>t?t:sp[v];
+				}
 			}
 		}
 		status[vMin]=2;

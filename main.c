@@ -25,13 +25,16 @@ int main(int argc, char **argv)
 	int end=strtol(argv[2], &pEnd, 10);
 	
 	//struct i4LineFile *file=create_i4LineFile("data/testdtnet");
-	struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	//struct i4LineFile *file=create_i4LineFile("data/eronClean2.txt");
+	struct i4LineFile *file=create_i4LineFile("data/test01.txt");
 	init_DirectTemporalNet(file);
 
 	//addWorktoThreadPool(verifyDTNet, NULL);
 	//printf("%d\n", shortpath_11_DTNet(3, 2));
 	int i;
 	int maxId=getMaxId_DirectTemporalNet();
+	end = maxId>end?end:maxId;
+	//addWorktoThreadPool(shortpath_1n_DTNet, (void *)0);
 	for (i=begin; i<=end; ++i) {
 		addWorktoThreadPool(shortpath_1n_DTNet, (void *)i);
 	}
