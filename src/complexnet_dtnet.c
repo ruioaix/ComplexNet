@@ -28,6 +28,8 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	assert(out != NULL);
 	int **outTemporal = calloc(maxId+1, sizeof(void *));	
 	assert(out != NULL);
+	int **outTemporal_second01 = calloc(maxId+1, sizeof(void *));	
+	assert(out != NULL);
 
 	struct i4Line *line;
 	for (i=0; i<file->linesNum; ++i) {
@@ -53,6 +55,8 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 			assert(out[j]!=NULL);
 			outTemporal[j] = malloc(outCount[j]*sizeof(int));
 			assert(outTemporal[j]!=NULL);
+			outTemporal_second01[j] = malloc(outCount[j]*sizeof(int));
+			assert(outTemporal[j]!=NULL);
 		}
 	}
 	long *outCount_temp = calloc(maxId+1, sizeof(long));
@@ -61,6 +65,7 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 		int outId = file->lines[i].i1;
 		out[outId][outCount_temp[outId]]=file->lines[i].i2;
 		outTemporal[outId][outCount_temp[outId]]=file->lines[i].i4;
+		outTemporal_second01[outId][outCount_temp[outId]]=file->lines[i].i4;
 		++outCount_temp[outId];
 	}
 	free(outCount_temp);
@@ -75,8 +80,10 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	dtnet.outCount=outCount;
 	dtnet.out=out;
 	dtnet.outTemporal=outTemporal;
+	dtnet.outTemporal_second01=outTemporal_second01;
 	dtnet.timeMax=timeMax;
 	dtnet.timeMin=timeMin;
+	dtnet.timeScope=second01;
 
 	printf("build direct time net:\n\tMax: %d, Min: %d, vtsNum: %d\n", maxId, minId, vtsNum); 
 	printf("\tedgesNum: %ld, inCountMax: %ld, outCountMax: %ld\n", edgesNum, inCountMax, outCountMax);
@@ -90,12 +97,30 @@ void free_DirectTemporalNet(void) {
 		if (dtnet.outCount[i]>0) {
 			free(dtnet.out[i]);
 			free(dtnet.outTemporal[i]);
+			free(dtnet.outTemporal_second01[i]);
 		}
 	}
 	free(dtnet.outCount);
 	free(dtnet.inCount);
 	free(dtnet.out);
 	free(dtnet.outTemporal);
+	free(dtnet.outTemporal_second01);
+}
+
+void setTimeScope_DirectTemporalNet(enum timeScopeDTNet timeScope) {
+	if (dtnet.timeScope == timeScope) {
+		printf("timeScope of DirectTemporalNet has been set to %d.\n", timeScope);fflush(stdout);
+		return;
+	}
+	int i;
+	long j;
+	for (i=0; i<dtnet.maxId+1; ++i) {
+		for (j=0; j<dtnet.outCount[i]; ++j) {
+			dtnet.outTemporal[i][j] = dtnet.outTemporal_second01[i][j]%timeScope;	
+		}
+	}
+	dtnet.timeScope = timeScope;
+	printf("timeScope of DirectTemporalNet has been set to %d.\n", timeScope);fflush(stdout);
 }
 
 void *verifyDTNet(void *arg) {
@@ -166,7 +191,10 @@ void *verifyDTNet(void *arg) {
 
 void *shortpath_1n_DTNet(void *arg) {
 
-	int id_from = (int)arg;
+	struct DTNetShortPath1NArgs *args=arg;
+
+	int id_from = args->vtId;
+	FILE *fp = args->fp;
 
 	if (dtnet.outCount[id_from] == 0) {
 		printf("%d have no out edges.\n", id_from);
@@ -223,11 +251,6 @@ void *shortpath_1n_DTNet(void *arg) {
 		++j;
 	}
 
-	char filename[100];
-	sprintf(filename, "RESULT/shortpath_1n_dtnet_%d", id_from);
-	FILE *fp = fopen(filename, "w");
-	fileError(fp, "shortpath_1n_DTNet");
-
 	for (i=0; i<dtnet.maxId+1; ++i) {
 		if (status[i] == 2) {
 			fprintf(fp, "%d\t%d\t%d\n", id_from, i, sp[i]);
@@ -242,4 +265,8 @@ void *shortpath_1n_DTNet(void *arg) {
 
 int getMaxId_DirectTemporalNet() {
 	return dtnet.maxId;
+}
+
+int gettimeScope_DirectTemporalNet() {
+	return dtnet.timeScope;
 }
