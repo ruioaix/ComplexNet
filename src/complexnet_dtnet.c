@@ -260,10 +260,16 @@ void *shortpath_1n_DTNet(void *arg) {
 
 	pthread_mutex_lock(mutex);
 	for (i=0; i<dtnet.maxId+1; ++i) {
-		if (status[i] == 2) {
-			temp = sp[i] - dtnet.timeMin;
-			++timeStatistics[temp];
-			fprintf(fp, "%d\t%d\t%d\n", id_from, i, sp[i]);
+		if (i != id_from) {
+			if (status[i] == 2) {
+				temp = sp[i] - dtnet.timeMin;
+				++timeStatistics[temp];
+				fprintf(fp, "%d\t%d\t%d\n", id_from, i, temp);
+			}
+			else {
+				++timeStatistics[dtnet.timeMax-dtnet.timeMin];
+				fprintf(fp, "%d\t%d\t%d\n", id_from, i, dtnet.timeMax-dtnet.timeMin);
+			}
 		}
 	}
 	pthread_mutex_unlock(mutex);

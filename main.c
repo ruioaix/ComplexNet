@@ -30,17 +30,16 @@ int main(int argc, char **argv)
 	struct i4LineFile *file=create_i4LineFile("data/radoslawemail-clean.txt");
 	init_DirectTemporalNet(file);
 	int maxId=getMaxId_DirectTemporalNet();
-	setTimeScope_DirectTemporalNet(timeScope);
-
-	int timeMax=gettimeMax_DirectTemporalNet();
-	int timeMin=gettimeMin_DirectTemporalNet();
-	printf("%d\n", timeMin);fflush(stdout);
-	printf("%d\n", timeMax);fflush(stdout);
-	int timeRange = timeMax-timeMin+1;
+	int timeMax_second01 = gettimeMax_DirectTemporalNet();
+	int timeMin_second01 = gettimeMin_DirectTemporalNet();
+	int timeRange = timeMax_second01-timeMin_second01+1;
 	printf("%d\n", timeRange);fflush(stdout);
 
+	setTimeScope_DirectTemporalNet(timeScope);
+
+
 	int *timeStatistics = calloc(timeRange, sizeof(int));
-	assert(timeStatistics);
+	assert(timeStatistics != NULL);
 
 	//create thread pool.
 	int threadMax = 10;
@@ -70,13 +69,19 @@ int main(int argc, char **argv)
 	//
 	sprintf(filename, "RESULT/rados_timeStatistics_%d", timeScope);
 	FILE *fp1 = fopen(filename, "w");
+	long sp_sum = 0;
+	long ed = 0;
 	for (i=0; i<timeRange; ++i) {
 		if (timeStatistics[i] != 0) {
-			fprintf(fp1, "%d\t%d\n", i+timeMin, timeStatistics[i]);
+			fprintf(fp1, "%d\t%d\n", i, timeStatistics[i]);
 		}
+		sp_sum += i*timeStatistics[i];
+		ed += timeStatistics[i];
 	}
+	double sp_avg = (double)sp_sum/(double)ed;
 	fclose(fp1);
 
+	printf("sp_avg : %f\n", sp_avg);
 	for (i=0; i<maxId+1; ++i) {
 		free(args[i]);
 	}
