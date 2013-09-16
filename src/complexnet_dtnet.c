@@ -202,7 +202,7 @@ void *shortpath_1n_DTNet(void *arg) {
 	pthread_mutex_t *mutex= args->mutex;
 
 	if (dtnet.outCount[id_from] == 0) {
-		printf("%d have no out edges.\n", id_from);
+		//printf("%d have no out edges.\n", id_from);
 		return (void *)1;
 	}
 	char *status = calloc(dtnet.maxId+1, sizeof(char));
@@ -228,7 +228,6 @@ void *shortpath_1n_DTNet(void *arg) {
 			sp[v]=sp[v]>t?t:sp[v];
 		}
 	}
-	int j=0;
 	while (tMin != INT_MAX) {
 		for (i=0; i<dtnet.outCount[vMin]; ++i) {
 			int v=dtnet.out[vMin][i];
@@ -253,27 +252,26 @@ void *shortpath_1n_DTNet(void *arg) {
 				}
 			}
 		}
-		++j;
 	}
 
 	int temp;
 
 	pthread_mutex_lock(mutex);
 	for (i=0; i<dtnet.maxId+1; ++i) {
-		if (i != id_from) {
+		if (i != id_from && (dtnet.inCount[i] != 0 || dtnet.outCount[i] !=0)) {
 			if (status[i] == 2) {
-				temp = sp[i] - dtnet.timeMin;
+				temp = (sp[i] - dtnet.timeMin)*dtnet.timeScope;
 				++timeStatistics[temp];
 				fprintf(fp, "%d\t%d\t%d\n", id_from, i, temp);
 			}
 			else {
-				++timeStatistics[dtnet.timeMax-dtnet.timeMin];
-				fprintf(fp, "%d\t%d\t%d\n", id_from, i, dtnet.timeMax-dtnet.timeMin);
+				++timeStatistics[dtnet.timeMax_second01-dtnet.timeMin_second01];
+				fprintf(fp, "%d\t%d\t%d\n", id_from, i, dtnet.timeMax_second01-dtnet.timeMin_second01);
 			}
 		}
 	}
 	pthread_mutex_unlock(mutex);
-	printf("%d done\n", id_from);fflush(stdout);
+	//printf("%d done\n", id_from);fflush(stdout);
 	
 	free(status);
 	free(sp);

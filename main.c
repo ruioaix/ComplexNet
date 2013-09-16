@@ -33,10 +33,9 @@ int main(int argc, char **argv)
 	int timeMax_second01 = gettimeMax_DirectTemporalNet();
 	int timeMin_second01 = gettimeMin_DirectTemporalNet();
 	int timeRange = timeMax_second01-timeMin_second01+1;
-	printf("%d\n", timeRange);fflush(stdout);
+	//printf("%d\n", timeRange);fflush(stdout);
 
 	setTimeScope_DirectTemporalNet(timeScope);
-
 
 	int *timeStatistics = calloc(timeRange, sizeof(int));
 	assert(timeStatistics != NULL);
@@ -81,7 +80,7 @@ int main(int argc, char **argv)
 	double sp_avg = (double)sp_sum/(double)ed;
 	fclose(fp1);
 
-	printf("sp_avg : %f\n", sp_avg);
+	printf("timeScope: %d, sp_avg : %f\n", timeScope, sp_avg);
 	for (i=0; i<maxId+1; ++i) {
 		free(args[i]);
 	}
@@ -91,6 +90,6 @@ int main(int argc, char **argv)
 	fclose(fp);
 
 	//printf end time;
-	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
+	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 	return 0;
 }
