@@ -82,7 +82,8 @@ void init_DirectTemporalNet(const struct i4LineFile* const file) {
 	dtnet.outTemporal=outTemporal;
 	dtnet.outTemporal_second01=outTemporal_second01;
 	dtnet.timeMax=timeMax;
-	dtnet.timeMin=timeMin;
+	dtnet.timeMax_second01=timeMax;
+	dtnet.timeMin_second01=timeMin;
 	dtnet.timeScope=second01;
 
 	printf("build direct time net:\n\tMax: %d, Min: %d, vtsNum: %d\n", maxId, minId, vtsNum); 
@@ -107,7 +108,7 @@ void free_DirectTemporalNet(void) {
 	free(dtnet.outTemporal_second01);
 }
 
-void setTimeScope_DirectTemporalNet(enum timeScopeDTNet timeScope) {
+void setTimeScope_DirectTemporalNet(int timeScope) {
 	if (dtnet.timeScope == timeScope) {
 		printf("timeScope of DirectTemporalNet has been set to %d.\n", timeScope);fflush(stdout);
 		return;
@@ -116,9 +117,11 @@ void setTimeScope_DirectTemporalNet(enum timeScopeDTNet timeScope) {
 	long j;
 	for (i=0; i<dtnet.maxId+1; ++i) {
 		for (j=0; j<dtnet.outCount[i]; ++j) {
-			dtnet.outTemporal[i][j] = dtnet.outTemporal_second01[i][j]%timeScope;	
+			dtnet.outTemporal[i][j] = dtnet.outTemporal_second01[i][j]/timeScope;	
 		}
 	}
+	dtnet.timeMin = dtnet.timeMin_second01/timeScope;
+	dtnet.timeMax = dtnet.timeMax_second01/timeScope;
 	dtnet.timeScope = timeScope;
 	printf("timeScope of DirectTemporalNet has been set to %d.\n", timeScope);fflush(stdout);
 }
@@ -195,6 +198,8 @@ void *shortpath_1n_DTNet(void *arg) {
 
 	int id_from = args->vtId;
 	FILE *fp = args->fp;
+	int *timeStatistics = args->timeStatistics;
+	pthread_mutex_t *mutex= args->mutex;
 
 	if (dtnet.outCount[id_from] == 0) {
 		printf("%d have no out edges.\n", id_from);
@@ -251,11 +256,17 @@ void *shortpath_1n_DTNet(void *arg) {
 		++j;
 	}
 
+	int temp;
+
+	pthread_mutex_lock(mutex);
 	for (i=0; i<dtnet.maxId+1; ++i) {
 		if (status[i] == 2) {
+			temp = sp[i] - dtnet.timeMin;
+			++timeStatistics[temp];
 			fprintf(fp, "%d\t%d\t%d\n", id_from, i, sp[i]);
 		}
 	}
+	pthread_mutex_unlock(mutex);
 	printf("%d done\n", id_from);fflush(stdout);
 	
 	free(status);
@@ -269,4 +280,12 @@ int getMaxId_DirectTemporalNet() {
 
 int gettimeScope_DirectTemporalNet() {
 	return dtnet.timeScope;
+}
+
+int gettimeMin_DirectTemporalNet() {
+	return dtnet.timeMin;
+}
+
+int gettimeMax_DirectTemporalNet() {
+	return dtnet.timeMax;
 }
