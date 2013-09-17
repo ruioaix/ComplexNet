@@ -2,6 +2,7 @@
 #define COMPLEXNET_DTNET_H
 
 #include "../inc/complexnet_file.h"
+#include "../inc/complexnet_hashtable.h"
 #include "stdio.h"
 #include "pthread.h"
 
@@ -63,6 +64,7 @@ struct DTNetShortPath1NArgs {
 	int vtId;
 	FILE *fp;
 	int *timeStatistics;
+	struct HashTable *ht;
 	pthread_mutex_t *mutex;
 };
 

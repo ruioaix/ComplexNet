@@ -39,53 +39,47 @@ int main(int argc, char **argv)
 	struct HashTable *ht = createHashTable(1000000);
 	int i;
 	for (i=0; i<file->linesNum; ++i) {
-		insertHEtoHT(ht, file->lines[i].i4);
+		insertHEtoHT(ht, file->lines[i].i4/timeScope);
 	}
 	int timeMax_hash = getelementSumNumHT(ht);
-
-	printf("%d, %d\n", timeMax_second01, timeMax_hash);
+	printf("Number of different time moments: %d\n", timeMax_hash);
 
 while(1);
 
-	int *timeStatistics = calloc(timeRange, sizeof(int));
+	int *timeStatistics = calloc(timeMax_hash+1, sizeof(int));
 	assert(timeStatistics != NULL);
 
 	//create thread pool.
 	int threadMax = 10;
 	createThreadPool(threadMax);
 
-	char filename[300];
-	//sprintf(filename, "RESULT/rados_%d", timeScope);
-	//FILE *fp = fopen(filename, "w");
-	//fileError(fp, "xx");
-	struct DTNetShortPath1NArgs *args[maxId+1];
+	struct DTNetShortPath1NArgs **args=malloc((maxId+1)*sizeof(struct DTNetShortPath1NArgs));
+	assert(args != NULL);
 
 	pthread_mutex_t mutex_timeStatistics;
 	pthread_mutex_init(&mutex_timeStatistics, NULL);
 	printf("xxxx\n"); fflush(stdout);
-	//for (i=0; i<10000; ++i) {
 	for (i=0; i<maxId+1; ++i) {
-		printf("%d\t", i);fflush(stdout);
 		args[i]=malloc(sizeof(struct DTNetShortPath1NArgs));
 		assert(args[i] != NULL);
 		args[i]->vtId = i;
-		//args[i]->fp = fp;
+		args[i]->ht = ht;
 		args[i]->timeStatistics = timeStatistics;
 		args[i]->mutex = &mutex_timeStatistics;
 		addWorktoThreadPool(shortpath_1n_DTNet, args[i]);
 	}
 	
-	printf("xxxx\n"); fflush(stdout);
 	//destroy thread pool.
 	destroyThreadPool();
 	
-	sprintf(filename, "RESULT/rados_timeStatistics_%d", timeScope);
+	char filename[300];
+	sprintf(filename, "RESULT/rados_timeStatistics_%s_%d", argv[1], timeScope);
 	FILE *fp1 = fopen(filename, "w");
 	long sp_sum = 0;
 	long ed = 0;
 	for (i=0; i<timeRange; ++i) {
 		if (timeStatistics[i] != 0) {
-			fprintf(fp1, "%d\t%d\n", i, timeStatistics[i]);
+			fprintf(fp1, "%ld\t%d\n", getelementValueHT(ht, i), timeStatistics[i]);
 		}
 		sp_sum += i*timeStatistics[i];
 		ed += timeStatistics[i];
