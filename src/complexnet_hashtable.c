@@ -35,6 +35,26 @@ int getelementSumNumHT(struct HashTable *ht) {
 	}
 }
 
+long getelementValueHT(struct HashTable *ht, int index) {
+	if (!ht->sumSign) {
+		elementNumSumHT(ht);
+	}
+	if (index>ht->elementSumNum) return -1;
+	int i;
+	for (i=0; i<ht->length; ++i) {
+		if (ht->elementNum[i]<index) {
+			continue;
+		}
+		break;
+	}
+	int rowindex = index - ht->elementNum[--i];
+	struct HashElement *he = ht->he[i];
+	while(--rowindex) {
+		he=he->next;		
+	}
+	return he->element;
+}
+
 static void elementNumBackHT(struct HashTable *ht)
 {
 	if (ht->sumSign) {

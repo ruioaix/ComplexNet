@@ -26,6 +26,7 @@ void deleteHEfromHT(struct HashTable *ht, long element);
 //get index
 int getelementIndexHT(struct HashTable *ht, long element);
 int getelementSumNumHT(struct HashTable *ht);
+long getelementValueHT(struct HashTable *ht, int index);
 
 //thread routine, arg type is iiLineFile.
 void *writeContinuousiiLineFileHT(void * arg);
