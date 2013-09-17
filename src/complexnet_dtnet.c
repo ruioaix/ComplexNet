@@ -197,7 +197,7 @@ void *shortpath_1n_DTNet(void *arg) {
 	struct DTNetShortPath1NArgs *args=arg;
 
 	int id_from = args->vtId;
-	FILE *fp = args->fp;
+	//FILE *fp = args->fp;
 	int *timeStatistics = args->timeStatistics;
 	pthread_mutex_t *mutex= args->mutex;
 
@@ -262,11 +262,11 @@ void *shortpath_1n_DTNet(void *arg) {
 			if (status[i] == 2) {
 				temp = (sp[i] - dtnet.timeMin)*dtnet.timeScope;
 				++timeStatistics[temp];
-				fprintf(fp, "%d\t%d\t%d\n", id_from, i, temp);
+				//fprintf(fp, "%d\t%d\t%d\n", id_from, i, temp);
 			}
 			else {
 				++timeStatistics[dtnet.timeMax_second01-dtnet.timeMin_second01];
-				fprintf(fp, "%d\t%d\t%d\n", id_from, i, dtnet.timeMax_second01-dtnet.timeMin_second01);
+				//fprintf(fp, "%d\t%d\t%d\n", id_from, i, dtnet.timeMax_second01-dtnet.timeMin_second01);
 			}
 		}
 	}

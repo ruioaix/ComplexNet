@@ -15,7 +15,23 @@ static void elementNumSumHT(struct HashTable *ht)
 			ht->elementNum[i]=ivalue+ht->elementNum[i-1];
 			ivalue=temp;
 		}
+		ht->elementSumNum = ht->elementNum[ht->length-1];
+		struct HashElement *he=ht->he[ht->length-1];
+		while(he) {
+			++ht->elementSumNum;
+			he=he->next;
+		}
 		ht->sumSign=1;
+	}
+}
+
+int getelementSumNumHT(struct HashTable *ht) {
+	if (!ht->sumSign) {
+		elementNumSumHT(ht);
+		return ht->elementSumNum;
+	}
+	else {
+		return ht->elementSumNum;
 	}
 }
 

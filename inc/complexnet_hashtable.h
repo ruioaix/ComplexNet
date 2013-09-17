@@ -11,6 +11,7 @@ struct HashTable {
 	char sumSign;
 	int *elementNum;
 	struct HashElement **he;
+	int elementSumNum;
 };
 //this hashtable is use to convert vtId to 0--vtNum-1. 
 //the resulted vtId will be continuous and swquential. like 0,1,2...3212398.
@@ -24,6 +25,7 @@ int insertHEtoHT(struct HashTable *ht, long element);
 void deleteHEfromHT(struct HashTable *ht, long element);
 //get index
 int getelementIndexHT(struct HashTable *ht, long element);
+int getelementSumNumHT(struct HashTable *ht);
 
 //thread routine, arg type is iiLineFile.
 void *writeContinuousiiLineFileHT(void * arg);
