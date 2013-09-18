@@ -32,18 +32,21 @@ int main(int argc, char **argv)
 	setTimeScope_DirectTemporalNet(timeScope);
 
 	struct HashTable *ht = createHashTable(1000000);
-	int i;
-	for (i=0; i<file->linesNum; ++i) {
-		insertHEtoHT(ht, file->lines[i].i4/timeScope);
+	struct DirectTemporalNet *dtnet = getDTNet();
+	int i,j;
+	for (i=0; i<dtnet->maxId+1; ++i) {
+		for (j=0; j<dtnet->outCount[i]; ++j) {
+			insertHEtoHT(ht, dtnet->outTemporal[i][j]);
+		}
 	}
-	int timeMax_hash = getelementSumNumHT(ht);
-	printf("The Number of different time moments: %d\n", timeMax_hash);
+	int diffMoments = getelementSumNumHT(ht);
+	printf("The Number of different time moments: %d\n", diffMoments);
 
-	int *timeStatistics = calloc(timeMax_hash, sizeof(int));
+	int *timeStatistics = calloc(diffMoments, sizeof(int));
 	assert(timeStatistics != NULL);
 
 	//create thread pool.
-	int threadMax = 1;
+	int threadMax = 10;
 	createThreadPool(threadMax);
 
 	struct DTNetShortPath1NArgs **args=malloc((maxId+1)*sizeof(struct DTNetShortPath1NArgs));
@@ -63,20 +66,17 @@ int main(int argc, char **argv)
 	
 	//destroy thread pool.
 	destroyThreadPool();
-/*
+
 	char filename[300];
-	sprintf(filename, "RESULT/rados_timeStatistics_%s_%d", argv[1], timeScope);
+	sprintf(filename, "RESULT/rados_timeStatistics_%c_%d", argv[1][7], timeScope);
 	FILE *fp1 = fopen(filename, "w");
 	long sp_sum = 0;
 	long ed = 0;
 	long element;
-	for (i=0; i<timeMax_hash; ++i) {
-		printf("%d\n", i);fflush(stdout);
+	for (i=0; i<diffMoments; ++i) {
 		if (timeStatistics[i] != 0) {
-			printf("%d, %d\n", i , timeStatistics[i]);fflush(stdout);
-			element = getelementValueHT(ht, i);
-			printf("%ld\n", element);fflush(stdout);
-			//fprintf(fp1, "%ld\t%d\n", element, timeStatistics[i]);
+			element = getelementValueHT(ht, i)*timeScope;
+			fprintf(fp1, "%ld\t%d\n", element, timeStatistics[i]);
 			sp_sum += element*timeStatistics[i];
 			ed += timeStatistics[i];
 		}
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	double sp_avg = (double)sp_sum/(double)ed;
 	fclose(fp1);
 	printf("timeScope: %d, sp_avg : %f\n", timeScope, sp_avg);
-*/
+
 	for (i=0; i<maxId+1; ++i) {
 		free(args[i]);
 	}

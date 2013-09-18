@@ -255,11 +255,11 @@ void *shortpath_1n_DTNet(void *arg) {
 	}
 
 	pthread_mutex_lock(mutex);
-	int timeStatisticsMax = getelementIndexHT(ht, dtnet.timeMax_second01/dtnet.timeScope);
+	int timeStatisticsMax = getelementIndexHT(ht, dtnet.timeMax);
 	for (i=0; i<dtnet.maxId+1; ++i) {
 		if (i != id_from && (dtnet.inCount[i] != 0 || dtnet.outCount[i] !=0)) {
 			if (status[i] == 2) {
-				++timeStatistics[getelementIndexHT(ht, sp[i]/dtnet.timeScope)];
+				++timeStatistics[getelementIndexHT(ht, sp[i])];
 			}
 			else {
 				++timeStatistics[timeStatisticsMax];
@@ -288,4 +288,8 @@ int gettimeMin_DirectTemporalNet() {
 
 int gettimeMax_DirectTemporalNet() {
 	return dtnet.timeMax;
+}
+
+struct DirectTemporalNet *getDTNet() {
+	return &dtnet;
 }

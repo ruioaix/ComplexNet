@@ -62,7 +62,6 @@ struct DirectTemporalNet {
 
 struct DTNetShortPath1NArgs {
 	int vtId;
-	FILE *fp;
 	int *timeStatistics;
 	struct HashTable *ht;
 	pthread_mutex_t *mutex;
@@ -75,6 +74,7 @@ void *verifyDTNet(void *arg);
 
 void *shortpath_1n_DTNet(void *arg);
 
+struct DirectTemporalNet *getDTNet();
 int getMaxId_DirectTemporalNet();
 int gettimeScope_DirectTemporalNet();
 int gettimeMax_DirectTemporalNet();
