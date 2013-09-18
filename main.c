@@ -29,11 +29,6 @@ int main(int argc, char **argv)
 	struct i4LineFile *file=create_i4LineFile(argv[1]);
 	init_DirectTemporalNet(file);
 	int maxId=getMaxId_DirectTemporalNet();
-	int timeMax_second01 = gettimeMax_DirectTemporalNet();
-	int timeMin_second01 = gettimeMin_DirectTemporalNet();
-	int timeRange = timeMax_second01-timeMin_second01+1;
-	//printf("%d\n", timeRange);fflush(stdout);
-
 	setTimeScope_DirectTemporalNet(timeScope);
 
 	struct HashTable *ht = createHashTable(1000000);
@@ -42,15 +37,13 @@ int main(int argc, char **argv)
 		insertHEtoHT(ht, file->lines[i].i4/timeScope);
 	}
 	int timeMax_hash = getelementSumNumHT(ht);
-	printf("Number of different time moments: %d\n", timeMax_hash);
+	printf("The Number of different time moments: %d\n", timeMax_hash);
 
-while(1);
-
-	int *timeStatistics = calloc(timeMax_hash+1, sizeof(int));
+	int *timeStatistics = calloc(timeMax_hash, sizeof(int));
 	assert(timeStatistics != NULL);
 
 	//create thread pool.
-	int threadMax = 10;
+	int threadMax = 1;
 	createThreadPool(threadMax);
 
 	struct DTNetShortPath1NArgs **args=malloc((maxId+1)*sizeof(struct DTNetShortPath1NArgs));
@@ -58,7 +51,6 @@ while(1);
 
 	pthread_mutex_t mutex_timeStatistics;
 	pthread_mutex_init(&mutex_timeStatistics, NULL);
-	printf("xxxx\n"); fflush(stdout);
 	for (i=0; i<maxId+1; ++i) {
 		args[i]=malloc(sizeof(struct DTNetShortPath1NArgs));
 		assert(args[i] != NULL);
@@ -71,30 +63,35 @@ while(1);
 	
 	//destroy thread pool.
 	destroyThreadPool();
-	
+/*
 	char filename[300];
 	sprintf(filename, "RESULT/rados_timeStatistics_%s_%d", argv[1], timeScope);
 	FILE *fp1 = fopen(filename, "w");
 	long sp_sum = 0;
 	long ed = 0;
-	for (i=0; i<timeRange; ++i) {
+	long element;
+	for (i=0; i<timeMax_hash; ++i) {
+		printf("%d\n", i);fflush(stdout);
 		if (timeStatistics[i] != 0) {
-			fprintf(fp1, "%ld\t%d\n", getelementValueHT(ht, i), timeStatistics[i]);
+			printf("%d, %d\n", i , timeStatistics[i]);fflush(stdout);
+			element = getelementValueHT(ht, i);
+			printf("%ld\n", element);fflush(stdout);
+			//fprintf(fp1, "%ld\t%d\n", element, timeStatistics[i]);
+			sp_sum += element*timeStatistics[i];
+			ed += timeStatistics[i];
 		}
-		sp_sum += i*timeStatistics[i];
-		ed += timeStatistics[i];
 	}
 	double sp_avg = (double)sp_sum/(double)ed;
 	fclose(fp1);
-
 	printf("timeScope: %d, sp_avg : %f\n", timeScope, sp_avg);
+*/
 	for (i=0; i<maxId+1; ++i) {
 		free(args[i]);
 	}
+	free(args);
 	free(timeStatistics);
 	free_i4LineFile(file);
 	free_DirectTemporalNet();
-	//fclose(fp);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

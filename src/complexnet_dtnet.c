@@ -197,10 +197,9 @@ void *shortpath_1n_DTNet(void *arg) {
 	struct DTNetShortPath1NArgs *args=arg;
 
 	int id_from = args->vtId;
-	//FILE *fp = args->fp;
 	int *timeStatistics = args->timeStatistics;
 	pthread_mutex_t *mutex= args->mutex;
-	struct HashTable *ht = ht;
+	struct HashTable *ht = args->ht;
 
 	if (dtnet.outCount[id_from] == 0) {
 		//printf("%d have no out edges.\n", id_from);
@@ -255,14 +254,12 @@ void *shortpath_1n_DTNet(void *arg) {
 		}
 	}
 
-	int temp;
-
 	pthread_mutex_lock(mutex);
-	int timeStatisticsMax = getelementSumNumHT(ht);
+	int timeStatisticsMax = getelementIndexHT(ht, dtnet.timeMax_second01/dtnet.timeScope);
 	for (i=0; i<dtnet.maxId+1; ++i) {
 		if (i != id_from && (dtnet.inCount[i] != 0 || dtnet.outCount[i] !=0)) {
 			if (status[i] == 2) {
-				++timeStatistics[getelementIndexHT(ht, sp[i])];
+				++timeStatistics[getelementIndexHT(ht, sp[i]/dtnet.timeScope)];
 			}
 			else {
 				++timeStatistics[timeStatisticsMax];
@@ -270,10 +267,10 @@ void *shortpath_1n_DTNet(void *arg) {
 		}
 	}
 	pthread_mutex_unlock(mutex);
-	//printf("%d done\n", id_from);fflush(stdout);
 	
 	free(status);
 	free(sp);
+	//printf("%d done.\n", id_from);fflush(stdout);
 	return (void *)0;
 }
 

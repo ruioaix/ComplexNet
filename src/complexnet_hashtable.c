@@ -26,29 +26,27 @@ static void elementNumSumHT(struct HashTable *ht)
 }
 
 int getelementSumNumHT(struct HashTable *ht) {
-	if (!ht->sumSign) {
-		elementNumSumHT(ht);
-		return ht->elementSumNum;
-	}
-	else {
-		return ht->elementSumNum;
-	}
+	elementNumSumHT(ht);
+	return ht->elementSumNum;
 }
 
 long getelementValueHT(struct HashTable *ht, int index) {
-	if (!ht->sumSign) {
-		elementNumSumHT(ht);
-	}
+	elementNumSumHT(ht);
 	if (index>ht->elementSumNum) return -1;
 	int i;
 	for (i=0; i<ht->length; ++i) {
-		if (ht->elementNum[i]<index) {
+		if (ht->elementNum[i]<=index) {
 			continue;
 		}
 		break;
 	}
+	//printf("%d,%d\n", index, i);fflush(stdout);
 	int rowindex = index - ht->elementNum[--i];
+	//printf("%d\n", rowindex);
 	struct HashElement *he = ht->he[i];
+	if (rowindex == 0) {
+		return he->element;
+	}
 	while(--rowindex) {
 		he=he->next;		
 	}
