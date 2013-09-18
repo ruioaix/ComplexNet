@@ -41,6 +41,19 @@ int main(int argc, char **argv)
 	}
 	int diffMoments = getelementSumNumHT(ht);
 	printf("The Number of different time moments: %d\n", diffMoments);
+	fflush(stdout);
+	setelementIndexHT(ht);
+
+	//for (i=0; i<diffMoments; ++i) {
+	//	long element = getelementValueHT(ht, i);
+	//	int x = getelementIndexHT(ht, element);
+	//	if (x != i) {
+	//		printf("%d, %ld, %d\n", x, element, i);
+	//		fflush(stdout);
+	//	}
+	//}
+	//printf("hahaha\n");
+	//return 0;
 
 	int *timeStatistics = calloc(diffMoments, sizeof(int));
 	assert(timeStatistics != NULL);
@@ -92,6 +105,7 @@ int main(int argc, char **argv)
 	free(timeStatistics);
 	free_i4LineFile(file);
 	free_DirectTemporalNet();
+	freeHashTable(ht);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

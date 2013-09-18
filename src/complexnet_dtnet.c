@@ -270,7 +270,7 @@ void *shortpath_1n_DTNet(void *arg) {
 	
 	free(status);
 	free(sp);
-	//printf("%d done.\n", id_from);fflush(stdout);
+	printf("%d done.\n", id_from);fflush(stdout);
 	return (void *)0;
 }
 

@@ -25,29 +25,6 @@ static void elementNumSumHT(struct HashTable *ht)
 	}
 }
 
-int getelementSumNumHT(struct HashTable *ht) {
-	elementNumSumHT(ht);
-	return ht->elementSumNum;
-}
-
-long getelementValueHT(struct HashTable *ht, int index) {
-	elementNumSumHT(ht);
-	if (index>ht->elementSumNum) return -1;
-	int i;
-	for (i=0; i<ht->length; ++i) {
-		if (ht->elementNum[i]<=index) {
-			continue;
-		}
-		break;
-	}
-	int rowindex = index - ht->elementNum[--i];
-	struct HashElement *he = ht->he[i];
-	while(rowindex--) {
-		he=he->next;		
-	}
-	return he->element;
-}
-
 static void elementNumBackHT(struct HashTable *ht)
 {
 	if (ht->sumSign) {
@@ -62,6 +39,58 @@ static void elementNumBackHT(struct HashTable *ht)
 			he=he->next;
 		}
 		ht->sumSign=0;
+	}
+}
+
+
+int getelementSumNumHT(struct HashTable *ht) {
+	elementNumSumHT(ht);
+	return ht->elementSumNum;
+}
+
+void setelementIndexHT(struct HashTable *ht) {
+	if (!ht->indexSign) {
+		elementNumSumHT(ht);
+		long *index = malloc((ht->elementSumNum)*sizeof(long));
+		assert(index != NULL);
+
+		struct HashElement *he;
+		int i, j=0;
+		for (i=0; i<ht->length; ++i) {
+			he = ht->he[i];
+			while(he) {
+				index[j++] = he->element;
+				he=he->next;
+				//if (j>=ht->elementSumNum) {
+				//	printf("%d\n", j);fflush(stdout);
+				//}
+			}
+		}
+		ht->index = index;
+		ht->indexSign = 1;
+	}
+}
+
+long getelementValueHT(struct HashTable *ht, int index) {
+	if (ht->indexSign) {
+		return ht->index[index];
+	}
+	else {
+		elementNumSumHT(ht);
+		if (index>ht->elementSumNum) return -1;
+		int i;
+		for (i=0; i<ht->length; ++i) {
+			if (ht->elementNum[i]<=index) {
+				continue;
+			}
+			break;
+		}
+		int rowindex = index - ht->elementNum[--i];
+		struct HashElement *he = ht->he[i];
+		while(rowindex--) {
+			he=he->next;
+		}
+		return he->element;
 	}
 }
 
@@ -86,6 +115,9 @@ void freeHashTable(struct HashTable *ht)
 	}
 	free(ht->elementNum);
 	free(ht->he);
+	if (ht->indexSign) {
+		free(ht->index);
+	}
 	free(ht);
 }
 

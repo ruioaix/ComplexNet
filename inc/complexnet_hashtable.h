@@ -12,7 +12,10 @@ struct HashTable {
 	int *elementNum;
 	struct HashElement **he;
 	int elementSumNum;
+	long *index;
+	char indexSign;
 };
+
 //this hashtable is use to convert vtId to 0--vtNum-1. 
 //the resulted vtId will be continuous and swquential. like 0,1,2...3212398.
 //you can insert every old vtId into the hashtable, then elementNumSumHT, then you can get every old vtId's new vtId(the index).
@@ -22,6 +25,7 @@ void freeHashElement(struct HashElement *he);
 void freeHashTable(struct HashTable *ht);
 //insert and delete
 int insertHEtoHT(struct HashTable *ht, long element);
+void setelementIndexHT(struct HashTable *ht);
 void deleteHEfromHT(struct HashTable *ht, long element);
 //get index
 int getelementIndexHT(struct HashTable *ht, long element);
