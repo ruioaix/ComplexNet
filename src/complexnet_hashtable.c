@@ -40,14 +40,9 @@ long getelementValueHT(struct HashTable *ht, int index) {
 		}
 		break;
 	}
-	//printf("%d,%d\n", index, i);fflush(stdout);
 	int rowindex = index - ht->elementNum[--i];
-	//printf("%d\n", rowindex);
 	struct HashElement *he = ht->he[i];
-	if (rowindex == 0) {
-		return he->element;
-	}
-	while(--rowindex) {
+	while(rowindex--) {
 		he=he->next;		
 	}
 	return he->element;
