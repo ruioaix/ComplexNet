@@ -70,8 +70,8 @@ void create_Net(const struct iiLineFile * const file) {
 	for(i=0; i<linesNum; ++i) {
 		int i1 =lines[i].i1;
 		int i2 =lines[i].i2;
-		edges[i1][temp_count[i2]++]=i2;
-		edges[i2][temp_count[i1]++]=i1;
+		edges[i1][temp_count[i1]++]=i2;
+		edges[i2][temp_count[i2]++]=i1;
 	}
 	free(temp_count);
 
@@ -124,4 +124,88 @@ void *verifyNet(void *arg) {
 		printf("verifyNet: perfect network.\n");
 	}
 	return (void *)0;
+}
+
+void net_dmp(void) {
+	double **P1 = malloc((net.maxId+1)*sizeof(void *));
+	assert(P1 != NULL);
+	double **P2 = malloc((net.maxId+1)*sizeof(void *));
+	assert(P2 != NULL);
+	double **Theta = malloc((net.maxId+1)*sizeof(void *));
+	assert(Theta != NULL);
+	double **Phi = malloc((net.maxId+1)*sizeof(void *));
+	assert(Phi != NULL);
+
+	int maxId = net.maxId;
+	int i;
+	for (i=0; i<maxId+1; ++i) {
+		if (net.count[i] > 0) {
+			P1[i] = malloc(net.count[i]*sizeof(double));
+			assert(P1[i] != NULL);
+			P2[i] = malloc(net.count[i]*sizeof(double));
+			assert(P2[i] != NULL);
+			Theta[i] = malloc(net.count[i]*sizeof(double));
+			assert(Theta[i] != NULL);
+			Phi[i] = malloc(net.count[i]*sizeof(double));
+			assert(Phi[i] != NULL);
+		}
+		else {
+			P1[i] = NULL;
+			P2[i] = NULL;
+			Theta[i] = NULL;
+			Phi[i] = NULL;
+		}
+	}
+
+
+	int x=12;
+	long j;
+	for (i=0; i<maxId + 1; ++i) {
+		for (j=0; j<net.count[i]; ++j) {
+			if (i != x) {
+				P1[i][j] = 1;
+				Phi[i][j] = 1;
+			}
+			else {
+				P1[i][j] = 0;
+				Phi[i][j] = 0;
+			}
+			Theta[i][j] = 1;
+		}
+	}
+
+	double infect_rate = 0.5;
+	double recover_rate = 0.5;
+	int step = 10;
+
+	long k;
+	while (step-- == 0) {
+		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net.count[i]; ++j) {
+				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
+			}
+		}
+		for (i=0; i<maxId+1; ++i) {
+			if (i != x) {
+				for (j=0; j<net.count[i]; ++j) {
+					P2[i][j] = 1;
+					for (k=0; k<net.count[i]; ++k) {
+						if (j != k) {
+							P2[i][j] *= Theta[i][j];
+						}
+					}
+				}
+			}
+			else {
+				P2[i][j] = 0;
+			}
+		}
+		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net.count[i]; ++j) {
+				Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P1[i][j] - P2[i][j];
+			}
+		}
+
+	}
+
 }
