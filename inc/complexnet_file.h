@@ -179,6 +179,19 @@ struct iid3LineFile {
 void free_iid3LineFile(struct iid3LineFile *file);
 struct iid3LineFile *create_iid3LineFile(const char * const filename);
 
-
+//for file containing int/int/int
+struct i3Line{
+	int i1;
+	int i2;
+	int i3;
+};
+struct i3LineFile{
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct i3Line *lines;
+};
+void free_i3LineFile(struct i3LineFile *file);
+struct i3LineFile *create_i3LineFile(const char * const filename);
 
 #endif
