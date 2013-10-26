@@ -1278,12 +1278,12 @@ static void fill_i3Line(char *line, struct i3Line *LI_origin,  long *lNum, int e
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return;
 	}
-	partsLine[1]=strtok(line, delimiter);
+	partsLine[1]=strtok(NULL, delimiter);
 	if (partsLine[1]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return;
 	}
-	partsLine[2]=strtok(line, delimiter);
+	partsLine[2]=strtok(NULL, delimiter);
 	if (partsLine[2]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
 		return;
