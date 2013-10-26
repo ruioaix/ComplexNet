@@ -21,7 +21,7 @@ struct Net *get_Net(void);
 void *verifyNet(void *arg);
 
 //DMP algorithm
-void net_dmp(void);
+void net_dmp(int T);
 long net_find_index(int v1, int v2);
 
 #endif

@@ -10,16 +10,20 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 
-	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	create_Net(file);
-	verifyNet(NULL);
-	net_dmp();
+	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
+	//create_Net(file);
+	//verifyNet(NULL);
+	//net_dmp(10);
+
+	struct iLineFile *file = create_iLineFile("data/eye_rnd_0.05.txt");
+	printf("%ld\n", file->linesNum);
+	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
+	printf("%ld\n", pspipr->linesNum);
 
 
 
-
-	free_iiLineFile(file);
-	free_Net();
+	//free_iiLineFile(file);
+	//free_Net();
 	
 
 	//printf end time;

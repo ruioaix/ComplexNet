@@ -15,6 +15,19 @@
 //you don't need to know the exactly line num of the file.
 #define LINES_LENGTH_EACH 1000000
 
+// for file containing one int in one line.
+struct iLine {
+	int i1;
+};
+struct iLineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct iLine *lines;
+};
+void free_iLineFile(struct iLineFile *file);
+struct iLineFile *create_iLineFile(const char * const filename);
+
 //for file containing two int in one line.
 struct iiLine {
 	int i1;
@@ -148,6 +161,24 @@ struct i7ddsLineFile {
 };
 void free_i7ddsLineFile(struct i7ddsLineFile *file);
 struct i7ddsLineFile *create_i7ddsLineFile(const char *const filename);
+
+//for file containing int/int/double/double/double
+struct iid3Line {
+	int i1;
+	int i2;
+	double d3;
+	double d4;
+	double d5;
+};
+struct iid3LineFile {
+	int iMax;
+	int iMin;
+	long linesNum;
+	struct iid3Line *lines;
+};
+void free_iid3LineFile(struct iid3LineFile *file);
+struct iid3LineFile *create_iid3LineFile(const char * const filename);
+
 
 
 #endif
