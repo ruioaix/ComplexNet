@@ -19,5 +19,6 @@ struct Net_PSPIPR{
 void free_Net_PSPIPR(void);
 struct Net_PSPIPR * get_Net_PSPIPR(void);
 void create_Net_PSPIPR(const struct iid3LineFile * const file);
+double find_Net_PSPIPR(int infect_source, int eye, int status);
 
 #endif

@@ -1,4 +1,5 @@
 #include "../inc/complexnet_net_snapshot.h"
+#include "../inc/complexnet_sort.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -76,6 +77,11 @@ void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
 		++temp_count[i1];
 	}
 	free(temp_count);
+	for(i=0; i<maxId+1; ++i) {
+		if (count[i] > 0) {
+			quick_sort_int_index(edges[i], 0, count[i]-1, status[i]);
+		}
+	}
 
 	net.maxId=maxId;
 	net.minId=minId;
@@ -86,4 +92,23 @@ void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
 	net.edges=edges;
 	net.status=status;
 	printf("build net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
+}
+
+//find status net.status[i][eye].
+int find_Net_SNAPSHOT_status(infect_source, eye) {
+	long i;
+	int node;
+	for (i=0; i< net.count[infect_source]; ++i) {
+		node = net.edges[infect_source][i];
+		if (eye < node) {
+			continue;		
+		}
+		else if (eye == node) {
+			return net.status[infect_source][i];
+		}
+		else {
+			return 0;
+		}
+	}
+	return 0;
 }

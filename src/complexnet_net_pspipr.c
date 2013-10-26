@@ -1,4 +1,5 @@
 #include "../inc/complexnet_net_pspipr.h"
+#include "../inc/complexnet_sort.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -92,6 +93,11 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 		++temp_count[i1];
 	}
 	free(temp_count);
+	for(i=0; i<maxId+1; ++i) {
+		if (count[i] > 0) {
+			quick_sort_int_index3(edges[i], 0, count[i]-1, PS[i], PI[i], PR[i]);
+		}
+	}
 
 	net.maxId=maxId;
 	net.minId=minId;
@@ -104,4 +110,56 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 	net.PI = PI;
 	net.PR = PR;
 	printf("build net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
+}
+
+//status = 0, net.PS[i][eye].
+//status = 1, net.PI[i][eye].
+//status = 2, net.PR[i][eye].
+double find_Net_PSPIPR(int infect_source, int eye, int status) {
+	long i;
+	if (status == 0) {
+		for (i=0; i<net.count[infect_source]; ++i) {
+			int node = net.edges[infect_source][i];
+			if (eye < node) {
+				continue;
+			}
+			else if (eye == node) {
+				return net.PS[infect_source][i];
+			}
+			else {
+				return 1;
+			}
+		}
+		return 1;
+	}
+	else if (status == 1) {
+		for (i=0; i<net.count[infect_source]; ++i) {
+			int node = net.edges[infect_source][i];
+			if (eye < node) {
+				continue;
+			}
+			else if (eye == node) {
+				return net.PI[infect_source][i];
+			}
+			else {
+				return 0;
+			}
+		}
+		return 0;
+	}
+	else {
+		for (i=0; i<net.count[infect_source]; ++i) {
+			int node = net.edges[infect_source][i];
+			if (eye < node) {
+				continue;
+			}
+			else if (eye == node) {
+				return net.PR[infect_source][i];
+			}
+			else {
+				return 0;
+			}
+		}
+		return 0;
+	}
 }

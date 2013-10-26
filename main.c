@@ -29,7 +29,17 @@ int main(int argc, char **argv)
 
 
 	int i;
-	//for (i=0; i<	
+	int j;
+	for (i=0; i < net_snapshot->maxId+1; ++i) {
+		if (net_snapshot->count[i]>0) {
+			for (j=0; j<eye_nodes->linesNum; ++j) {
+				int eye = eye_nodes->lines[j].i1;
+				int status = find_Net_SNAPSHOT_status(i, eye);
+				double P = find_Net_PSPIPR(i, eye, status);
+			}
+			
+		}
+	}
 
 	//free_iiLineFile(file);
 	//free_Net();
