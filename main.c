@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 
 
 	free_iiLineFile(file);
+	free_Net();
 	
 
 	//printf end time;

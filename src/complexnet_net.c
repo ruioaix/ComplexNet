@@ -126,6 +126,104 @@ void *verifyNet(void *arg) {
 	return (void *)0;
 }
 
+static void net_dmp_core(int infect_source, int T, double infect_rate, double recover_rate, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
+	int maxId = net.maxId;
+	int i;
+	long j, k;
+	int step = 1;
+	while (step <= T) {
+		//compute theta, phi, PSi->j
+		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net.count[i]; ++j) {
+				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
+			}
+		}
+		for (i=0; i<maxId+1; ++i) {
+			if (i != infect_source) {
+				for (j=0; j<net.count[i]; ++j) {
+					P2[i][j] = 1;
+					for (k=0; k<net.count[i]; ++k) {
+						if (j != k) {
+							int kk = net.edges[i][k];
+							long index = net_find_index(kk, i);
+							if (index == -1) isError("index == -1");
+							P2[i][j] *= Theta[kk][index];
+						}
+					}
+				}
+			}
+			else {
+				for (j=0; j<net.count[i]; ++j) {
+					P2[i][j] = 0;
+				}
+			}
+		}
+		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net.count[i]; ++j) {
+				Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P1[i][j] - P2[i][j];
+			}
+		}
+
+		
+		//compute and store PS PI PR.
+		for (i=0; i<maxId+1; ++i) {
+			if (i!=infect_source) {
+				PS[i] = 1;
+				for (j=0; j<net.count[i]; ++j) {
+					int jj = net.edges[i][j];
+					long index = net_find_index(jj,i);
+					if (index == -1) isError("PS index == -1");
+					PS[i] *= Theta[jj][index];
+				}
+			}
+			else {
+				PS[i] = 0;
+			}
+			PR[i] = PR[i] + recover_rate*PI[i];
+			PI[i] = 1 - PS[i] - PR[i];
+		}
+		
+		double **temp; temp = P1; P1 = P2; P2 = temp;
+		++step;
+	}
+}
+
+static void net_dmp_init(int infect_source, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
+	//init the P1 P2 Theta Phi
+	int i;
+	long j;
+	for (i=0; i<net.maxId + 1; ++i) {
+		//i is S
+		if (i != infect_source) {
+			for (j=0; j<net.count[i]; ++j) {
+				P1[i][j] = 1;
+				Phi[i][j] = 0;
+				Theta[i][j] = 1;
+			}
+		}
+		//i is I
+		else {
+			for (j=0; j<net.count[i]; ++j) {
+				P1[i][j] = 0;
+				Phi[i][j] = 1;
+				Theta[i][j] = 1;
+			}
+		}
+	}
+	//init PS PI PR
+	for (i=0; i<net.maxId+1; ++i) {
+		PR[i] = 0;
+		if (i!=infect_source) {
+			PS[i] = 1;
+			PI[i] = 0;
+		}
+		else {
+			PS[i] = 0;
+			PI[i] = 1;
+		}
+	}
+}
+
 void net_dmp(void) {
 	double **P1 = malloc((net.maxId+1)*sizeof(void *));
 	assert(P1 != NULL);
@@ -136,9 +234,15 @@ void net_dmp(void) {
 	double **Phi = malloc((net.maxId+1)*sizeof(void *));
 	assert(Phi != NULL);
 
-	int maxId = net.maxId;
+	double *PS = malloc((net.maxId+1)*sizeof(double));
+	assert(PS != NULL);
+	double *PI = malloc((net.maxId+1)*sizeof(double));
+	assert(PI != NULL);
+	double *PR = malloc((net.maxId+1)*sizeof(double));
+	assert(PR != NULL);
+
 	int i;
-	for (i=0; i<maxId+1; ++i) {
+	for (i=0; i<net.maxId+1; ++i) {
 		if (net.count[i] > 0) {
 			P1[i] = malloc(net.count[i]*sizeof(double));
 			assert(P1[i] != NULL);
@@ -157,132 +261,44 @@ void net_dmp(void) {
 		}
 	}
 
-
-	int x=12;
-	long j;
-
-	//init the P1 P2 Theta Phi
-	for (i=0; i<maxId + 1; ++i) {
-		//i is S
-		if (i != x) {
-			for (j=0; j<net.count[i]; ++j) {
-				P1[i][j] = 1;
-				Phi[i][j] = 0;
-				Theta[i][j] = 1;
-			}
-		}
-		//i is I
-		else {
-			for (j=0; j<net.count[i]; ++j) {
-				P1[i][j] = 0;
-				Phi[i][j] = 1;
-				Theta[i][j] = 1;
-			}
-		}
-	}
-
 	double infect_rate = 0.5;
 	double recover_rate = 0.5;
 	int T = 10;
-	double *PS = malloc((maxId+1)*sizeof(double));
-	assert(PS != NULL);
-	double *PI = malloc((maxId+1)*sizeof(double));
-	assert(PI != NULL);
-	double *PR = malloc((maxId+1)*sizeof(double));
-	assert(PR != NULL);
 
-	//init PS PI PR
-	for (i=0; i<maxId+1; ++i) {
-		PR[i] = 0;
-		if (i!=x) {
-			PS[i] = 1;
-			PI[i] = 0;
-		}
-		else {
-			PS[i] = 0;
-			PI[i] = 1;
+	char filename[100];
+	sprintf(filename, "Results/PS_PI_PR.txt");
+	FILE *fp = fopen(filename, "write");
+	fileError(fp, "net_dmp");
+	int j;
+	for (i=0; i<net.maxId+1; ++i) {
+		if (net.count[i] > 0) {
+			net_dmp_init(i, P1, P2, Theta, Phi, PS, PI, PR);
+			net_dmp_core(i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
+			for (j=0; j<net.maxId+1; ++j) {
+				if (PS[j] != 1 || PI[j] != 0 || PR[j] != 0) {
+					fprintf(fp, "%d, %d, %f, %f, %f\n", i, j, PS[j], PI[j], PR[j]);	
+				}
+			}
+			if (i%1000 == 0) printf("%d\n", i);
 		}
 	}
+	fclose(fp);
 
-	long k;
-	int step = 1;
-	while (T > step) {
-		//compute theta, phi, PSi->j
-		for (i=0; i<maxId+1; ++i) {
-			for (j=0; j<net.count[i]; ++j) {
-				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
-				if (Theta[i][j] < 0) {
-				//if (i == 25 && j == 4462) {
-					printf("%d, %ld, theta\n", i,j);
-				}
-			}
+	for (i=0; i<net.maxId+1; ++i) {
+		if (net.count[i] > 0) {
+			free(P1[i]);
+			free(P2[i]);
+			free(Theta[i]);
+			free(Phi[i]);
 		}
-		for (i=0; i<maxId+1; ++i) {
-			if (i != x) {
-				for (j=0; j<net.count[i]; ++j) {
-					P2[i][j] = 1;
-					for (k=0; k<net.count[i]; ++k) {
-						if (j != k) {
-							int kk = net.edges[i][k];
-							int index = net_find_index(kk, i);
-							if (index == -1) isError("index == -1");
-
-							P2[i][j] *= Theta[kk][index];
-							if (P2[i][j] < 0) {
-								printf("%d, %d, %f,P2\n", kk,i, P2[i][j]);
-							}
-						}
-					}
-				}
-			}
-			else {
-				for (j=0; j<net.count[i]; ++j) {
-					P2[i][j] = 0;
-				}
-			}
-		}
-		for (i=0; i<maxId+1; ++i) {
-			for (j=0; j<net.count[i]; ++j) {
-				Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P1[i][j] - P2[i][j];
-							if (Phi[i][j] < 0) {
-								printf("%d, %ld, Phi\n", i,j);
-								printf("%f, %f, P1P2\n", P1[i][j], P2[i][j]);
-							}
-			}
-		}
-
-		
-		//compute and store PS PI PR.
-		char filename[100];
-		sprintf(filename, "Results/PS_PI_PR_t_%d_status.txt", step);
-		FILE *fp = fopen(filename, "write");
-		fileError(fp, "net_dmp");
-		for (i=0; i<maxId+1; ++i) {
-			if (i!=x) {
-				PS[i] = 1;
-				for (j=0; j<net.count[i]; ++j) {
-					int jj = net.edges[i][j];
-					int index = net_find_index(jj,i);
-					if (index == -1) isError("PS index == -1");
-					PS[i] *= Theta[jj][index];
-				}
-			}
-			else {
-				PS[i] = 0;
-			}
-			PR[i] = PR[i] + recover_rate*PI[i];
-			PI[i] = 1 - PS[i] - PR[i];
-			fprintf(fp, "%d, %f, %f, %f\n", step, PS[i], PI[i], PR[i]);	
-		}
-		fclose(fp);
-		
-		double **temp; temp = P1; P1 = P2; P2 = temp;
-		if (step == 2) {
-			//exit(0);
-		}
-		++step;
 	}
-
+	free(P1);
+	free(P2);
+	free(Theta);
+	free(Phi);
+	free(PS);
+	free(PI);
+	free(PR);
 }
 
 // find v2's index in net.edges[v1][index] = v2.
@@ -298,3 +314,4 @@ long net_find_index(int v1, int v2) {
 	}
 	return -1;
 }
+
