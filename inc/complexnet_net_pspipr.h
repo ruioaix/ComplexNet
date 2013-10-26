@@ -17,6 +17,7 @@ struct Net_PSPIPR{
 	double **PR;
 };
 void free_Net_PSPIPR(void);
+struct Net_PSPIPR * get_Net_PSPIPR(void);
 void create_Net_PSPIPR(const struct iid3LineFile * const file);
 
 #endif

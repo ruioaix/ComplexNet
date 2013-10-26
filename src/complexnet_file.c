@@ -1272,7 +1272,7 @@ static void fill_i3Line(char *line, struct i3Line *LI_origin,  long *lNum, int e
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
-	char *partsLine[1];
+	char *partsLine[3];
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);

@@ -1,37 +1,33 @@
-#include "../inc/complexnet_net_pspipr.h"
+#include "../inc/complexnet_net_snapshot.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 
 
-static struct Net_PSPIPR net;
+static struct Net_SNAPSHOT net;
 
-struct Net_PSPIPR * get_Net_PSPIPR(void) {
+struct Net_SNAPSHOT * get_Net_SNAPSHOT(void) {
 	return &net;
 }
 
-void free_Net_PSPIPR(void) {
+void free_Net_SNAPSHOT(void) {
 	int i=0;
 	for(i=0; i<net.maxId+1; ++i) {
 		if (net.count[i]>0) {
 			free(net.edges[i]);
-			free(net.PS[i]);
-			free(net.PI[i]);
-			free(net.PR[i]);
+			free(net.status[i]);
 		}
 	}
 	free(net.count);
 	free(net.edges);
-	free(net.PS);
-	free(net.PI);
-	free(net.PR);
+	free(net.status);
 }
 
-void create_Net_PSPIPR(const struct iid3LineFile * const file) {
+void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
 	int maxId=file->iMax;
 	int minId=file->iMin;
 	long linesNum=file->linesNum;
-	struct iid3Line *lines=file->lines;
+	struct i3Line *lines=file->lines;
 
 	long *count=calloc(maxId+1, sizeof(long));
 	assert(count!=NULL);
@@ -50,12 +46,8 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 
 	int **edges=malloc((maxId+1)*sizeof(void *));
 	assert(edges!=NULL);
-	double **PS=malloc((maxId+1)*sizeof(void *));
-	assert(PS!=NULL);
-	double  **PI=malloc((maxId+1)*sizeof(void *));
-	assert(PI!=NULL);
-	double **PR=malloc((maxId+1)*sizeof(void *));
-	assert(PR!=NULL);
+	int **status=malloc((maxId+1)*sizeof(void *));
+	assert(status!=NULL);
 
 	long countMax=0;
 	for(i=0; i<maxId+1; ++i) {
@@ -65,18 +57,12 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 		if (count[i] > 0) {
 			edges[i]=malloc(count[i]*sizeof(int));
 			assert(edges[i]!=NULL);
-			PS[i]=malloc(count[i]*sizeof(double));
-			assert(PS[i]!=NULL);
-			PI[i]=malloc(count[i]*sizeof(double));
-			assert(PI[i]!=NULL);
-			PR[i]=malloc(count[i]*sizeof(double));
-			assert(PR[i]!=NULL);
+			status[i]=malloc(count[i]*sizeof(int));
+			assert(status[i]!=NULL);
 		}
 		else {
 			edges[i] = NULL;
-			PS[i] = NULL;
-			PI[i] = NULL;
-			PR[i] = NULL;
+			status[i] = NULL;
 		}
 	}
 
@@ -86,9 +72,7 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 	for(i=0; i<linesNum; ++i) {
 		int i1 =lines[i].i1;
 		edges[i1][temp_count[i1]]=lines[i].i2;
-		PS[i1][temp_count[i1]]=lines[i].d3;
-		PI[i1][temp_count[i1]]=lines[i].d4;
-		PR[i1][temp_count[i1]]=lines[i].d5;
+		status[i1][temp_count[i1]] = lines[i].i3;
 		++temp_count[i1];
 	}
 	free(temp_count);
@@ -100,8 +84,6 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 	net.countMax=countMax;
 	net.count=count;
 	net.edges=edges;
-	net.PS = PS;
-	net.PI = PI;
-	net.PR = PR;
+	net.status=status;
 	printf("build net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
 }
