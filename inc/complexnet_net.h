@@ -22,5 +22,6 @@ void *verifyNet(void *arg);
 
 //DMP algorithm
 void net_dmp(void);
+long net_find_index(int v1, int v2);
 
 #endif

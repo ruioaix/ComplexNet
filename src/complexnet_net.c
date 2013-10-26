@@ -160,29 +160,61 @@ void net_dmp(void) {
 
 	int x=12;
 	long j;
+
+	//init the P1 P2 Theta Phi
 	for (i=0; i<maxId + 1; ++i) {
-		for (j=0; j<net.count[i]; ++j) {
-			if (i != x) {
+		//i is S
+		if (i != x) {
+			for (j=0; j<net.count[i]; ++j) {
 				P1[i][j] = 1;
-				Phi[i][j] = 1;
-			}
-			else {
-				P1[i][j] = 0;
 				Phi[i][j] = 0;
+				Theta[i][j] = 1;
 			}
-			Theta[i][j] = 1;
+		}
+		//i is I
+		else {
+			for (j=0; j<net.count[i]; ++j) {
+				P1[i][j] = 0;
+				Phi[i][j] = 1;
+				Theta[i][j] = 1;
+			}
 		}
 	}
 
 	double infect_rate = 0.5;
 	double recover_rate = 0.5;
-	int step = 10;
+	int T = 10;
+	double *PS = malloc((maxId+1)*sizeof(double));
+	assert(PS != NULL);
+	double *PI = malloc((maxId+1)*sizeof(double));
+	assert(PI != NULL);
+	double *PR = malloc((maxId+1)*sizeof(double));
+	assert(PR != NULL);
+
+	//init PS PI PR
+	for (i=0; i<maxId+1; ++i) {
+		PR[i] = 0;
+		if (i!=x) {
+			PS[i] = 1;
+			PI[i] = 0;
+		}
+		else {
+			PS[i] = 0;
+			PI[i] = 1;
+		}
+	}
 
 	long k;
-	while (step-- == 0) {
+	int step = 1;
+	while (T > step) {
+		//compute theta, phi, PSi->j
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net.count[i]; ++j) {
 				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
+				if (Theta[i][j] < 0) {
+				//if (i == 25 && j == 4462) {
+					printf("%d, %ld, theta\n", i,j);
+				}
 			}
 		}
 		for (i=0; i<maxId+1; ++i) {
@@ -191,21 +223,78 @@ void net_dmp(void) {
 					P2[i][j] = 1;
 					for (k=0; k<net.count[i]; ++k) {
 						if (j != k) {
-							P2[i][j] *= Theta[i][j];
+							int kk = net.edges[i][k];
+							int index = net_find_index(kk, i);
+							if (index == -1) isError("index == -1");
+
+							P2[i][j] *= Theta[kk][index];
+							if (P2[i][j] < 0) {
+								printf("%d, %d, %f,P2\n", kk,i, P2[i][j]);
+							}
 						}
 					}
 				}
 			}
 			else {
-				P2[i][j] = 0;
+				for (j=0; j<net.count[i]; ++j) {
+					P2[i][j] = 0;
+				}
 			}
 		}
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net.count[i]; ++j) {
 				Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P1[i][j] - P2[i][j];
+							if (Phi[i][j] < 0) {
+								printf("%d, %ld, Phi\n", i,j);
+								printf("%f, %f, P1P2\n", P1[i][j], P2[i][j]);
+							}
 			}
 		}
 
+		
+		//compute and store PS PI PR.
+		char filename[100];
+		sprintf(filename, "Results/PS_PI_PR_t_%d_status.txt", step);
+		FILE *fp = fopen(filename, "write");
+		fileError(fp, "net_dmp");
+		for (i=0; i<maxId+1; ++i) {
+			if (i!=x) {
+				PS[i] = 1;
+				for (j=0; j<net.count[i]; ++j) {
+					int jj = net.edges[i][j];
+					int index = net_find_index(jj,i);
+					if (index == -1) isError("PS index == -1");
+					PS[i] *= Theta[jj][index];
+				}
+			}
+			else {
+				PS[i] = 0;
+			}
+			PR[i] = PR[i] + recover_rate*PI[i];
+			PI[i] = 1 - PS[i] - PR[i];
+			fprintf(fp, "%d, %f, %f, %f\n", step, PS[i], PI[i], PR[i]);	
+		}
+		fclose(fp);
+		
+		double **temp; temp = P1; P1 = P2; P2 = temp;
+		if (step == 2) {
+			//exit(0);
+		}
+		++step;
 	}
 
+}
+
+// find v2's index in net.edges[v1][index] = v2.
+long net_find_index(int v1, int v2) {
+	if (v1 < net.minId || v1 > net.maxId) {
+		return -1;
+	}
+	long i;
+	for (i=0; i<net.count[v1]; ++i) {
+		if (v2 == net.edges[v1][i]) {
+			return i;
+		}
+	}
+	return -1;
 }

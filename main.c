@@ -1,4 +1,4 @@
-//#define NDEBUG  //for assert
+#define NDEBUG  //for assert
 #include "inc/complexnet_file.h" //for readFileLBL;
 #include "inc/complexnet_net.h" //for buildDNet;
 #include "inc/complexnet_error.h"
@@ -13,6 +13,11 @@ int main(int argc, char **argv)
 	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
 	create_Net(file);
 	verifyNet(NULL);
+	net_dmp();
+
+
+
+
 	free_iiLineFile(file);
 	
 
