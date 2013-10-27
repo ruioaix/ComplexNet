@@ -7,18 +7,11 @@
 struct Net_PSPIPR{
 	int maxId;
 	int minId;
-	int vtsNum;
-	long edgesNum;
-	long countMax;
-	long *count;
-	int **edges;
-	double **PS;
-	double **PI;
-	double **PR;
+	double ***psir;
 };
 void free_Net_PSPIPR(void);
 struct Net_PSPIPR * get_Net_PSPIPR(void);
 void create_Net_PSPIPR(const struct iid3LineFile * const file);
-double find_Net_PSPIPR(int infect_source, int eye, int status);
+//double find_Net_PSPIPR(int infect_source, int eye, int status);
 
 #endif

@@ -14,14 +14,9 @@ struct Net_SNAPSHOT * get_Net_SNAPSHOT(void) {
 void free_Net_SNAPSHOT(void) {
 	int i=0;
 	for(i=0; i<net.maxId+1; ++i) {
-		if (net.count[i]>0) {
-			free(net.edges[i]);
-			free(net.status[i]);
-		}
+		free(net.stat[i]);
 	}
-	free(net.count);
-	free(net.edges);
-	free(net.status);
+	free(net.stat);
 }
 
 void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
@@ -30,85 +25,58 @@ void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
 	long linesNum=file->linesNum;
 	struct i3Line *lines=file->lines;
 
-	long *count=calloc(maxId+1, sizeof(long));
-	assert(count!=NULL);
-
 	long i;
-	for(i=0; i<linesNum; ++i) {
-		++count[lines[i].i1];
-	}
-	int j;
-	int vtsNum=0;
-	for(j=0; j<maxId+1; ++j) {
-		if (count[j]>0) {
-			++vtsNum;
-		}
-	}
 
-	int **edges=malloc((maxId+1)*sizeof(void *));
-	assert(edges!=NULL);
-	int **status=malloc((maxId+1)*sizeof(void *));
-	assert(status!=NULL);
+	char **stat=malloc((maxId+1)*sizeof(void *));
+	assert(stat!=NULL);
 
-	long countMax=0;
 	for(i=0; i<maxId+1; ++i) {
-		if (countMax<count[i]) {
-			countMax=count[i];
-		}
-		if (count[i] > 0) {
-			edges[i]=malloc(count[i]*sizeof(int));
-			assert(edges[i]!=NULL);
-			status[i]=malloc(count[i]*sizeof(int));
-			assert(status[i]!=NULL);
-		}
-		else {
-			edges[i] = NULL;
-			status[i] = NULL;
-		}
+		stat[i]=malloc((maxId+1)*sizeof(char));
+		assert(stat[i]!=NULL);
 	}
 
-	long *temp_count=calloc(maxId+1, sizeof(long));
-	assert(temp_count!=NULL);
-
+	int x=0, y=0;
 	for(i=0; i<linesNum; ++i) {
 		int i1 =lines[i].i1;
-		edges[i1][temp_count[i1]]=lines[i].i2;
-		status[i1][temp_count[i1]] = lines[i].i3;
-		++temp_count[i1];
-	}
-	free(temp_count);
-	for(i=0; i<maxId+1; ++i) {
-		if (count[i] > 0) {
-			quick_sort_int_index(edges[i], 0, count[i]-1, status[i]);
+		int i2 =lines[i].i2;
+		while (x < i1) {
+			for (; y<maxId+1; ++y) {
+				stat[x][y] = 0;	
+			}
+			++x;
+			y=0;
 		}
+		while (y < i2) {
+			for (; y<i2; ++y) {
+				stat[x][y] = 0;
+			}
+		}
+		stat[x][y] = lines[i].i3;
+		++y;
 	}
 
 	net.maxId=maxId;
 	net.minId=minId;
-	net.edgesNum=linesNum;
-	net.vtsNum=vtsNum;
-	net.countMax=countMax;
-	net.count=count;
-	net.edges=edges;
-	net.status=status;
-	printf("build net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
+	net.stat=stat;
+	printf("Read Snapshot Successfully.\n"); fflush(stdout);
 }
 
 //find status net.status[i][eye].
-int find_Net_SNAPSHOT_status(infect_source, eye) {
-	long i;
-	int node;
-	for (i=0; i< net.count[infect_source]; ++i) {
-		node = net.edges[infect_source][i];
-		if (eye < node) {
-			continue;		
-		}
-		else if (eye == node) {
-			return net.status[infect_source][i];
-		}
-		else {
-			return 0;
-		}
-	}
-	return 0;
-}
+//int find_Net_SNAPSHOT_status(infect_source, eye) {
+//	long i;
+//	int node;
+//	for (i=0; i< net.count[infect_source]; ++i) {
+//		node = net.edges[infect_source][i];
+//		//eye is 8 , node = 1
+//		if (eye > node) {
+//			continue;		
+//		}
+//		else if (eye == node) {
+//			return net.status[infect_source][i];
+//		}
+//		else {
+//			return 0;
+//		}
+//	}
+//	return 0;
+//}

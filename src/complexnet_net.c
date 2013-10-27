@@ -261,7 +261,7 @@ void net_dmp(int T) {
 		}
 	}
 
-	double infect_rate = 0.5;
+	double infect_rate = 0.6;
 	double recover_rate = 0.5;
 
 	char filename[100];

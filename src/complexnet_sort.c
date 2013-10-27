@@ -61,9 +61,9 @@ void quick_sort_int_index3(int s[], int l, int r, double in[], double in1[], dou
 	{
 		int i = l, j = r; 
 		int x = s[l];
-		int in_x=in[l];
-		int in1_x=in1[l];
-		int in2_x=in2[l];
+		double in_x=in[l];
+		double in1_x=in1[l];
+		double in2_x=in2[l];
 		while (i < j)
 		{
 			while(i < j && s[j] >= x)
