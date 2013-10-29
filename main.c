@@ -22,9 +22,10 @@ int main(int argc, char **argv)
 	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
 	//create_Net(file);
 	//verifyNet(NULL);
-	//net_dmp(10);
+	//net_dmp(10, 0.6, 0.5);
 	//exit(0);
 
+	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_degreeNon_0.05_1.txt");
 
 	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
@@ -36,12 +37,16 @@ int main(int argc, char **argv)
 	struct Net_SNAPSHOT *net_snapshot = get_Net_SNAPSHOT();
 
 	FILE *fp;
-	fp = fopen("Results/infectsource_rank.txt", "w");
-	double *Rank = calloc((net_pspipr->maxId+1), sizeof(double));
+	fp = fopen("Results/de_infectsource_rank.txt", "w");
+	double *Rank= calloc((net_pspipr->maxId+1), sizeof(double));
 	int *Rank_index = malloc((net_pspipr->maxId+1)*sizeof(double));
+	//for (i=net_snapshot->maxId; i < net_snapshot->maxId+1; ++i) {
+	int ave = 0;
 	for (i=1; i < net_snapshot->maxId+1; ++i) {
+		if (i%1000 == 0) printf("%d\n", i);
 		for (k=1; k<net_pspipr->maxId+1; ++k) {
 			Rank_index[k] = k;
+			Rank[k] = 0;
 			for (j=0; j<eye_nodes->linesNum; ++j) {
 				int eye = eye_nodes->lines[j].i1;
 				int status = net_snapshot->stat[k][eye];
@@ -60,13 +65,20 @@ int main(int argc, char **argv)
 				Rank[k] -= log(P);
 			}
 		}
+		//for (k = 0; k<net_pspipr->maxId+1; ++k) {
+		//	printf("%d, %f\n", k, Rank[k]);
+		//}
 		quick_sort_double_index(Rank, 0, net_pspipr->maxId, Rank_index);
 		for (k=0; k<net_pspipr->maxId+1; ++k) {
 			if (Rank_index[k] == i) {
 				fprintf(fp, "%d, %d\n", i, k);
+				//printf("%d, %d\n", i, k);
+				ave += k;
+				break;
 			}
 		}
 	}
+	printf("%f\n", (double)ave/(double)net_pspipr->maxId);
 
 	//free_iiLineFile(file);
 	//free_Net();

@@ -224,7 +224,7 @@ static void net_dmp_init(int infect_source, double **P1, double **P2, double **T
 	}
 }
 
-void net_dmp(int T) {
+void net_dmp(int T, double infect_rate, double recover_rate) {
 	double **P1 = malloc((net.maxId+1)*sizeof(void *));
 	assert(P1 != NULL);
 	double **P2 = malloc((net.maxId+1)*sizeof(void *));
@@ -260,9 +260,6 @@ void net_dmp(int T) {
 			Phi[i] = NULL;
 		}
 	}
-
-	double infect_rate = 0.6;
-	double recover_rate = 0.5;
 
 	char filename[100];
 	sprintf(filename, "Results/PS_PI_PR_Time_%d.txt", T);

@@ -21,7 +21,8 @@ struct Net *get_Net(void);
 void *verifyNet(void *arg);
 
 //DMP algorithm
-void net_dmp(int T);
+//void net_dmp(int T);
+void net_dmp(int T, double infect_rate, double recover_rate);
 long net_find_index(int v1, int v2);
 
 #endif
