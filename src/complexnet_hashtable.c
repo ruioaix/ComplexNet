@@ -1,6 +1,6 @@
 #include "../inc/complexnet_hashtable.h"
 #include "../inc/complexnet_error.h"
-#include "../inc/complexnet_file.h"
+#include "../inc/complexnet_linefile.h"
 #include <assert.h>
 #include <stdlib.h>
 

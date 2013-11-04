@@ -1,4 +1,4 @@
-#include "../inc/complexnet_file.h"
+#include "../inc/complexnet_linefile.h"
 #include "../inc/complexnet_error.h" // for fileError, memError, isError
 #include <string.h> // for strtol, strtok
 #include <stdio.h> // for FILE fpos_t 

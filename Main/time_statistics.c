@@ -1,5 +1,5 @@
 //#define NDEBUG  //for assert
-#include "inc/complexnet_file.h" //for readFileLBL;
+#include "inc/complexnet_linefile.h" //for readFileLBL;
 #include "inc/complexnet_dnet.h" //for buildDNet;
 #include "inc/complexnet_dtnet.h" //for buildDNet;
 #include "inc/complexnet_random.h"
