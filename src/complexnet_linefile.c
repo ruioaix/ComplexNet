@@ -7,7 +7,7 @@
 #include <limits.h> // for INT_MAX
 
 
-static char *delimiter="\t, \r\n";
+static char *delimiter="\t, \r\n:";
 // int  =============================================================================================================================================================
 static void fill_iLine(char *line, struct iLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
 {
@@ -296,7 +296,7 @@ void free_innLineFile(struct innLineFile *file) {
 }
 
 //four int in one line=============================================================================================================================================================
-static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
+static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *i2MaxId, int *i2MinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
 		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
@@ -356,13 +356,10 @@ static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int e
 	++(*lNum);
 
 	//max/min Id
-	if (LI->i1>LI->i2) {
-		*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
-		*vtMinId=(*vtMinId)<LI->i2?(*vtMinId):LI->i2;
-	} else {
-		*vtMaxId=(*vtMaxId)>LI->i2?(*vtMaxId):LI->i2;
-		*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
-	}
+	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
+	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
+	*i2MaxId=(*i2MaxId)>LI->i2?(*i2MaxId):LI->i2;
+	*i2MinId=(*i2MinId)<LI->i2?(*i2MinId):LI->i2;
 }
 struct i4LineFile *create_i4LineFile(const char * const filename)
 {
@@ -379,13 +376,15 @@ struct i4LineFile *create_i4LineFile(const char * const filename)
 	long filelineNum=0;
 	int maxId=-1;
 	int minId=INT_MAX;
+	int i2maxId = -1;
+	int i2minId = INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_i4Line(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i4Line(line, LinesInfo, &linesNum, each, &maxId, &minId, &i2maxId, &i2minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
@@ -393,7 +392,7 @@ struct i4LineFile *create_i4LineFile(const char * const filename)
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_i4Line(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i4Line(line, LinesInfo, &linesNum, each, &maxId, &minId, &i2maxId, &i2minId, filelineNum);
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
@@ -402,8 +401,10 @@ struct i4LineFile *create_i4LineFile(const char * const filename)
 
 	struct i4LineFile *file=malloc(sizeof(struct i4LineFile));
 	assert(file!=NULL);
-	file->iMin=minId;
-	file->iMax=maxId;
+	file->i1Min=minId;
+	file->i1Max=maxId;
+	file->i2Min=i2minId;
+	file->i2Max=i2maxId;
 	file->lines=LinesInfo;
 	file->linesNum=linesNum;
 
@@ -414,6 +415,15 @@ void free_i4LineFile(struct i4LineFile *file) {
 		free(file->lines);
 		free(file);
 	}
+}
+void print_i4LineFile(struct i4LineFile *file) {
+	int i;
+	FILE *fp = fopen("1", "w");
+	fileError(fp, "print_i4LineFile");
+	for (i=0; i<file->linesNum; ++i) {
+		fprintf(fp, "%d::%d::%d::%d\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].i3, file->lines[i].i4);
+	}
+	fclose(fp);
 }
 
 //int, double, int=============================================================================================================================================================

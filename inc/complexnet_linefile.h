@@ -65,11 +65,16 @@ struct i4Line {
 struct i4LineFile {
 	int iMax;
 	int iMin;
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
 	struct i4Line *lines;
 };
 void free_i4LineFile(struct i4LineFile *file);
 struct i4LineFile *create_i4LineFile(const char * const filename);
+void print_i4LineFile(struct i4LineFile *file);
 
 //for file containing int/double/int 
 struct idiLine{
