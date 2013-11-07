@@ -11,8 +11,8 @@
 static struct DirectTemporalNet dtnet;
 
 void init_DirectTemporalNet(const struct i4LineFile* const file) {
-	int maxId=file->iMax;
-	int minId=file->iMin;
+	int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
+	int minId=file->i1Min<file->i2Min?file->i1Min:file->i2Min;
 	int vtsNum=0;
 	long edgesNum=file->linesNum;
 	long inCountMax=-1;

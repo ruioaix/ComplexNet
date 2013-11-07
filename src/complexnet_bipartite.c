@@ -9,6 +9,19 @@
 #include <stdio.h>
 #include <limits.h>
 
+//struct Bipartite {
+//	int maxId;
+//	int minId;
+//	int idNum;
+//	long countMax;
+//	long countMin;
+//	long *count;
+//	int **id;
+//	int **i3;
+//	int **i4;
+//	long edgesNum;
+//};
+
 void free_Bipartite(struct Bipartite *Bip) {
 	int i=0;
 	for(i=0; i<Bip->maxId+1; ++i) {
@@ -29,9 +42,9 @@ struct Bipartite *create_Bipartite(const struct i4LineFile * const file, int i1t
 	//all elements of struct Bipartite.
 	int maxId;
 	int minId;
-	int idNum;
-	long countMax;
-	long countMin;
+	int idNum=0;
+	long countMax=-1;
+	long countMin=LONG_MAX;
 	long *count;
 	int **id;
 	int **i3;
@@ -45,7 +58,7 @@ struct Bipartite *create_Bipartite(const struct i4LineFile * const file, int i1t
 	}
 	else {
 		maxId = file->i2Max;
-		minId = file->i2Max;
+		minId = file->i2Min;
 	}
 
 	//once get maxId, the four points can be assigned with memory.
@@ -73,28 +86,28 @@ struct Bipartite *create_Bipartite(const struct i4LineFile * const file, int i1t
 		}
 	}
 
+
 	//once get count, the three points which point to point can be assigned with memory.
 	int j;
-	countMax = -1;
-	countMin = LONG_MAX;
 	for(j=0; j<maxId+1; ++j) {
 		if (count[j]>0) {
 			countMax = countMax>count[j]?countMax:count[j];
 			countMin = countMin<count[j]?countMin:count[j];
 			++idNum;
-			id[i]=malloc(count[i]*sizeof(int));
-			assert(id[i]!=NULL);
-			i3[i]=malloc(count[i]*sizeof(int));
-			assert(i3[i]!=NULL);
-			i4[i]=malloc(count[i]*sizeof(int));
-			assert(i4[i]!=NULL);
+			id[j]=malloc(count[j]*sizeof(int));
+			assert(id[j]!=NULL);
+			i3[j]=malloc(count[j]*sizeof(int));
+			assert(i3[j]!=NULL);
+			i4[j]=malloc(count[j]*sizeof(int));
+			assert(i4[j]!=NULL);
 		}
 		else {
-			id[i] = NULL;
-			i3[i] = NULL;
-			i4[i] = NULL;
+			id[j] = NULL;
+			i3[j] = NULL;
+			i4[j] = NULL;
 		}
 	}
+
 
 	//fill id, i3, i4
 	long *temp = calloc(maxId+1, sizeof(long));
@@ -144,70 +157,131 @@ struct Bipartite *create_Bipartite(const struct i4LineFile * const file, int i1t
 	return Bip;
 }
 
-	/*
-struct i4LineFile *abstractUser_Bipartite(struct Bipartite *bip) {
+static void renew_Bipartite(struct Bipartite *bip) {
+	int i;
+	long countMax = -1;
+	long countMin = LONG_MAX;
+	for (i=bip->minId; i< bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			bip->minId = i;
+			break;
+		}
+	}
+	for (i=bip->maxId; i > bip->maxId - 1; --i) {
+		if (bip->count[i] > 0) {
+			bip->maxId = i;
+			break;
+		}
+	}
+	int idNum = 0;
+	long edgesNum = 0;
+	for (i=0; i< bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			edgesNum += bip->count[i];
+			++idNum;
+			countMax = countMax>bip->count[i]?countMax:bip->count[i];
+			countMin = countMin<bip->count[i]?countMin:bip->count[i];
+		}
+	}
+	bip->countMax = countMax;
+	bip->countMin = countMin;
+	bip->idNum = idNum;
+	bip->edgesNum = edgesNum;
+}
 
-	int i1Max=bip->userMaxId;
-	int i1Min=bip->userMinId;
-	int i2Max=bip->itemMaxId;
-	int i2Min=bip->itemMinId;
-	int linesNum = bip->userNum;
+//have to remeber: after being abstract, the bip changed.
+//and bip can be used as normal.
+//but its idNum/maxId/minId/edgesNum/countMax/countMin may be different from the origin one.
+//e.g. you get 5000 lines from the first calling of abstract_Bipartite, but maybe you can only get
+//4990 lines from the second calling. that means in the origin bip, there are 10 id whose count is 1.
+//get it?
+struct i4LineFile *abstract_Bipartite(struct Bipartite *bip) {
+
+	int i1Max=bip->maxId;
+	int i1Min=bip->minId;
+	
+	int linesNum = bip->idNum;
 	struct i4Line *lines = malloc(linesNum*sizeof(struct i4Line));
 	assert(lines != NULL);
 
-	for(i=0; i<i1Max+1; ++i) {
-		if (bip->userCount[i]>0) {
-			int random = genrand_int32(void) % userCount[i];
-		}
-		else {
-			user[i] = NULL;
-		}
-	}
-	for(i=0; i<itemMaxId+1; ++i) {
-		if (itemCount[i]>0) {
-			item[i]=malloc(itemCount[i]*sizeof(int));
-			assert(item[i]!=NULL);
-		}
-		else {
-			item[i] = NULL;
-		}
-	}
-
-	long *temp_usercount=calloc(userMaxId+1, sizeof(long));
-	assert(temp_usercount!=NULL);
-	long *temp_itemcount=calloc(itemMaxId+1, sizeof(long));
-	assert(temp_itemcount!=NULL);
-
-	for(i=0; i<linesNum; ++i) {
-		int i1 =lines[i].i1;
-		int i2 =lines[i].i2;
-		user[i1][temp_usercount[i1]++]=i2;
-		item[i2][temp_itemcount[i2]++]=i1;
-	}
-	free(temp_usercount);
-	free(temp_itemcount);
-
-	struct Bipartite *Bip = malloc(sizeof(struct Bipartite));
-	assert(Bip != NULL);
-
-	Bip->userMaxId=userMaxId;
-	Bip->userMinId=userMinId;
-	Bip->userNum=userNum;
-	Bip->itemMaxId=itemMaxId;
-	Bip->itemMinId=itemMinId;
-	Bip->itemNum=itemNum;
-
-	Bip->edgesNum=linesNum;
-	Bip->userCount=userCount;
-	Bip->itemCount=itemCount;
-	Bip->user = user;
-	Bip->item = item;
-	printf("build net:\n\tuserMax: %d, userMin: %d, userNum: %d\n\titemMax: %d, itemMin: %d, itemNum: %d\n\tedgesNum: %ld\n", userMaxId, userMinId, userNum, itemMaxId, itemMinId, itemNum, linesNum); fflush(stdout);
 	int i;
-	for (i=0; i<bip->userMaxId+1; ++i) {
-		if (userCount[i] > 0) {
-
+	int j=0;
+	int k=0;
+	for(i=0; i<i1Max+1; ++i) {
+		int degree = bip->count[i];
+		if (degree > 0) {
+			int random = genrand_int31() % degree;
+			lines[j].i1 = i;
+			lines[j].i2 = bip->id[i][random];
+			lines[j].i3 = bip->i3[i][random];
+			lines[j].i4 = bip->i4[i][random];
+			++j;
+			if (random == (degree - 1)) {
+				--bip->count[i];
+				if (bip->count[i] == 0) {
+					//printf("%d, ", i);
+					free(bip->id[i]);
+					free(bip->i3[i]);
+					free(bip->i4[i]);
+					++k;
+				}
+			}
+			else {
+				bip->id[i][random] = bip->id[i][degree-1];
+				bip->i3[i][random] = bip->i3[i][degree-1];
+				bip->i4[i][random] = bip->i4[i][degree-1];
+				--bip->count[i];
+			}
 		}
 	}
+
+	renew_Bipartite(bip);
+
+	struct i4LineFile *file = malloc(sizeof(struct i4LineFile));
+	assert(file != NULL);
+	file->i1Max = i1Max;
+	file->i1Min = i1Min;
+	file->linesNum = j;
+	file->lines = lines;
+	printf("abstract_Bipartite done:\n\tabstract %d edges from %d.\n", j, linesNum);
+	printf("\tthere are %d ids whose degree has become 0 after abstract.\n", k);
+	return file;
 }
-	*/
+
+//remeber: only i1Max and i2Min are useful, i2Max and i2Min is not useful.
+//I can make i2Max and i2Min meanful, but it's time-consuming and useless in this situation. 
+//so I just set them to -1.
+struct i4LineFile *backtofile_Bipartite(struct Bipartite *bip) {
+	int i1Max=bip->maxId;
+	int i1Min=bip->minId;
+
+	int linesNum = bip->edgesNum;
+	struct i4Line *lines = malloc(linesNum*sizeof(struct i4Line));
+	assert(lines != NULL);
+
+	int i;
+	int j=0;
+	int k=0;
+	for(i=0; i<i1Max+1; ++i) {
+		if (bip->count[i] > 0) {
+			for (j=0; j< bip->count[i]; ++j) {
+				lines[k].i1 = i;
+				lines[k].i2 = bip->id[i][j];
+				lines[k].i3 = bip->i3[i][j];
+				lines[k].i4 = bip->i4[i][j];
+				++k;
+			}
+		}
+	}
+
+	struct i4LineFile *file = malloc(sizeof(struct i4LineFile));
+	assert(file != NULL);
+	file->i1Max = i1Max;
+	file->i1Min = i1Min;
+	file->i2Max = -1;
+	file->i2Min = -1;
+	file->linesNum = k;
+	file->lines = lines;
+	printf("backtofile_Bipartite done:\n\t%d lines generated.\n", k);
+	return file;
+}

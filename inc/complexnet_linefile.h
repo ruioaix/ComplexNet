@@ -63,8 +63,6 @@ struct i4Line {
 	int i4;
 };
 struct i4LineFile {
-	int iMax;
-	int iMin;
 	int i1Max;
 	int i1Min;
 	int i2Max;
@@ -74,7 +72,10 @@ struct i4LineFile {
 };
 void free_i4LineFile(struct i4LineFile *file);
 struct i4LineFile *create_i4LineFile(const char * const filename);
-void print_i4LineFile(struct i4LineFile *file);
+void print_i4LineFile(struct i4LineFile *file, char *filename);
+void print_2_i4LineFile(struct i4LineFile *file1, struct i4LineFile *file2, char *filename);
+struct i4LineFile *divide_i4LineFile(struct i4LineFile *file, double rate);
+
 
 //for file containing int/double/int 
 struct idiLine{
