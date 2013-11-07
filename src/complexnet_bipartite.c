@@ -285,3 +285,125 @@ struct i4LineFile *backtofile_Bipartite(struct Bipartite *bip) {
 	printf("backtofile_Bipartite done:\n\t%d lines generated.\n", k);
 	return file;
 }
+
+// if count is 20, then the id whose count is 0-19 will be deleted.
+void cutcount_Bipartite(struct Bipartite *bip, long count) {
+	if (count > bip->countMax || count < 0) {
+		printf("cutcount_Bipartite error: wrong count.\n");
+		return;
+	}
+	int i, j=0;
+	for (i=0; i<bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0 && bip->count[i] < count) {
+			bip->count[i] = 0;
+			free(bip->id[i]);
+			free(bip->i3[i]);
+			free(bip->i4[i]);
+			++j;
+		}
+	}
+	renew_Bipartite(bip);
+	printf("cutcount_Bipartite done:\n\tthere are %d ids whose count < %ld being deleted.\n", j, count);fflush(stdout);
+}
+
+void sortBytime_Bipartite(struct Bipartite *bip) {
+	int i;
+	for (i=0; i < bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			quick_sort_int_index_index(bip->i4[i], 0, bip->count[i]-1, bip->id[i], bip->i3[i])
+		}
+	}
+}
+
+struct i4LineFile *divideBytime_Bipartite(struct Bipartite *bip, double rate) {
+	if (rate <=0 || rate >= 1) {
+		printf("divideBytime_Bipartite error: wrong rate.\n");
+		return NULL;
+	}
+
+	int l1, l2;
+	if (bip->edgesNum > 100000) {
+		l1 = (int)(bip->edgesNum*(rate+0.1));
+		l2 = (int)(bip->edgesNum*(1-rate+0.1));
+	}
+	else {
+		l2 = l1 = bip->edgesNum;
+	}
+
+	struct i4LineFile *twofile = malloc(2*sizeof(struct i4LineFile));
+	assert(twofile != NULL);
+
+	twofile[0].lines = malloc(l1*sizeof(struct i4Line));
+	assert(twofile[0].lines != NULL);
+	twofile[1].lines = malloc(l2*sizeof(struct i4Line));
+	assert(twofile[1].lines != NULL);
+
+	int line1=0, line2=0;
+	int i1Max=-1; 
+	int i2Max=-1;
+    int i1Min=INT_MAX;
+    int i2Min=INT_MAX;
+	int _i1Max=-1; 
+	int _i2Max=-1;
+    int _i1Min=INT_MAX;
+    int _i2Min=INT_MAX;
+
+	int i;
+	long j;
+	for (i=0; i<bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			int div = (int)(bip->count[i] * rate);
+			for (j = 0; j < div; ++j) {
+				twofile[0].lines[line1].i1 = i;
+				twofile[0].lines[line1].i2 = bip->id[i][j];
+				twofile[0].lines[line1].i3 = bip->i3[i][j];
+				twofile[0].lines[line1].i4 = bip->i4[i][j];
+				i1Max = i1Max>i?i1Max:i;
+				i2Max = i2Max>bip->id[i][j]?i2Max:bip->id[i][j];
+				i1Min = i1Min<file->lines[i].i1?i1Min:file->lines[i].i1;
+				i2Min = i2Min<bip->id[i][j]?i2Min:bip->id[i][j];
+				++line1;
+			}
+		}
+		if (genrand_real1() < rate) {
+		}
+		else {
+			twofile[1].lines[line2].i1 = file->lines[i].i1;	
+			twofile[1].lines[line2].i2 = file->lines[i].i2;	
+			twofile[1].lines[line2].i3 = file->lines[i].i3;	
+			twofile[1].lines[line2].i4 = file->lines[i].i4;	
+			_i1Max = _i1Max>file->lines[i].i1?_i1Max:file->lines[i].i1;
+			_i2Max = _i2Max>file->lines[i].i2?_i2Max:file->lines[i].i2;
+			_i1Min = _i1Min<file->lines[i].i1?_i1Min:file->lines[i].i1;
+			_i2Min = _i2Min<file->lines[i].i2?_i2Min:file->lines[i].i2;
+			++line2;
+		}
+	}
+
+	if (line1>l1 || line2 >l2) {
+		printf("divide_i4LineFile error: l1/l2 too small\n");
+		return NULL;
+	}
+	twofile[0].linesNum = line1;
+	twofile[0].i1Max = i1Max;
+	twofile[0].i2Max = i2Max;
+	twofile[0].i1Min = i1Min;
+	twofile[0].i2Min = i2Min;
+
+	twofile[1].linesNum = line2;
+	twofile[1].i1Max = _i1Max;
+	twofile[1].i2Max = _i2Max;
+	twofile[1].i1Min = _i1Min;
+	twofile[1].i2Min = _i2Min;
+	printf("divide_i4LineFile done:\n\trate: %f\n\tfile1: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
+	return twofile;
+	struct i4LineFile *file = malloc(2*sizeof(struct i4LineFile));
+	assert(file != NULL);
+
+	int i;
+	for (i=0; i<bip->maxId + 1; ++i) {
+		if (bip->count[i]>0) {
+			
+		}
+	}
+}

@@ -36,4 +36,11 @@ void deleteid_Bipartite(struct Bipartite *bip, int id);
 //write a file from a bip.
 void print_Bipartite(struct Bipartite *bip, char *filename);
 
+void cutcount_Bipartite(struct Bipartite *bip, long count);
+
+void sortBytime_Bipartite(struct Bipartite *bip);
+
+struct i4LineFile *divideBytime_Bipartite(struct Bipartite *bip);
+
+
 #endif
