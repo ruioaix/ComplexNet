@@ -417,6 +417,13 @@ void free_i4LineFile(struct i4LineFile *file) {
 		free(file);
 	}
 }
+void free_2_i4LineFile(struct i4LineFile *twofile) {
+	if(twofile != NULL) {
+		free(twofile[0].lines);
+		free(twofile[1].lines);
+		free(twofile);
+	}
+}
 void print_i4LineFile(struct i4LineFile *file, char *filename) {
 	long i;
 	FILE *fp = fopen(filename, "w");

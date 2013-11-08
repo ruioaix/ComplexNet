@@ -71,6 +71,7 @@ struct i4LineFile {
 	struct i4Line *lines;
 };
 void free_i4LineFile(struct i4LineFile *file);
+void free_2_i4LineFile(struct i4LineFile *twofile);
 struct i4LineFile *create_i4LineFile(const char * const filename);
 void print_i4LineFile(struct i4LineFile *file, char *filename);
 void print_2_i4LineFile(struct i4LineFile *file1, struct i4LineFile *file2, char *filename);
