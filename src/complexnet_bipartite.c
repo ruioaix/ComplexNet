@@ -2,6 +2,7 @@
 #include "../inc/complexnet_error.h"
 #include "../inc/complexnet_threadpool.h"
 #include "../inc/complexnet_random.h"
+#include "../inc/complexnet_sort.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -235,6 +236,7 @@ struct i4LineFile *abstract_Bipartite(struct Bipartite *bip) {
 		}
 	}
 
+	int origin = bip->idNum;
 	renew_Bipartite(bip);
 
 	struct i4LineFile *file = malloc(sizeof(struct i4LineFile));
@@ -243,8 +245,9 @@ struct i4LineFile *abstract_Bipartite(struct Bipartite *bip) {
 	file->i1Min = i1Min;
 	file->linesNum = j;
 	file->lines = lines;
-	printf("abstract_Bipartite done:\n\tabstract %d edges from %d.\n", j, linesNum);
+	printf("abstract_Bipartite done:\n\tBipartite originally has %d ids.\n\tabstract %d edges from %d.\n", origin, j, linesNum);
 	printf("\tthere are %d ids whose degree has become 0 after abstract.\n", k);
+	printf("\tNow Bipartite has %d ids.\n", bip->idNum);
 	return file;
 }
 
@@ -282,7 +285,7 @@ struct i4LineFile *backtofile_Bipartite(struct Bipartite *bip) {
 	file->i2Min = -1;
 	file->linesNum = k;
 	file->lines = lines;
-	printf("backtofile_Bipartite done:\n\t%d lines generated.\n", k);
+	printf("backtofile_Bipartite done. %d lines generated.\n", k);
 	return file;
 }
 
@@ -302,15 +305,16 @@ void cutcount_Bipartite(struct Bipartite *bip, long count) {
 			++j;
 		}
 	}
+	int origin = bip->idNum;
 	renew_Bipartite(bip);
-	printf("cutcount_Bipartite done:\n\tthere are %d ids whose count < %ld being deleted.\n", j, count);fflush(stdout);
+	printf("cutcount_Bipartite done:\n\tBipartite originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bipartite has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }
 
 void sortBytime_Bipartite(struct Bipartite *bip) {
 	int i;
 	for (i=0; i < bip->maxId + 1; ++i) {
 		if (bip->count[i] > 0) {
-			quick_sort_int_index_index(bip->i4[i], 0, bip->count[i]-1, bip->id[i], bip->i3[i])
+			quick_sort_int_index_index(bip->i4[i], 0, bip->count[i]-1, bip->id[i], bip->i3[i]);
 		}
 	}
 }
@@ -353,35 +357,37 @@ struct i4LineFile *divideBytime_Bipartite(struct Bipartite *bip, double rate) {
 	for (i=0; i<bip->maxId + 1; ++i) {
 		if (bip->count[i] > 0) {
 			int div = (int)(bip->count[i] * rate);
+			if (div <=0 || div == bip->count[i]) {
+				printf("divideBytime_Bipartite error: id %d has too small count %ld.\n", i, bip->count[i]);
+				return NULL;
+			}
 			for (j = 0; j < div; ++j) {
 				twofile[0].lines[line1].i1 = i;
 				twofile[0].lines[line1].i2 = bip->id[i][j];
 				twofile[0].lines[line1].i3 = bip->i3[i][j];
 				twofile[0].lines[line1].i4 = bip->i4[i][j];
-				i1Max = i1Max>i?i1Max:i;
+				i1Max = i;
+				i1Min = i1Min<i?i1Min:i;
 				i2Max = i2Max>bip->id[i][j]?i2Max:bip->id[i][j];
-				i1Min = i1Min<file->lines[i].i1?i1Min:file->lines[i].i1;
 				i2Min = i2Min<bip->id[i][j]?i2Min:bip->id[i][j];
 				++line1;
 			}
-		}
-		if (genrand_real1() < rate) {
-		}
-		else {
-			twofile[1].lines[line2].i1 = file->lines[i].i1;	
-			twofile[1].lines[line2].i2 = file->lines[i].i2;	
-			twofile[1].lines[line2].i3 = file->lines[i].i3;	
-			twofile[1].lines[line2].i4 = file->lines[i].i4;	
-			_i1Max = _i1Max>file->lines[i].i1?_i1Max:file->lines[i].i1;
-			_i2Max = _i2Max>file->lines[i].i2?_i2Max:file->lines[i].i2;
-			_i1Min = _i1Min<file->lines[i].i1?_i1Min:file->lines[i].i1;
-			_i2Min = _i2Min<file->lines[i].i2?_i2Min:file->lines[i].i2;
-			++line2;
+			for (j=div; j<bip->count[i]; ++j) {
+				twofile[1].lines[line2].i1 = i;
+				twofile[1].lines[line2].i2 = bip->id[i][j];
+				twofile[1].lines[line2].i3 = bip->i3[i][j];
+				twofile[1].lines[line2].i4 = bip->i4[i][j];
+				_i1Max = i;
+				_i1Min = _i1Min<i?_i1Min:i;
+				_i2Max = _i2Max>bip->id[i][j]?_i2Max:bip->id[i][j];
+				_i2Min = _i2Min<bip->id[i][j]?_i2Min:bip->id[i][j];
+				++line2;
+			}
 		}
 	}
 
 	if (line1>l1 || line2 >l2) {
-		printf("divide_i4LineFile error: l1/l2 too small\n");
+		printf("divideBytime_Bipartite error: l1/l2 too small\n");
 		return NULL;
 	}
 	twofile[0].linesNum = line1;
@@ -395,15 +401,6 @@ struct i4LineFile *divideBytime_Bipartite(struct Bipartite *bip, double rate) {
 	twofile[1].i2Max = _i2Max;
 	twofile[1].i1Min = _i1Min;
 	twofile[1].i2Min = _i2Min;
-	printf("divide_i4LineFile done:\n\trate: %f\n\tfile1: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
+	printf("divideBytime_Bipartite done:\n\trate: %f\n\tfile1: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %d, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 	return twofile;
-	struct i4LineFile *file = malloc(2*sizeof(struct i4LineFile));
-	assert(file != NULL);
-
-	int i;
-	for (i=0; i<bip->maxId + 1; ++i) {
-		if (bip->count[i]>0) {
-			
-		}
-	}
 }

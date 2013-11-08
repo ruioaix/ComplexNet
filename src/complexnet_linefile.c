@@ -425,7 +425,7 @@ void print_i4LineFile(struct i4LineFile *file, char *filename) {
 		fprintf(fp, "%d::%d::%d::%d\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].i3, file->lines[i].i4);
 	}
 	fclose(fp);
-	printf("print_i4LineFile %s done\n", filename);fflush(stdout);
+	printf("print_i4LineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
 }
 void print_2_i4LineFile(struct i4LineFile *file1, struct i4LineFile *file2, char *filename) {
 	long i;
@@ -438,7 +438,7 @@ void print_2_i4LineFile(struct i4LineFile *file1, struct i4LineFile *file2, char
 		fprintf(fp, "%d::%d::%d::%d\n", file2->lines[i].i1, file2->lines[i].i2, file2->lines[i].i3, file2->lines[i].i4);
 	}
 	fclose(fp);
-	printf("print_2_i4LineFile %s done\n", filename);fflush(stdout);
+	printf("print_2_i4LineFile %s done. %ld (%ld + %ld) lines generated.\n", filename, file1->linesNum + file2->linesNum, file1->linesNum, file2->linesNum);fflush(stdout);
 }
 struct i4LineFile *divide_i4LineFile(struct i4LineFile *file, double rate) {
 	if (rate <=0 || rate >= 1) {

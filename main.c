@@ -29,8 +29,12 @@ int main(int argc, char **argv) {
 	print_2_i4LineFile(twofile, ab_user_1, "Results/file1");
 	print_2_i4LineFile(twofile+1, ab_user_2, "Results/file2");
 
+	sortBytime_Bipartite(user);
+	struct i4LineFile *_2file = divideBytime_Bipartite(user, 0.2);
+	print_i4LineFile(_2file, "Results/_2file1");
+	print_i4LineFile(_2file + 1, "Results/_2file2");
+
 	//end
 	free_Bipartite(user);
-	free_Bipartite(item);
 	return 0;
 }
