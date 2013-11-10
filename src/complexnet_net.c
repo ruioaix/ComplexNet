@@ -272,7 +272,7 @@ void net_dmp(int T, double infect_rate, double recover_rate) {
 			net_dmp_core(i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
 			for (j=0; j<net.maxId+1; ++j) {
 				if (PS[j] != 1 || PI[j] != 0 || PR[j] != 0) {
-					fprintf(fp, "%d, %d, %f, %f, %f\n", i, j, PS[j], PI[j], PR[j]);	
+					fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, PS[j], PI[j], PR[j]);	
 				}
 			}
 			if (i%1000 == 0) printf("%d\n", i);

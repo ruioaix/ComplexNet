@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	//exit(0);
 
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
-	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_Non_0.05.txt");
+	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_degreeNon_0.05-1.txt");
 
 	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
