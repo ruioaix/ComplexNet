@@ -8,12 +8,14 @@ struct i5dsLine {
 	int i3;
 	int i4;
 	int i5;
-	char s6[1000];
-	double  d7;
+	double  d6;
+	char s7[1000];
 };
 struct i5dsLineFile {
-	int iMax;
-	int iMin;
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
 	struct i5dsLine *lines;
 };

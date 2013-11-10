@@ -1,12 +1,20 @@
-#include "../../inc/linefile/ilinefile.h"
+#include "../../inc/linefile/i3dlinefile.h"
 #include "../../inc/complexnet_error.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
 #include "limits.h"
 
-static char *delimiter="\t, \r\n:";
-//int int double int=============================================================================================================================================================
+//LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
+#define LINE_LENGTH_MAX 10000
+
+//LINES_LENGTH_EACH is the stepLength. 
+//now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
+//if a file contans 1e8 lines, malloc will be called ten times.
+//of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
+//you don't need to know the exactly line num of the file.
+#define LINES_LENGTH_EACH 1000000
+
 static void fill_i3dLine(char *line, struct i3dLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
@@ -20,6 +28,7 @@ static void fill_i3dLine(char *line, struct i3dLine *LI_origin,  long *lNum, int
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
 	char *partsLine[4];
+	char *delimiter="\t, \r\n:";
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
@@ -72,6 +81,7 @@ static void fill_i3dLine(char *line, struct i3dLine *LI_origin,  long *lNum, int
 	*_vtMaxId=(*_vtMaxId)>LI->i2?(*_vtMaxId):LI->i2;
 	*_vtMinId=(*_vtMinId)<LI->i2?(*_vtMinId):LI->i2;
 }
+
 struct i3dLineFile *create_i3dLineFile(const char * const filename)
 {
 	printf("read i3dLineFile %s: \n", filename);
@@ -121,6 +131,7 @@ struct i3dLineFile *create_i3dLineFile(const char * const filename)
 
 	return file;
 }
+
 void free_i3dLineFile(struct i3dLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
