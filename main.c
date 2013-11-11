@@ -3,9 +3,9 @@
 #include "inc/linefile/iilinefile.h" //for readFileLBL;
 #include "inc/linefile/i3linefile.h" //for readFileLBL;
 #include "inc/linefile/iid3linefile.h" //for readFileLBL;
-#include "inc/complexnet_net.h" //for buildDNet;
-#include "inc/complexnet_net_pspipr.h" //for buildDNet;
-#include "inc/complexnet_net_snapshot.h" //for buildDNet;
+#include "inc/compact/net.h" //for buildDNet;
+#include "inc/matrix/pspipr.h" //for buildDNet;
+#include "inc/matrix/snapshot.h" //for buildDNet;
 #include "inc/utility/error.h"
 #include "inc/utility/sort.h"
 #include <stdio.h>
@@ -36,16 +36,14 @@ int main(int argc, char **argv)
 	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
 	//print_iid3LineFile(pspipr, "Results/PS_PI_PR_output");
 
-	create_Net_PSPIPR(pspipr);
+	struct PSPIPR *net_pspipr = create_PSPIPR(pspipr);
 	//print_Net_PSPIPR("Results/PS_PI_PR_net_output");
-	struct Net_PSPIPR *net_pspipr = get_Net_PSPIPR();
 
 	struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
 	//print_i3LineFile(snapshot, "Results/snapshot_instances_output");
 
-	create_Net_SNAPSHOT(snapshot);
+	struct Snapshot * net_snapshot = create_Snapshot(snapshot);
 	//print_Net_SNAPSHOT("Results/snapshot_net_output");
-	struct Net_SNAPSHOT *net_snapshot = get_Net_SNAPSHOT();
 
 	FILE *fp;
 	fp = fopen("Results/de_infectsource_rank.txt", "w");

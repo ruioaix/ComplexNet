@@ -1,7 +1,7 @@
 #ifndef COMPLEXNET_NET_H
 #define COMPLEXNET_NET_H
 
-#include "../inc/linefile/iilinefile.h"
+#include "../linefile/iilinefile.h"
 
 struct Net{
 	int maxId;
@@ -13,8 +13,7 @@ struct Net{
 	int **edges;
 };
 void free_Net(void);
-void create_Net(const struct iiLineFile * const file);
-struct Net *get_Net(void);
+struct Net *create_Net(const struct iiLineFile * const file);
 
 //thread routine, don't need arg, the routine will use net;
 //of course, you can use this in the main thread.
@@ -22,7 +21,8 @@ void *verifyNet(void *arg);
 
 //DMP algorithm
 //void net_dmp(int T);
-void net_dmp(int T, double infect_rate, double recover_rate);
-long net_find_index(int v1, int v2);
+void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate);
+//void net_dmp(int T, double infect_rate, double recover_rate);
+long net_find_index(struct Net *net, int v1, int v2);
 
 #endif
