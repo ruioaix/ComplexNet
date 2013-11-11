@@ -1,5 +1,6 @@
 #include "../inc/complexnet_net_snapshot.h"
 #include "../inc/utility/sort.h"
+#include "../inc/utility/error.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -59,6 +60,21 @@ void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
 	net.minId=minId;
 	net.stat=stat;
 	printf("Read Snapshot Successfully.\n"); fflush(stdout);
+}
+
+void print_Net_SNAPSHOT(char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_Net_SNAPSHOT");
+	int i, j;
+	for (i=0; i<net.maxId + 1; ++i) {
+		for (j=0; j< net.maxId + 1; ++j) {
+			if (net.stat[i][j] != 0) {
+				fprintf(fp, "%d,%d,%d\n", i, j, net.stat[i][j]);
+			}
+		}
+	}
+	fclose(fp);
+	printf("print_Net_SNAPSHOT%s done.\n", filename);fflush(stdout);
 }
 
 //find status net.status[i][eye].

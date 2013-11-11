@@ -58,7 +58,7 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 
 	//max/min Id
 	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
-	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i2;
+	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
 	*_vtMaxId=(*_vtMaxId)>LI->i2?(*_vtMaxId):LI->i2;
 	*_vtMinId=(*_vtMinId)<LI->i2?(*_vtMinId):LI->i2;
 }

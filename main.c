@@ -22,22 +22,29 @@ int main(int argc, char **argv)
 	int j;
 	int k;
 
-	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	create_Net(file);
-	verifyNet(NULL);
-	net_dmp(10, 0.6, 0.5);
-	exit(0);
+	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
+	//create_Net(file);
+	//verifyNet(NULL);
+	//net_dmp(10, 0.6, 0.5);
+	//exit(0);
 
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
+	//print_iLineFile(eye_nodes, "Results/eye_rndNon_0.05.txt");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_degreeNon_0.05-1.txt");
 
 	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
+	//print_iid3LineFile(pspipr, "Results/PS_PI_PR_output");
+
 	create_Net_PSPIPR(pspipr);
+	//print_Net_PSPIPR("Results/PS_PI_PR_net_output");
 	struct Net_PSPIPR *net_pspipr = get_Net_PSPIPR();
 
 	struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
+	//print_i3LineFile(snapshot, "Results/snapshot_instances_output");
+
 	create_Net_SNAPSHOT(snapshot);
+	//print_Net_SNAPSHOT("Results/snapshot_net_output");
 	struct Net_SNAPSHOT *net_snapshot = get_Net_SNAPSHOT();
 
 	FILE *fp;
@@ -62,39 +69,51 @@ int main(int argc, char **argv)
 			else { 
 				P = status==0?1:0;
 			}
+					//printf("%d, %d, %f, %d\n", i, eye, P, status);
 			if (P == 0 ) {
-				E_i += INT_MAX;
+				E_i += 1000;
 				continue;
 			}
 			E_i -= log(P);
 		}
+		//exit(0);
+		//printf("%d, %e\n", i, E_i);
 
 		Rank = 0;
-		for (k=1; k<net_pspipr->maxId+1 && k != i; ++k) {
-			E = 0;
-			for (j=0; j<eye_nodes->linesNum; ++j) {
-				int eye = eye_nodes->lines[j].i1;
-				int status = net_snapshot->stat[k][eye];
-				double *Pp = net_pspipr->psir[k][eye];
-				double P;
-				if (Pp != NULL) {
-					P = Pp[status];
+		for (k=1; k<net_pspipr->maxId+1; ++k) {
+			if (k != i) {
+				E = 0;
+				for (j=0; j<eye_nodes->linesNum; ++j) {
+					int eye = eye_nodes->lines[j].i1;
+					int status = net_snapshot->stat[i][eye];
+					double *Pp = net_pspipr->psir[k][eye];
+					double P;
+					if (Pp != NULL) {
+						P = Pp[status];
+					}
+					else { 
+						P = status==0?1:0;
+					}
+					//printf("%d, %d, %f, %d\n", k, eye, P, status);
+					if (P == 0 ) {
+						E += 1000;
+						//break;
+					}
+					E -= log(P);
+					//printf("%d, %0.17f\n", k, E);fflush(stdout);
 				}
-				else { 
-					P = status==0?1:0;
+				if (E < E_i) {
+					++Rank;
 				}
-				if (P == 0 ) {
-					E = E_i + 1;
-					break;
-				}
-				E -= log(P);
-			}
-			if (E < E_i) {
-				++Rank;
+				//exit(0);
+			//printf("%d, %e\n", k, E);
 			}
 		}
+		//exit(0);
 		fprintf(fp, "%d, %d\n", i, Rank);
 		ave += Rank;
+
+
 		//for (k = 0; k<net_pspipr->maxId+1; ++k) {
 		//	printf("%d, %f\n", k, Rank[k]);
 		//}

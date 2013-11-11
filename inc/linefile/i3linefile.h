@@ -16,5 +16,6 @@ struct i3LineFile{
 };
 void free_i3LineFile(struct i3LineFile *file);
 struct i3LineFile *create_i3LineFile(const char * const filename);
+void print_i3LineFile(struct i3LineFile *file, char *filename);
 
 #endif

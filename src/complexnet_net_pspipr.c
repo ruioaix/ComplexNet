@@ -1,5 +1,6 @@
 #include "../inc/complexnet_net_pspipr.h"
 #include "../inc/utility/sort.h"
+#include "../inc/utility/error.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -65,6 +66,21 @@ void create_Net_PSPIPR(const struct iid3LineFile * const file) {
 	net.minId=minId;
 	net.psir=psir;
 	printf("Read PSPIPR Successfully\n"); fflush(stdout);
+}
+
+void print_Net_PSPIPR(char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_Net_PSPIPR");
+	int i, j;
+	for (i=0; i<net.maxId + 1; ++i) {
+		for (j=0; j< net.maxId + 1; ++j) {
+			if (net.psir[i][j] != NULL) {
+				fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, net.psir[i][j][0], net.psir[i][j][1], net.psir[i][j][2]);
+			}
+		}
+	}
+	fclose(fp);
+	printf("print_Net_PSPIPR %s done.\n", filename);fflush(stdout);
 }
 
 //status = 0, net.PS[i][eye].

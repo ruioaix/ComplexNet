@@ -150,3 +150,14 @@ void free_iid3LineFile(struct iid3LineFile *file) {
 		free(file);
 	}
 }
+
+void print_iid3LineFile(struct iid3LineFile *file, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_iid3LineFile");
+	long i;
+	for (i=0; i<file->linesNum; ++i) {
+		fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].d3, file->lines[i].d4, file->lines[i].d5);
+	}
+	fclose(fp);
+	printf("print_iid3LineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
+}

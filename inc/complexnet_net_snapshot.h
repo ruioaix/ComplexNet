@@ -12,6 +12,7 @@ void free_Net_SNAPSHOT(void);
 struct Net_SNAPSHOT* get_Net_SNAPSHOT(void);
 void create_Net_SNAPSHOT(const struct i3LineFile * const file);
 //int find_Net_SNAPSHOT_status(int infect_source, int eye);
+void print_Net_SNAPSHOT(char *filename);
 
 
 #endif

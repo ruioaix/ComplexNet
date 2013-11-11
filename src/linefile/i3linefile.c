@@ -130,3 +130,14 @@ void free_i3LineFile(struct i3LineFile *file) {
 		free(file);
 	}
 }
+
+void print_i3LineFile(struct i3LineFile *file, char *filename) {
+	long i;
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_i3LineFile");
+	for (i=0; i<file->linesNum; ++i) {
+		fprintf(fp, "%d,%d,%d\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].i3);
+	}
+	fclose(fp);
+	printf("print_i3LineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
+}

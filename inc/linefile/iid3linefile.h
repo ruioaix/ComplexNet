@@ -19,5 +19,6 @@ struct iid3LineFile {
 };
 void free_iid3LineFile(struct iid3LineFile *file);
 struct iid3LineFile *create_iid3LineFile(const char * const filename);
+void print_iid3LineFile(struct iid3LineFile *file, char *filename);
 
 #endif
