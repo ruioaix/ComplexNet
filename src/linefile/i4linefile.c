@@ -1,6 +1,6 @@
 #include "../../inc/linefile/i4linefile.h"
 #include "../../inc/complexnet_error.h"
-#include "../../inc/complexnet_random.h"
+#include "../../inc/random.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"

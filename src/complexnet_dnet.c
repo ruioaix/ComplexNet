@@ -1,7 +1,8 @@
 #include "../inc/complexnet_dnet.h"
 #include "../inc/complexnet_error.h"
 #include "../inc/complexnet_threadpool.h"
-#include "../inc/complexnet_random.h"
+#include "../inc/random.h"
+#include "../inc/threadsafe_random.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -132,7 +133,7 @@ void *dnet_spread(void *args_void)
 	FILE *fp=args->fp;
 
 	unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
-	int isId = init_by_array_MersenneTwister_threadsafe(init, length);
+	int isId = init_by_array_threadsafe(init, length);
 
 	char *statusStick = calloc(dnet.maxId+1, sizeof(char));
 	assert(statusStick != NULL);
@@ -238,7 +239,7 @@ void *dnet_spread(void *args_void)
 	free(statusStick);
 
 	
-	free_MersenneTwister_threadsafe(isId);
+	free_threadsafe(isId);
 	printf("IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	fprintf(fp, "IS Group %d:\tinfectRate:%f\tsp:%f\ts2p:%f\tfc:%f\tspreadStep:%f\n", IS->lineId, infectRate, sp, s2p, result, (double)spreadStep/(double)loopNum);fflush(stdout);
 	return (void *)0;

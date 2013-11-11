@@ -1,7 +1,7 @@
 #include "../inc/complexnet_net.h"
 #include "../inc/complexnet_error.h"
 #include "../inc/complexnet_threadpool.h"
-#include "../inc/complexnet_random.h"
+#include "../inc/random.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
