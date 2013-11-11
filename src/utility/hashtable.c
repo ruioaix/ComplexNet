@@ -1,10 +1,11 @@
-#include "../inc/complexnet_hashtable.h"
-#include "../inc/complexnet_error.h"
-#include "../inc/linefile/iilinefile.h"
-#include "../inc/linefile/i4linefile.h"
+#include "../../inc/utility/hashtable.h"
+#include "../../inc/utility/error.h"
+#include "../../inc/linefile/iilinefile.h"
+#include "../../inc/linefile/i4linefile.h"
 #include <assert.h>
 #include <stdlib.h>
 
+//elementNum
 static void elementNumSumHT(struct HashTable *ht)
 {
 	if (!ht->sumSign) {
@@ -96,7 +97,7 @@ long getelementValueHT(struct HashTable *ht, int index) {
 }
 
 //recursion free.
-void freeHashElement(struct HashElement *he)
+static void freeHashElement(struct HashElement *he)
 {
 	if (he != NULL && he->next !=NULL) {
 		freeHashElement(he->next);

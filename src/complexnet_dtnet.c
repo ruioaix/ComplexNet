@@ -1,6 +1,6 @@
 #include "../inc/complexnet_dtnet.h"
-#include "../inc/complexnet_error.h"
-#include "../inc/complexnet_bitsign.h"
+#include "../inc/utility/error.h"
+#include "../inc/utility/bitsign.h"
 
 #include <stdlib.h>
 #include <stdio.h>

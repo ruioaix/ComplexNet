@@ -1,5 +1,5 @@
 //modified by rui. 2013.08.09
-#include "../inc/random.h"
+#include "../../inc/utility/random.h"
 #include "stdio.h"
 
 /* Period parameters */  

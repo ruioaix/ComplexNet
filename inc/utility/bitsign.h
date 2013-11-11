@@ -1,5 +1,5 @@
-#ifndef COMPLEXNET_BITSIGN 
-#define COMPLEXNET_BITSIGN
+#ifndef BITSIGN_H
+#define BITSIGN_H
 
 #include <limits.h>
 

@@ -1,4 +1,4 @@
-#include "../inc/complexnet_error.h"
+#include "../../inc/utility/error.h"
 #include <stddef.h> //for NULL
 #include <stdlib.h> //for exit & EXIT_FAILURE
 

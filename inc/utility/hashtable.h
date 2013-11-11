@@ -1,5 +1,5 @@
-#ifndef COMPLEXNET_HASHTABLE_H
-#define COMPLEXNET_HASHTABLE_H
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
 
 struct HashElement {
 	long element;
@@ -12,6 +12,7 @@ struct HashTable {
 	int *elementNum;
 	struct HashElement **he;
 	int elementSumNum;
+
 	long *index;
 	char indexSign;
 };
@@ -21,8 +22,9 @@ struct HashTable {
 //you can insert every old vtId into the hashtable, then elementNumSumHT, then you can get every old vtId's new vtId(the index).
 struct HashTable *createHashTable(int length);
 //free
-void freeHashElement(struct HashElement *he);
+//void freeHashElement(struct HashElement *he);
 void freeHashTable(struct HashTable *ht);
+
 //insert and delete
 int insertHEtoHT(struct HashTable *ht, long element);
 void setelementIndexHT(struct HashTable *ht);

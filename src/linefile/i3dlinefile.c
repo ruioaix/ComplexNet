@@ -1,5 +1,5 @@
 #include "../../inc/linefile/i3dlinefile.h"
-#include "../../inc/complexnet_error.h"
+#include "../../inc/utility/error.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"

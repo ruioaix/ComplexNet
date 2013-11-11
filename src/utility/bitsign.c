@@ -1,11 +1,11 @@
-#include "../inc/complexnet_bitsign.h"
-#include "../inc/complexnet_error.h"
+#include "../../inc/utility/bitsign.h"
 #include <stdlib.h>
+#include <assert.h>
 
 unsigned int *createBitSign(int signMax)
 {
 	unsigned int *signStick=calloc(WORD_OFFSET(signMax)+1, sizeof(unsigned int));
-	memError(signStick, "createBitSign bigsign");
+	assert(signStick != NULL);
 	return signStick;
 }
 

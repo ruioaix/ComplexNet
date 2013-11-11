@@ -1,5 +1,5 @@
-#ifndef COMPLEXNET_ERROR_H
-#define COMPLEXNET_ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <stdio.h> //for FILE, perror, fprintf, stderr
 void fileError(FILE *fp, const char * const filename);

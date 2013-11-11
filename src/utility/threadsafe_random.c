@@ -1,6 +1,6 @@
 
 //modified by rui. 2013.08.09
-#include "../inc/threadsafe_random.h"
+#include "../../inc/utility/threadsafe_random.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,5 +1,5 @@
 #include "../inc/complexnet_net_pspipr.h"
-#include "../inc/complexnet_sort.h"
+#include "../inc/utility/sort.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
