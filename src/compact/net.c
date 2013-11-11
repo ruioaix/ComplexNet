@@ -276,7 +276,10 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 					fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, PS[j], PI[j], PR[j]);	
 				}
 			}
-			if (i%1000 == 0) printf("%d\n", i);
+			if (i%1000 == 0) {
+				printf("%d\n", i);
+				fflush(stdout);
+			}
 		}
 	}
 	fclose(fp);
