@@ -1,5 +1,8 @@
 #define NDEBUG  //for assert
-#include "inc/complexnet_linefile.h" //for readFileLBL;
+#include "inc/linefile/ilinefile.h" //for readFileLBL;
+#include "inc/linefile/iilinefile.h" //for readFileLBL;
+#include "inc/linefile/i3linefile.h" //for readFileLBL;
+#include "inc/linefile/iid3linefile.h" //for readFileLBL;
 #include "inc/complexnet_net.h" //for buildDNet;
 #include "inc/complexnet_net_pspipr.h" //for buildDNet;
 #include "inc/complexnet_net_snapshot.h" //for buildDNet;
@@ -19,11 +22,11 @@ int main(int argc, char **argv)
 	int j;
 	int k;
 
-	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	//create_Net(file);
-	//verifyNet(NULL);
-	//net_dmp(10, 0.6, 0.5);
-	//exit(0);
+	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
+	create_Net(file);
+	verifyNet(NULL);
+	net_dmp(10, 0.6, 0.5);
+	exit(0);
 
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");

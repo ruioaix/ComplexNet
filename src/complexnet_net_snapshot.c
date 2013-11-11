@@ -20,8 +20,8 @@ void free_Net_SNAPSHOT(void) {
 }
 
 void create_Net_SNAPSHOT(const struct i3LineFile * const file) {
-	int maxId=file->iMax;
-	int minId=file->iMin;
+	int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
+	int minId=file->i1Min<file->i2Min?file->i1Min:file->i2Min;
 	long linesNum=file->linesNum;
 	struct i3Line *lines=file->lines;
 

@@ -1,7 +1,7 @@
 #ifndef COMPLEXNET_BIPARTITE_H
 #define COMPLEXNET_BIPARTITE_H
 
-#include "../inc/complexnet_linefile.h"
+#include "../inc/linefile/i4linefile.h"
 
 //this struct is just one way for describing Bipartite.
 //other ways like (int ***xx) is also usefully.

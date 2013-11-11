@@ -4,6 +4,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "limits.h"
+#include "assert.h"
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
 #define LINE_LENGTH_MAX 10000

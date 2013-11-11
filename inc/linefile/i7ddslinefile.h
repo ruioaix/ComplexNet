@@ -1,5 +1,5 @@
-#ifndef I7DDSLINEFILE
-#define I7DDSLINEFILE
+#ifndef I7DDSLINEFILE_H
+#define I7DDSLINEFILE_H
 
 //for file containing int/int/int/int/int/int/int/double/double
 struct i7ddsLine {
@@ -15,8 +15,10 @@ struct i7ddsLine {
 	char s10[100];
 };
 struct i7ddsLineFile {
-	int iMax;
-	int iMin;
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
 	struct i7ddsLine *lines;
 };

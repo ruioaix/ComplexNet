@@ -1,19 +1,21 @@
-#ifndef IIDLINEFILE
-#define IIDLINEFILE
+#ifndef IIDLINEFILE_H
+#define IIDLINEFILE_H
 
 //for file containing int/double/int 
-struct idiLine{
+struct iidLine{
 	int i1;
-	double d2;
-	int i3;
+	int i2;
+	double d3;
 };
-struct idiLineFile {
-	int iMax;
-	int iMin;
+struct iidLineFile {
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
-	struct idiLine *lines;
+	struct iidLine *lines;
 };
-void free_idiLineFile(struct idiLineFile *file);
-struct idiLineFile *create_idiLineFile(const char *const filename);
+void free_iidLineFile(struct iidLineFile *file);
+struct iidLineFile *create_iidLineFile(const char *const filename);
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef I3DLINEFILE
-#define I3DLINEFILE
+#ifndef I3DLINEFILE_H
+#define I3DLINEFILE_H
 
 //for file containing int,int, double,int
 struct i3dLine{

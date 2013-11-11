@@ -1,7 +1,24 @@
+#include "../../inc/linefile/i5sslinefile.h"
+#include "../../inc/complexnet_error.h"
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+#include "limits.h"
+#include "assert.h"
 
-static char *delimiter="\t, \r\n:";
+//LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
+#define LINE_LENGTH_MAX 10000
+
+//LINES_LENGTH_EACH is the stepLength. 
+//now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
+//if a file contans 1e8 lines, malloc will be called ten times.
+//of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
+//you don't need to know the exactly line num of the file.
+#define LINES_LENGTH_EACH 1000000
+
+
 //five int, two string=============================================================================================================================================================
-static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
+static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
 		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
@@ -85,15 +102,10 @@ static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, i
 
 	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
 	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
-	//max/min Id
-	//if (LI->i1>LI->i2) {
-	//	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
-	//	*vtMinId=(*vtMinId)<LI->i2?(*vtMinId):LI->i2;
-	//} else {
-	//	*vtMaxId=(*vtMaxId)>LI->i2?(*vtMaxId):LI->i2;
-	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
-	//}
+	*_vtMaxId=(*_vtMaxId)>LI->i2?(*_vtMaxId):LI->i2;
+	*_vtMinId=(*_vtMinId)<LI->i2?(*_vtMinId):LI->i2;
 }
+
 struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 {
 	printf("read i5ssLineFile %s: \n", filename);
@@ -109,13 +121,15 @@ struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 	long filelineNum=0;
 	int maxId=-1;
 	int minId=INT_MAX;
+	int _maxId=-1;
+	int _minId=INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_i5ssLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i5ssLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
@@ -123,7 +137,7 @@ struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_i5ssLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_i5ssLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
@@ -132,8 +146,10 @@ struct i5ssLineFile *create_i5ssLineFile(const char * const filename)
 
 	struct i5ssLineFile *file=malloc(sizeof(struct i5ssLineFile));
 	assert(file!=NULL);
-	file->iMin=minId;
-	file->iMax=maxId;
+	file->i1Min=minId;
+	file->i1Max=maxId;
+	file->i2Min=_minId;
+	file->i2Max=_maxId;
 	file->lines=LinesInfo;
 	file->linesNum=linesNum;
 

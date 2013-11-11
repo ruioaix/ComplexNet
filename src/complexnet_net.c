@@ -26,8 +26,8 @@ void free_Net(void) {
 }
 
 void create_Net(const struct iiLineFile * const file) {
-	int maxId=file->iMax;
-	int minId=file->iMin;
+	int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
+	int minId=file->i1Min<file->i2Min?file->i1Min:file->i2Min;
 	long linesNum=file->linesNum;
 	struct iiLine *lines=file->lines;
 

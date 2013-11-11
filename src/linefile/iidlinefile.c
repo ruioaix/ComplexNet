@@ -1,7 +1,22 @@
+#include "../../inc/linefile/iidlinefile.h"
+#include "../../inc/complexnet_error.h"
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+#include "limits.h"
+#include "assert.h"
 
-static char *delimiter="\t, \r\n:";
-//int, double, int=============================================================================================================================================================
-static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)
+//LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
+#define LINE_LENGTH_MAX 10000
+
+//LINES_LENGTH_EACH is the stepLength. 
+//now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
+//if a file contans 1e8 lines, malloc will be called ten times.
+//of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
+//you don't need to know the exactly line num of the file.
+#define LINES_LENGTH_EACH 1000000
+
+static void fill_iidLine(char *line, struct iidLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)
 {
 	if (strlen(line) == LINE_LENGTH_MAX-1) {
 		printf("\tthe line %ld has %d characters, ignored, because most likely you get an incomplete line, set LINE_LENGTH_MAX larger.\n", filelineNum, LINE_LENGTH_MAX-1);
@@ -9,11 +24,12 @@ static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int
 	}
 
 	long linesNum = *lNum+(each-1)*LINES_LENGTH_EACH;
-	struct idiLine *LI = LI_origin+linesNum;
+	struct iidLine *LI = LI_origin+linesNum;
 
 	//divide line to parts.
 	//strtok return a c string(end with a '\0').
 	char *partsLine[3];
+	char *delimiter="\t, \r\n:";
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		printf("\tline %ld not valid, ignored (looks like a blank line).\n", filelineNum);
@@ -37,12 +53,12 @@ static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
-	LI->d2=strtod(partsLine[1], &pEnd);
+	LI->i2=strtol(partsLine[1], &pEnd, 10);
 	if (pEnd[0]!='\0') {
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
 	}
-	LI->i3=strtol(partsLine[2], &pEnd, 10);
+	LI->d3=strtod(partsLine[2], &pEnd);
 	if (pEnd[0]!='\0') {
 		printf("\tline %ld not valid, ignored (looks like contain some char which is not number, like: \"%c\").\n", filelineNum, pEnd[0]);
 		return;
@@ -52,61 +68,60 @@ static void fill_idiLine(char *line, struct idiLine *LI_origin,  long *lNum, int
 
 	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
 	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
-	//max/min Id
-	//if (LI->i1>LI->i2) {
-	//	*vtMaxId=(*vtMaxId)>LI->i1?(*vtMaxId):LI->i1;
-	//	*vtMinId=(*vtMinId)<LI->i2?(*vtMinId):LI->i2;
-	//} else {
-	//	*vtMaxId=(*vtMaxId)>LI->i2?(*vtMaxId):LI->i2;
-	//	*vtMinId=(*vtMinId)<LI->i1?(*vtMinId):LI->i1;
-	//}
+	*_vtMaxId=(*_vtMaxId)>LI->i2?(*_vtMaxId):LI->i2;
+	*_vtMinId=(*_vtMinId)<LI->i2?(*_vtMinId):LI->i2;
 }
-struct idiLineFile *create_idiLineFile(const char * const filename)
+
+struct iidLineFile *create_iidLineFile(const char * const filename)
 {
-	printf("read idiLineFile %s: \n", filename);
+	printf("read iidLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
 
-	struct idiLine *LinesInfo=NULL;
-	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct idiLine));
+	struct iidLine *LinesInfo=NULL;
+	LinesInfo=malloc(LINES_LENGTH_EACH*sizeof(struct iidLine));
 	assert(LinesInfo!=NULL);
 
 	long linesNum=0;
 	long filelineNum=0;
 	int maxId=-1;
 	int minId=INT_MAX;
+	int _maxId=-1;
+	int _minId=INT_MAX;
 
 	char line[LINE_LENGTH_MAX];
 	int each=1;
 	while(fgets(line, LINE_LENGTH_MAX, fp)) {
 		++filelineNum;
 		if (linesNum<LINES_LENGTH_EACH) {
-			fill_idiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_iidLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
 		} else {
 			++each;
 			printf("\tread valid lines: %d\n", (each-1)*LINES_LENGTH_EACH); fflush(stdout);
-			struct idiLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct idiLine));
+			struct iidLine *temp=realloc(LinesInfo, each*LINES_LENGTH_EACH*sizeof(struct iidLine));
 			assert(temp!=NULL);
 			LinesInfo=temp;
 			linesNum=0;
-			fill_idiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, filelineNum);
+			fill_iidLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
 	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
 	fclose(fp);
 
-	struct idiLineFile *file=malloc(sizeof(struct idiLineFile));
+	struct iidLineFile *file=malloc(sizeof(struct iidLineFile));
 	assert(file!=NULL);
-	file->iMin=minId;
-	file->iMax=maxId;
+	file->i1Min=minId;
+	file->i1Max=maxId;
+	file->i2Min=_minId;
+	file->i2Max=_maxId;
 	file->lines=LinesInfo;
 	file->linesNum=linesNum;
 
 	return file;
 }
-void free_idiLineFile(struct idiLineFile *file) {
+void free_iidLineFile(struct iidLineFile *file) {
 	if(file != NULL) {
 		free(file->lines);
 		free(file);

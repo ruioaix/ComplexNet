@@ -1,5 +1,5 @@
-#ifndef ILINEFILE
-#define ILINEFILE
+#ifndef ILINEFILE_H
+#define ILINEFILE_H
 
 // for file containing one int in one line.
 struct iLine {

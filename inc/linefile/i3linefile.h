@@ -1,5 +1,5 @@
-#ifndef I3LINEFILE
-#define I3LINEFILE
+#ifndef I3LINEFILE_H
+#define I3LINEFILE_H
 
 struct i3Line{
 	int i1;

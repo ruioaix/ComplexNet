@@ -1,5 +1,5 @@
-#ifndef IID3LINEFILE
-#define IID3LINEFILE
+#ifndef IID3LINEFILE_H
+#define IID3LINEFILE_H
 
 //for file containing int/int/double/double/double
 struct iid3Line {
@@ -10,8 +10,10 @@ struct iid3Line {
 	double d5;
 };
 struct iid3LineFile {
-	int iMax;
-	int iMin;
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
 	struct iid3Line *lines;
 };

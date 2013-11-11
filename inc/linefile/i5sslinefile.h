@@ -1,5 +1,5 @@
-#ifndef I5SSLINEFILE
-#define I5SSLINEFILE
+#ifndef I5SSLINEFILE_H
+#define I5SSLINEFILE_H
 
 //for file containing 5 int, char *, char *
 struct i5ssLine {
@@ -12,8 +12,10 @@ struct i5ssLine {
 	char s7[1000];
 };
 struct i5ssLineFile {
-	int iMax;
-	int iMin;
+	int i1Max;
+	int i1Min;
+	int i2Max;
+	int i2Min;
 	long linesNum;
 	struct i5ssLine *lines;
 };

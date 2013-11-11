@@ -1,5 +1,5 @@
-#ifndef I5DSLINEFILE
-#define I5DSLINEFILE
+#ifndef I5DSLINEFILE_H
+#define I5DSLINEFILE_H
 
 //for file containing 5 int, char *, double
 struct i5dsLine {

@@ -1,6 +1,25 @@
+#include "../../inc/linefile/innlinefile.h"
+#include "../../inc/complexnet_error.h"
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+#include "limits.h"
+#include "assert.h"
 
-//unlimit int=============================================================================================================================================================
-static char *delimiter="\t, \r\n:";
+//LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
+#define LINE_LENGTH_MAX 10000
+
+//LINES_LENGTH_EACH is the stepLength. 
+//now it's 1e7, means, if a file contains less than 1e7 lines, malloc will be called only one time.
+//if a file contans 1e8 lines, malloc will be called ten times.
+//of course, if a file contains 1e8 lines, maybe you want to set LINES_LENGTH_EACH to 5e7 or 1e8. that's depend on you.
+//you don't need to know the exactly line num of the file.
+#define LINES_LENGTH_EACH 1000000
+
+//LINE_INT_NUM_EACH is another stepLength.
+#define LINE_INT_NUM_EACH 5000
+
+
 static struct innLine fill_innLine(char *line, long filelineNum) {
 	struct innLine is;
 
@@ -10,8 +29,9 @@ static struct innLine fill_innLine(char *line, long filelineNum) {
 		return is;
 	}
 
-	int isMax=5000;
+	int isMax=LINE_INT_NUM_EACH;
 	char **partsLine = calloc(isMax, sizeof(void *));
+	char *delimiter="\t, \r\n:";
 	partsLine[0]=strtok(line, delimiter);
 	if (partsLine[0]==NULL) {
 		is.num = 0;
@@ -21,7 +41,7 @@ static struct innLine fill_innLine(char *line, long filelineNum) {
 	int i=0;
 	while((partsLine[++i]=strtok(NULL, delimiter))) {
 		if (i==isMax) {
-			isMax += 5000;
+			isMax += LINE_INT_NUM_EACH;
 			char **temp = realloc(partsLine, isMax*sizeof(void *));
 			assert(temp!=NULL);
 			partsLine=temp;
@@ -49,6 +69,7 @@ static struct innLine fill_innLine(char *line, long filelineNum) {
 	is.inn=vt;
 	return is;
 }
+
 struct innLineFile *create_innLineFile(const char * const filename)
 {
 	printf("read innLineFile %s: \n", filename);
@@ -89,6 +110,7 @@ struct innLineFile *create_innLineFile(const char * const filename)
 
 	return isfile;
 }
+
 void free_innLineFile(struct innLineFile *file) {
 	long i;
 	if (file != NULL) {

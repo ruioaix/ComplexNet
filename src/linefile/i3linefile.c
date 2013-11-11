@@ -4,6 +4,7 @@
 #include "string.h"
 #include "stdlib.h"
 #include "limits.h"
+#include "assert.h"
 
 //LINE_LENGTH_MAX is a serious constant, you should be sure a line's length not exceed this value.
 #define LINE_LENGTH_MAX 10000
@@ -42,7 +43,7 @@ static void fill_i3Line(char *line, struct i3Line *LI_origin,  long *lNum, int e
 	}
 	partsLine[2]=strtok(NULL, delimiter);
 	if (partsLine[2]==NULL) {
-		printf("\tline %ld not valid, ignored (looks like only one number).\n", filelineNum);
+		printf("\tline %ld not valid, ignored (looks like only two number).\n", filelineNum);
 		return;
 	}
 

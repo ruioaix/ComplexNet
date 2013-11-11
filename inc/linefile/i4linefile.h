@@ -1,5 +1,5 @@
-#ifndef I4LINEFILE
-#define I4LINEFILE
+#ifndef I4LINEFILE_H
+#define I4LINEFILE_H
 
 //for file containing four int in one line.
 struct i4Line {

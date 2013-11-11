@@ -1,7 +1,7 @@
 #ifndef COMPLEXNET_NET_H
 #define COMPLEXNET_NET_H
 
-#include "../inc/complexnet_linefile.h"
+#include "../inc/linefile/iilinefile.h"
 
 struct Net{
 	int maxId;

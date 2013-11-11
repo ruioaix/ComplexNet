@@ -2,7 +2,7 @@
 #define COMPLEXNET_NET_PSPIPR_H
 
 
-#include "../inc/complexnet_linefile.h"
+#include "../inc/linefile/iid3linefile.h"
 
 struct Net_PSPIPR{
 	int maxId;

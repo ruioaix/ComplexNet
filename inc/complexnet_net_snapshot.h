@@ -1,7 +1,7 @@
 #ifndef COMPLEXNET_NET_SNAPSHOT_H
 #define COMPLEXNET_NET_SNAPSHOT_H
 
-#include "../inc/complexnet_linefile.h"
+#include "../inc/linefile/i3linefile.h"
 
 struct Net_SNAPSHOT{
 	int maxId;
