@@ -1,8 +1,8 @@
-#ifndef COMPLEXNET_DNET_H
-#define COMPLEXNET_DNET_H
+#ifndef DNET_H
+#define DNET_H
 
-#include "../inc/linefile/iilinefile.h"
-#include "../inc/linefile/innlinefile.h"
+#include "../linefile/iilinefile.h"
+#include "../linefile/innlinefile.h"
 #include "stdio.h"
 
 struct DirectNet{

@@ -1,7 +1,7 @@
-#include "../inc/complexnet_dnet.h"
-#include "../inc/utility/error.h"
-#include "../inc/utility/random.h"
-#include "../inc/utility/threadsafe_random.h"
+#include "../../inc/compact/dnet.h"
+#include "../../inc/utility/error.h"
+#include "../../inc/utility/random.h"
+#include "../../inc/utility/threadsafe_random.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>

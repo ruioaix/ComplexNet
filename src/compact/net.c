@@ -68,6 +68,8 @@ struct Net *create_Net(const struct iiLineFile * const file) {
 	}
 	free(temp_count);
 
+	struct Net *net = malloc(sizeof(struct Net));
+	assert(net != NULL);
 	net->maxId=maxId;
 	net->minId=minId;
 	net->edgesNum=linesNum;
@@ -76,6 +78,7 @@ struct Net *create_Net(const struct iiLineFile * const file) {
 	net->count=count;
 	net->edges=edges;
 	printf("build net:\n\tMax: %d, Min: %d, vtsNum: %d, edgesNum: %ld, countMax: %ld\n", maxId, minId, vtsNum, linesNum, countMax); fflush(stdout);
+	return net;
 }
 
 void *verifyNet(void *arg) {
@@ -106,6 +109,10 @@ void *verifyNet(void *arg) {
 					sign=1;
 				}
 			}
+		}
+		if (j%10000 == 0) {
+			printf("%d\n", j);
+			fflush(stdout);
 		}
 	}
 	free(place);
@@ -139,7 +146,7 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 					for (k=0; k<net->count[i]; ++k) {
 						if (j != k) {
 							int kk = net->edges[i][k];
-							long index = net_find_index(kk, i);
+							long index = net_find_index(net, kk, i);
 							if (index == -1) isError("index == -1");
 							P2[i][j] *= Theta[kk][index];
 						}
@@ -165,7 +172,7 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 				PS[i] = 1;
 				for (j=0; j<net->count[i]; ++j) {
 					int jj = net->edges[i][j];
-					long index = net_find_index(jj,i);
+					long index = net_find_index(net, jj,i);
 					if (index == -1) isError("PS index == -1");
 					PS[i] *= Theta[jj][index];
 				}
@@ -262,8 +269,8 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 	int j;
 	for (i=0; i<net->maxId+1; ++i) {
 		if (net->count[i] > 0) {
-			net_dmp_init(i, P1, P2, Theta, Phi, PS, PI, PR);
-			net_dmp_core(i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
+			net_dmp_init(net, i, P1, P2, Theta, Phi, PS, PI, PR);
+			net_dmp_core(net, i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
 			for (j=0; j<net->maxId+1; ++j) {
 				if (PS[j] != 1 || PI[j] != 0 || PR[j] != 0) {
 					fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, PS[j], PI[j], PR[j]);	
@@ -303,4 +310,22 @@ long net_find_index(struct Net *net, int v1, int v2) {
 		}
 	}
 	return -1;
+}
+
+void print_Net(struct Net *net, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_Net");
+	int i;
+	long j;
+	for (i=0; i<net->maxId + 1; ++i) {
+		if (net->count[i] > 0) {
+			for (j=0; j<net->count[i]; ++j) {
+				if (i < net->edges[i][j]) {
+					fprintf(fp, "%d\t%d\n", i, net->edges[i][j]);
+				}
+			}
+		}
+	}
+	fclose(fp);
+	printf("print_Net %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
 }

@@ -119,3 +119,14 @@ void free_iiLineFile(struct iiLineFile *file) {
 		free(file);
 	}
 }
+
+void print_iiLineFile(struct iiLineFile *file, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_iiLineFile");
+	long i;
+	for (i=0; i<file->linesNum; ++i) {
+		fprintf(fp, "%d\t%d\n", file->lines[i].i1, file->lines[i].i2);
+	}
+	fclose(fp);
+	printf("print_iiLineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
+}

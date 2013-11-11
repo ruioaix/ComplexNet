@@ -12,8 +12,9 @@ struct Net{
 	long *count;
 	int **edges;
 };
-void free_Net(void);
+void free_Net(struct Net *net);
 struct Net *create_Net(const struct iiLineFile * const file);
+void print_Net(struct Net *net, char *filename);
 
 //thread routine, don't need arg, the routine will use net;
 //of course, you can use this in the main thread.

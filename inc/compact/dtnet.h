@@ -1,8 +1,8 @@
 #ifndef COMPLEXNET_DTNET_H
 #define COMPLEXNET_DTNET_H
 
-#include "../inc/linefile/i4linefile.h"
-#include "../inc/utility/hashtable.h"
+#include "../linefile/i4linefile.h"
+#include "../utility/hashtable.h"
 #include "stdio.h"
 #include "pthread.h"
 

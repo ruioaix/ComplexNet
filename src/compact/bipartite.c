@@ -1,7 +1,7 @@
-#include "../inc/complexnet_bipartite.h"
-#include "../inc/utility/error.h"
-#include "../inc/utility/random.h"
-#include "../inc/utility/sort.h"
+#include "../../inc/compact/bipartite.h"
+#include "../../inc/utility/error.h"
+#include "../../inc/utility/random.h"
+#include "../../inc/utility/sort.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>

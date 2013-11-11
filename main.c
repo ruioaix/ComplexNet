@@ -23,14 +23,18 @@ int main(int argc, char **argv)
 	int k;
 
 	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	//create_Net(file);
-	//verifyNet(NULL);
-	//net_dmp(10, 0.6, 0.5);
+	struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
+	struct Net *net = create_Net(file);
+	//print_Net(net, "Results/youtube_net");
+	//exit(0);
+	//verifyNet(net);
+	//net_dmp(net, 10, 0.6, 0.5);
 	//exit(0);
 
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
-	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
-	//print_iLineFile(eye_nodes, "Results/eye_rndNon_0.05.txt");
+	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
+	struct iLineFile *eye_nodes = create_iLineFile("data/youtube/eye_youtube_rndNon_0.01.txt");
+	//print_iLineFile(eye_nodes, "Results/youtube_eye");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_degreeNon_0.05-1.txt");
 
 	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
@@ -39,11 +43,12 @@ int main(int argc, char **argv)
 	struct PSPIPR *net_pspipr = create_PSPIPR(pspipr);
 	//print_Net_PSPIPR("Results/PS_PI_PR_net_output");
 
-	struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
-	//print_i3LineFile(snapshot, "Results/snapshot_instances_output");
-
+	//struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
+	struct i3LineFile *snapshot = create_i3LineFile("data/youtube/snapshot_youtube_InstaceAllnew0.60.txt");
+	print_i3LineFile(snapshot, "Results/snapshot_instances_output");
+	exit(0);
 	struct Snapshot * net_snapshot = create_Snapshot(snapshot);
-	//print_Net_SNAPSHOT("Results/snapshot_net_output");
+	//print_Snapshot("Results/snapshot_net_output");
 
 	FILE *fp;
 	fp = fopen("Results/de_infectsource_rank.txt", "w");

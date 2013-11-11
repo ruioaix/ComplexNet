@@ -16,5 +16,6 @@ struct iiLineFile {
 };
 void free_iiLineFile(struct iiLineFile *file);
 struct iiLineFile *create_iiLineFile(const char * const filename);
+void print_iiLineFile(struct iiLineFile *file, char *filename);
 
 #endif
