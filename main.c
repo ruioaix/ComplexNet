@@ -8,6 +8,7 @@
 #include "inc/matrix/snapshot.h" //for buildDNet;
 #include "inc/utility/error.h"
 #include "inc/utility/sort.h"
+#include "inc/hashtable/dmp.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,14 +23,50 @@ int main(int argc, char **argv)
 	int j;
 	int k;
 
-	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
+
+	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
 	//struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
-	//struct Net *net = create_Net(file);
+
+	//struct Net *neti = create_Net(file);
 	//print_Net(net, "Results/youtube_net");
 	//exit(0);
 	//verifyNet(net);
-	//net_dmp(net, 10, 0.6, 0.5);
+	//net_dmp(neti, 1, 0.6, 0.5);
 	//exit(0);
+
+	struct HashTable_DMP *ht = create_HashTable_DMP(file->linesNum);
+	int infect_source = 1;
+	init_HashTable_DMP(ht, file, infect_source);
+	print_ENum_HashTable_DMP(ht, "Results/enum_ht");
+	//exit(0);
+
+	struct Net *net = create_Net(file);
+
+	FILE *fp = fopen("Results/hashtable_out", "w");
+	fileError(fp, "main");
+
+	for (j=0; j<net->maxId + 1; ++j) {
+		clean_HashTable_DMP(ht, infect_source);
+		double *PS = dmp(ht, j, 0.6, 0.5, 10, net);
+		if (!PS) continue;
+		double *PI = PS + net->maxId + 1;
+		double *PR = PI + net->maxId + 1;
+		
+		//struct HashElement_DMP *he = getHEfromHT_DMP(ht, 1, 387);
+		//printf("%d,%d,%f,%f,%f,%f\n", he->i1, he->i2, he->theta, he->phi, he->p1, he->p2);
+
+		for (i=0; i<net->maxId + 1; ++i) {
+			if (PS[i] != 1 || PI[i] !=0 || PR[i] != 0) {
+				fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", j, i, PS[i], PI[i], PR[i]);
+			}
+		}
+	}
+
+	exit(0);
+	long linesnum = getelementSumNumHT_DMP(ht);
+	printf("%ld\n", linesnum);
+	//while(1);
+	exit(0);
 
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
