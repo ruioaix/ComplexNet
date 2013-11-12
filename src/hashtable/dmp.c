@@ -179,7 +179,22 @@ void clean_HashTable_DMP(struct HashTable_DMP *ht, int infect_source) {
 	int i;
 	struct HashElement_DMP *l;
 	for (i=0; i<ht->length; ++i) {
-		l = ht->
+		l = ht->he[i];
+		while(l) {
+			if (l->i1 != infect_source) {
+				l->theta = 1;
+				l->phi = 0;
+				l->p1 = 1;
+				l->p2 = 0;
+			}
+			else {
+				l->theta = 1;
+				l->phi = 1;
+				l->p1 = 0;
+				l->p2 = 0;
+			}
+			l = l->next;
+		}
 	}
 }
 
@@ -242,7 +257,7 @@ void print_ENum_HashTable_DMP(struct HashTable_DMP *ht, char *filename) {
 	fclose(fp);
 }
 
-double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, double recover_rate, int T, struct Net *net) {
+double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, double recover_rate, int T, struct Net *net, double *PS, double *PI, double *PR) {
 	if (infect_source > net->maxId || net->count[infect_source] == 0) {
 		printf("dmp error\n\twrong infect_source: %d\n", infect_source);
 		return NULL;
@@ -253,11 +268,6 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 	int step = 1;
 	struct HashElement_DMP *l;
 	
-	double *PS = malloc(3*(net->maxId+1)*sizeof(double));
-	assert(PS != NULL);
-	double *PI = PS + net->maxId + 1;
-	double *PR = PI + net->maxId + 1;
-
 	//init PS PI PR
 	for (i=0; i<net->maxId+1; ++i) {
 		PR[i] = 0;
@@ -274,7 +284,6 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 	double *theta_temp = calloc(net->maxId + 1, sizeof(double));
 
 	while (step <= T) {
-		printf("step: %d\n", step);fflush(stdout);
 		//compute theta, phi, PSi->j
 		for (i=0; i<ht->length; ++i) {
 			l = ht->he[i];
@@ -283,7 +292,6 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 				l = l->next;
 			}
 		}
-		printf("\ttheta done.\n");fflush(stdout);
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net->count[i]; ++j) {
 				l = getHEfromHT_DMP(ht, net->edges[i][j], i);
@@ -307,9 +315,7 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 					l->p2 = 0;
 				}
 			}
-			if (i%1000 == 0) {printf("%d\n", i);fflush(stdout);}
 		}
-		printf("\tp2 done.\n");fflush(stdout);
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net->count[i]; ++j) {
 				l = getHEfromHT_DMP(ht, i, net->edges[i][j]);
@@ -320,7 +326,6 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 				l->p1 = temp;
 			}
 		}
-		printf("\tphi done.\n");fflush(stdout);
 
 		//compute and store PS PI PR.
 		for (i=0; i<maxId+1; ++i) {
@@ -339,7 +344,7 @@ double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, dou
 			PR[i] = PR[i] + recover_rate*PI[i];
 			PI[i] = 1 - PS[i] - PR[i];
 		}
-		printf("\tpspipr done.\n");fflush(stdout);
+		//printf("\tpspipr done.\n");fflush(stdout);
 		
 		++step;
 	}

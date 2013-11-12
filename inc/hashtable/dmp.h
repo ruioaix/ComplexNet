@@ -47,6 +47,7 @@ void print_HashTable_DMP(struct HashTable_DMP *ht, char *filename);
 
 //
 void init_HashTable_DMP(struct HashTable_DMP *ht, struct iiLineFile *file, int infect_source);
-double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, double recover_rate, int T, struct Net *net);
+void clean_HashTable_DMP(struct HashTable_DMP *ht, int infect_source);
+double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, double recover_rate, int T, struct Net *net, double *PS, double *PI, double *PR);
 
 #endif
