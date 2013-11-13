@@ -133,6 +133,14 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 	long j, k;
 	int step = 1;
 
+	char *sign = calloc(net->maxId + 1, sizeof(char));
+	assert(sign != NULL);
+
+	int *affectdata = malloc((net->maxId + 1)*sizeof(int));
+	assert(affectdata != NULL);
+
+	int affectdataNum = 0;
+
 	while (step <= T) {
 		//compute theta, phi, PSi->j
 		for (i=0; i<maxId+1; ++i) {
@@ -143,6 +151,7 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net->count[i]; ++j) {
 				long index = net_find_index(net, net->edges[i][j], i);
+				if (index == -1) isError("index == -1");
 				theta_temp[j] = Theta[net->edges[i][j]][index];
 			}
 
@@ -151,10 +160,6 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 					P2[i][j] = 1;
 					for (k=0; k<net->count[i]; ++k) {
 						if (j != k) {
-							//int kk = net->edges[i][k];
-							//long index = net_find_index(net, kk, i);
-							//if (index == -1) isError("index == -1");
-							//P2[i][j] *= Theta[kk][index];
 							P2[i][j] *= theta_temp[k];
 						}
 					}
@@ -302,6 +307,7 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 			free(Phi[i]);
 		}
 	}
+	free(theta_temp);
 	free(P1);
 	free(P2);
 	free(Theta);
@@ -309,6 +315,66 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 	free(PS);
 	free(PI);
 	free(PR);
+}
+
+double *net_dmp_is(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate) {
+	double **P1 = malloc((net->maxId+1)*sizeof(void *));
+	assert(P1 != NULL);
+	double **P2 = malloc((net->maxId+1)*sizeof(void *));
+	assert(P2 != NULL);
+	double **Theta = malloc((net->maxId+1)*sizeof(void *));
+	assert(Theta != NULL);
+	double **Phi = malloc((net->maxId+1)*sizeof(void *));
+	assert(Phi != NULL);
+
+	double *PS = malloc(3*(net->maxId+1)*sizeof(double));
+	assert(PS != NULL);
+	double *PI = PS + net->maxId + 1;
+	double *PR = PI + net->maxId + 1;
+
+	int i;
+	for (i=0; i<net->maxId+1; ++i) {
+		if (net->count[i] > 0) {
+			P1[i] = malloc(net->count[i]*sizeof(double));
+			assert(P1[i] != NULL);
+			P2[i] = malloc(net->count[i]*sizeof(double));
+			assert(P2[i] != NULL);
+			Theta[i] = malloc(net->count[i]*sizeof(double));
+			assert(Theta[i] != NULL);
+			Phi[i] = malloc(net->count[i]*sizeof(double));
+			assert(Phi[i] != NULL);
+		}
+		else {
+			P1[i] = NULL;
+			P2[i] = NULL;
+			Theta[i] = NULL;
+			Phi[i] = NULL;
+		}
+	}
+
+	double *theta_temp = malloc((net->maxId+1)*sizeof(double));
+	assert(theta_temp != NULL);
+
+	if (net->count[infect_source] > 0) {
+		net_dmp_init(net, infect_source, P1, P2, Theta, Phi, PS, PI, PR);
+		net_dmp_core(net, infect_source, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR, theta_temp);
+	}
+
+	for (i=0; i<net->maxId+1; ++i) {
+		if (net->count[i] > 0) {
+			free(P1[i]);
+			free(P2[i]);
+			free(Theta[i]);
+			free(Phi[i]);
+		}
+	}
+	free(theta_temp);
+	free(P1);
+	free(P2);
+	free(Theta);
+	free(Phi);
+
+	return PS;
 }
 
 // find v2's index in net->edges[v1][index] = v2.
