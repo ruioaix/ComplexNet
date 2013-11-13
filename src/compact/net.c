@@ -127,11 +127,12 @@ void *verifyNet(void *arg) {
 	return (void *)0;
 }
 
-static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
+static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR, double *theta_temp) {
 	int maxId = net->maxId;
 	int i;
 	long j, k;
 	int step = 1;
+
 	while (step <= T) {
 		//compute theta, phi, PSi->j
 		for (i=0; i<maxId+1; ++i) {
@@ -140,15 +141,21 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 			}
 		}
 		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net->count[i]; ++j) {
+				long index = net_find_index(net, net->edges[i][j], i);
+				theta_temp[j] = Theta[net->edges[i][j]][index];
+			}
+
 			if (i != infect_source) {
 				for (j=0; j<net->count[i]; ++j) {
 					P2[i][j] = 1;
 					for (k=0; k<net->count[i]; ++k) {
 						if (j != k) {
-							int kk = net->edges[i][k];
-							long index = net_find_index(net, kk, i);
-							if (index == -1) isError("index == -1");
-							P2[i][j] *= Theta[kk][index];
+							//int kk = net->edges[i][k];
+							//long index = net_find_index(net, kk, i);
+							//if (index == -1) isError("index == -1");
+							//P2[i][j] *= Theta[kk][index];
+							P2[i][j] *= theta_temp[k];
 						}
 					}
 				}
@@ -262,6 +269,9 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 		}
 	}
 
+	double *theta_temp = malloc((net->maxId+1)*sizeof(double));
+	assert(theta_temp != NULL);
+
 	char filename[100];
 	sprintf(filename, "Results/PS_PI_PR_Time_%d.txt", T);
 	FILE *fp = fopen(filename, "write");
@@ -270,7 +280,7 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 	for (i=0; i<net->maxId+1; ++i) {
 		if (net->count[i] > 0) {
 			net_dmp_init(net, i, P1, P2, Theta, Phi, PS, PI, PR);
-			net_dmp_core(net, i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
+			net_dmp_core(net, i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR, theta_temp);
 			for (j=0; j<net->maxId+1; ++j) {
 				if (PS[j] != 1 || PI[j] != 0 || PR[j] != 0) {
 					fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, PS[j], PI[j], PR[j]);	
