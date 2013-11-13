@@ -24,12 +24,14 @@ int main(int argc, char **argv)
 	int k;
 
 
-	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
+	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
+	//struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
 
 	struct Net *net = create_Net(file);
 	//print_Net(net, "Results/youtube_net");
-	//net_dmp(net, 2, 0.6, 0.5);
+	net_dmp(net, 10, 0.6, 0.5);
+
+	/*
 	int infect_source = 11;
 	double *PS = net_dmp_is(net, infect_source, 10, 0.6, 0.5);
 	double *PI = PS + net->maxId + 1;
@@ -43,6 +45,7 @@ int main(int argc, char **argv)
 		}
 	}
 	fclose(fp);
+	*/
 
 
 	/*
@@ -145,9 +148,9 @@ int main(int argc, char **argv)
 	}
 	printf("%f\n", (double)ave/(double)net_pspipr->maxId);
 	*/
-	free_iiLineFile(file);
-	free(PS);
-	free_Net(net);
+	//free_iiLineFile(file);
+	//free(PS);
+	//free_Net(net);
 	
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
