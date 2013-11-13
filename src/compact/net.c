@@ -128,7 +128,6 @@ void *verifyNet(void *arg) {
 }
 
 static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR, double *theta_temp) {
-	int maxId = net->maxId;
 	int i;
 	long j, k;
 	int step = 1;

@@ -27,47 +27,45 @@ int main(int argc, char **argv)
 	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
 	//struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
 	
+	
 	struct Net *net = create_Net(file);
-	//print_Net(net, "Results/youtube_net");
-	net_dmp(net, 10, 0.6, 0.5);
+	////print_Net(net, "Results/youtube_net");
+	//net_dmp(net, 10, 0.6, 0.5);
 
-	/*
+	
+	
 	int infect_source = 11;
 	double *PS = net_dmp_is(net, infect_source, 10, 0.6, 0.5);
 	double *PI = PS + net->maxId + 1;
 	double *PR = PI + net->maxId + 1;
-	FILE *fp;
-	fp = fopen("Results/de_infectsource_rank.txt", "w");
-	fileError(fp, "main");
-	for (i=0; i<net->maxId + 1; ++i) {
-		if (PS[i] != 1 || PI[i] != 0 || PR[i] != 0) {
-			fprintf(fp, "%d, %d, %.17f, %.17f, %.17f\n", infect_source, i, PS[i], PI[i], PR[i]);
-		}
-		if (j%1000 == 0) {
-			printf("%d\n", j);fflush(stdout);
-		}
-	}
-	fclose(fp);
-	*/
-
-	/*
+	//FILE *fp;
+	//fp = fopen("Results/de_infectsource_rank.txt", "w");
+	//fileError(fp, "main");
+	//for (i=0; i<net->maxId + 1; ++i) {
+	//	if (PS[i] != 1 || PI[i] != 0 || PR[i] != 0) {
+	//		fprintf(fp, "%d, %d, %.17f, %.17f, %.17f\n", infect_source, i, PS[i], PI[i], PR[i]);
+	//	}
+	//	if (j%1000 == 0) {
+	//		printf("%d\n", j);fflush(stdout);
+	//	}
+	//}
+	//fclose(fp);
+	
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/youtube/eye_youtube_rndNon_0.01.txt");
-	//print_iLineFile(eye_nodes, "Results/youtube_eye");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_degreeNon_0.05-1.txt");
 
-	struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
+	//struct iid3LineFile *pspipr = create_iid3LineFile("data/PS_PI_PR_Time_10.txt");
 	//print_iid3LineFile(pspipr, "Results/PS_PI_PR_output");
-
-	struct PSPIPR *net_pspipr = create_PSPIPR(pspipr);
+	//struct PSPIPR *net_pspipr = create_PSPIPR(pspipr);
 	//print_Net_PSPIPR("Results/PS_PI_PR_net_output");
 
-	struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
-	//struct i3LineFile *snapshot = create_i3LineFile("data/youtube/snapshot_youtube_InstaceAllnew0.60.txt");
+	//struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
+	struct i3LineFile *snapshot = create_i3LineFile("data/youtube/snapshot_youtube_InstaceAllnew0.60.txt");
 	//print_i3LineFile(snapshot, "Results/snapshot_instances_output");
-	//exit(0);
-	struct Snapshot * net_snapshot = create_Snapshot(snapshot);
+	
+	//struct Snapshot * net_snapshot = create_Snapshot(snapshot);
 	//print_Snapshot("Results/snapshot_net_output");
 
 	FILE *fp;
@@ -75,6 +73,7 @@ int main(int argc, char **argv)
 	double E, E_i;
 	int Rank=1;
 
+	/*
 	int ave = 0;
 	//for every snapshot has a Rank output.
 	for (i=1; i < net_snapshot->maxId+1; ++i) {
@@ -157,3 +156,4 @@ int main(int argc, char **argv)
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 	return 0;
+}
