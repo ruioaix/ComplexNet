@@ -14,7 +14,6 @@
 #include <time.h>
 #include <limits.h>
 #include <math.h>
-#include <assert.h>
 
 int main(int argc, char **argv)
 {
@@ -24,16 +23,15 @@ int main(int argc, char **argv)
 	int j;
 	int k;
 
+
 	struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
 	//struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
 
 	//struct Net *neti = create_Net(file);
-	////print_Net(net, "Results/youtube_net");
-	////exit(0);
-	////verifyNet(net);
-	//net_dmp(neti, 10, 0.6, 0.5);
-	//t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
-
+	//print_Net(net, "Results/youtube_net");
+	//exit(0);
+	//verifyNet(net);
+	//net_dmp(neti, 1, 0.6, 0.5);
 	//exit(0);
 
 	struct HashTable_DMP *ht = create_HashTable_DMP(file->linesNum);
@@ -43,39 +41,33 @@ int main(int argc, char **argv)
 	//exit(0);
 
 	struct Net *net = create_Net(file);
-	//print_Net(net, "Results/youtube_net");
-	net_dmp(net, 10, 0.6, 0.5);
 
-	FILE *fp1 = fopen("Results/hashtable_out", "w");
-	fileError(fp1, "main");
+	FILE *fp = fopen("Results/hashtable_out", "w");
+	fileError(fp, "main");
 
-	double *PS = malloc((net->maxId+1)*sizeof(double));
-	assert(PS != NULL);
-	double *PI = malloc((net->maxId+1)*sizeof(double));
-	assert(PI != NULL);
-	double *PR = malloc((net->maxId+1)*sizeof(double));
-	assert(PR != NULL);
-
-	for (j=1; j<net->maxId + 1; ++j) {
-		clean_HashTable_DMP(ht, j);
-		dmp(ht, j, 0.6, 0.5, 10, net, PS, PI, PR);
+	for (j=0; j<net->maxId + 1; ++j) {
+		//clean_HashTable_DMP(ht, infect_source);
+		double *PS = dmp(ht, j, 0.6, 0.5, 10, net);
 		if (!PS) continue;
+		double *PI = PS + net->maxId + 1;
+		double *PR = PI + net->maxId + 1;
 		
 		//struct HashElement_DMP *he = getHEfromHT_DMP(ht, 1, 387);
 		//printf("%d,%d,%f,%f,%f,%f\n", he->i1, he->i2, he->theta, he->phi, he->p1, he->p2);
 
-		for (i=1; i<net->maxId + 1; ++i) {
-			if ((PS[i] != 1 || PI[i] !=0 || PR[i] != 0) ) {
-				fprintf(fp1, "%d, %d, %0.17f, %0.17f, %0.17f\n", j, i, PS[i], PI[i], PR[i]);
+		for (i=0; i<net->maxId + 1; ++i) {
+			if (PS[i] != 1 || PI[i] !=0 || PR[i] != 0) {
+				fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", j, i, PS[i], PI[i], PR[i]);
 			}
 		}
-		if (j%1000 == 0) {
-			printf("%d\n", j);fflush(stdout);
-		}
 	}
-	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 
-	/*
+	exit(0);
+	long linesnum = getelementSumNumHT_DMP(ht);
+	printf("%ld\n", linesnum);
+	//while(1);
+	exit(0);
+
 	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rnd_0.05.txt");
 	struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
 	//struct iLineFile *eye_nodes = create_iLineFile("data/youtube/eye_youtube_rndNon_0.01.txt");
@@ -174,10 +166,9 @@ int main(int argc, char **argv)
 		//}
 	}
 	printf("%f\n", (double)ave/(double)net_pspipr->maxId);
-	*/
+
 	//free_iiLineFile(file);
-	//free(PS);
-	//free_Net(net);
+	//free_Net();
 	
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

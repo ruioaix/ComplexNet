@@ -127,12 +127,104 @@ void *verifyNet(void *arg) {
 	return (void *)0;
 }
 
-static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
+static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR, double *theta_temp) {
 	int maxId = net->maxId;
 	int i;
 	long j, k;
 	int step = 1;
+
+	char *sign = calloc(net->maxId + 1, sizeof(char));
+	assert(sign != NULL);
+
+	int *affectdata = malloc((net->maxId + 1)*sizeof(int));
+	assert(affectdata != NULL);
+
+	int affectdataNum = 0;
+
+	//for (j=0; j<net->count[infect_source]; ++j) {
+	//	sign[net->edges[infect_source][j]] = 1;
+	//	affectdata[affectdataNum] = net->edges[infect_source][j];
+	//	++affectdataNum;
+	//}
+	sign[infect_source] = 1;
+	affectdata[affectdataNum++] = infect_source;
+
+	int adn;
+	int sing = 0;
 	while (step <= T) {
+		if (affectdataNum == net->vtsNum && sing == 0) {
+			printf("infect_source: %d, step: %d\n", infect_source, step);
+			sing = 1;
+		}
+		int current_affectdataNum = affectdataNum;
+		for (adn=0; adn<current_affectdataNum; ++adn) {
+			i = affectdata[adn];
+			for (j=0; j<net->count[i]; ++j) {
+				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
+				if (!sign[net->edges[i][j]]) {
+					sign[net->edges[i][j]] = 1;
+					affectdata[affectdataNum++] = net->edges[i][j];
+				}
+			}
+		}
+		current_affectdataNum = affectdataNum;
+		for (adn=0; adn<current_affectdataNum; ++adn) {
+			i = affectdata[adn];
+			for (j=0; j<net->count[i]; ++j) {
+				long index = net_find_index(net, net->edges[i][j], i);
+				if (index == -1) isError("index == -1");
+				theta_temp[j] = Theta[net->edges[i][j]][index];
+			}
+
+			if (i != infect_source) {
+				for (j=0; j<net->count[i]; ++j) {
+					double temp = 1;
+					for (k=0; k<net->count[i]; ++k) {
+						if (j != k) {
+							temp *= theta_temp[k];
+						}
+					}
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j] - temp;
+					P[i][j] = temp;
+					if (!sign[net->edges[i][j]]) {
+						sign[net->edges[i][j]] = 1;
+						affectdata[affectdataNum++] = net->edges[i][j];
+					}
+				}
+			}
+			else {
+				for (j=0; j<net->count[i]; ++j) {
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j];
+					P[i][j] = 0;
+					if (!sign[net->edges[i][j]]) {
+						sign[net->edges[i][j]] = 1;
+						affectdata[affectdataNum++] = net->edges[i][j];
+					}
+				}
+			}
+		}
+		
+		//compute and store PS PI PR.
+		for (adn=0; adn<affectdataNum; ++adn) {
+			i = affectdata[adn];
+			if (i!=infect_source) {
+				PS[i] = 1;
+				for (j=0; j<net->count[i]; ++j) {
+					int jj = net->edges[i][j];
+					long index = net_find_index(net, jj,i);
+					if (index == -1) isError("PS index == -1");
+					PS[i] *= Theta[jj][index];
+				}
+			}
+			else {
+				PS[i] = 0;
+			}
+			PR[i] = PR[i] + recover_rate*PI[i];
+			PI[i] = 1 - PS[i] - PR[i];
+		}
+		
+		++step;
+		/*
 		//compute theta, phi, PSi->j
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net->count[i]; ++j) {
@@ -140,30 +232,35 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 			}
 		}
 		for (i=0; i<maxId+1; ++i) {
+			for (j=0; j<net->count[i]; ++j) {
+				long index = net_find_index(net, net->edges[i][j], i);
+				if (index == -1) isError("index == -1");
+				theta_temp[j] = Theta[net->edges[i][j]][index];
+			}
+
 			if (i != infect_source) {
 				for (j=0; j<net->count[i]; ++j) {
-					P2[i][j] = 1;
+					double temp = 1;
 					for (k=0; k<net->count[i]; ++k) {
 						if (j != k) {
-							int kk = net->edges[i][k];
-							long index = net_find_index(net, kk, i);
-							if (index == -1) isError("index == -1");
-							P2[i][j] *= Theta[kk][index];
+							temp *= theta_temp[k];
 						}
 					}
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j] - temp;
+					P[i][j] = temp;
 				}
 			}
 			else {
 				for (j=0; j<net->count[i]; ++j) {
-					P2[i][j] = 0;
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j];
+					P[i][j] = 0;
 				}
 			}
 		}
-		for (i=0; i<maxId+1; ++i) {
-			for (j=0; j<net->count[i]; ++j) {
-				Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P1[i][j] - P2[i][j];
-			}
-		}
+		//for (i=0; i<maxId+1; ++i) {
+		//	for (j=0; j<net->count[i]; ++j) {
+		//	}
+		//}
 
 		
 		//compute and store PS PI PR.
@@ -184,20 +281,20 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 			PI[i] = 1 - PS[i] - PR[i];
 		}
 		
-		double **temp; temp = P1; P1 = P2; P2 = temp;
 		++step;
+		*/
 	}
 }
 
-static void net_dmp_init(struct Net *net, int infect_source, double **P1, double **P2, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
-	//init the P1 P2 Theta Phi
+static void net_dmp_init(struct Net *net, int infect_source, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR) {
+	//init the P Theta Phi
 	int i;
 	long j;
 	for (i=0; i<net->maxId + 1; ++i) {
 		//i is S
 		if (i != infect_source) {
 			for (j=0; j<net->count[i]; ++j) {
-				P1[i][j] = 1;
+				P[i][j] = 1;
 				Phi[i][j] = 0;
 				Theta[i][j] = 1;
 			}
@@ -205,7 +302,7 @@ static void net_dmp_init(struct Net *net, int infect_source, double **P1, double
 		//i is I
 		else {
 			for (j=0; j<net->count[i]; ++j) {
-				P1[i][j] = 0;
+				P[i][j] = 0;
 				Phi[i][j] = 1;
 				Theta[i][j] = 1;
 			}
@@ -226,10 +323,8 @@ static void net_dmp_init(struct Net *net, int infect_source, double **P1, double
 }
 
 void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
-	double **P1 = malloc((net->maxId+1)*sizeof(void *));
-	assert(P1 != NULL);
-	double **P2 = malloc((net->maxId+1)*sizeof(void *));
-	assert(P2 != NULL);
+	double **P = malloc((net->maxId+1)*sizeof(void *));
+	assert(P != NULL);
 	double **Theta = malloc((net->maxId+1)*sizeof(void *));
 	assert(Theta != NULL);
 	double **Phi = malloc((net->maxId+1)*sizeof(void *));
@@ -245,22 +340,22 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 	int i;
 	for (i=0; i<net->maxId+1; ++i) {
 		if (net->count[i] > 0) {
-			P1[i] = malloc(net->count[i]*sizeof(double));
-			assert(P1[i] != NULL);
-			P2[i] = malloc(net->count[i]*sizeof(double));
-			assert(P2[i] != NULL);
+			P[i] = malloc(net->count[i]*sizeof(double));
+			assert(P[i] != NULL);
 			Theta[i] = malloc(net->count[i]*sizeof(double));
 			assert(Theta[i] != NULL);
 			Phi[i] = malloc(net->count[i]*sizeof(double));
 			assert(Phi[i] != NULL);
 		}
 		else {
-			P1[i] = NULL;
-			P2[i] = NULL;
+			P[i] = NULL;
 			Theta[i] = NULL;
 			Phi[i] = NULL;
 		}
 	}
+
+	double *theta_temp = malloc((net->maxId+1)*sizeof(double));
+	assert(theta_temp != NULL);
 
 	char filename[100];
 	sprintf(filename, "Results/PS_PI_PR_Time_%d.txt", T);
@@ -269,8 +364,8 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 	int j;
 	for (i=0; i<net->maxId+1; ++i) {
 		if (net->count[i] > 0) {
-			net_dmp_init(net, i, P1, P2, Theta, Phi, PS, PI, PR);
-			net_dmp_core(net, i, T, infect_rate, recover_rate, P1, P2, Theta, Phi, PS, PI, PR);
+			net_dmp_init(net, i, P, Theta, Phi, PS, PI, PR);
+			net_dmp_core(net, i, T, infect_rate, recover_rate, P, Theta, Phi, PS, PI, PR, theta_temp);
 			for (j=0; j<net->maxId+1; ++j) {
 				if (PS[j] != 1 || PI[j] != 0 || PR[j] != 0) {
 					fprintf(fp, "%d, %d, %0.17f, %0.17f, %0.17f\n", i, j, PS[j], PI[j], PR[j]);	
@@ -286,19 +381,75 @@ void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {
 
 	for (i=0; i<net->maxId+1; ++i) {
 		if (net->count[i] > 0) {
-			free(P1[i]);
-			free(P2[i]);
+			free(P[i]);
 			free(Theta[i]);
 			free(Phi[i]);
 		}
 	}
-	free(P1);
-	free(P2);
+	free(theta_temp);
+	free(P);
 	free(Theta);
 	free(Phi);
 	free(PS);
 	free(PI);
 	free(PR);
+}
+
+double *net_dmp_is(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate) {
+	if (infect_source > net->maxId || net->count[infect_source] == 0) {
+		printf("net_dmp_is error:\n\twrong infect_source %d\n", infect_source);
+		return NULL;
+	}
+	double **P = malloc((net->maxId+1)*sizeof(void *));
+	assert(P != NULL);
+	double **Theta = malloc((net->maxId+1)*sizeof(void *));
+	assert(Theta != NULL);
+	double **Phi = malloc((net->maxId+1)*sizeof(void *));
+	assert(Phi != NULL);
+
+	double *PS = malloc(3*(net->maxId+1)*sizeof(double));
+	assert(PS != NULL);
+	double *PI = PS + net->maxId + 1;
+	double *PR = PI + net->maxId + 1;
+
+	int i;
+	for (i=0; i<net->maxId+1; ++i) {
+		if (net->count[i] > 0) {
+			P[i] = malloc(net->count[i]*sizeof(double));
+			assert(P[i] != NULL);
+			Theta[i] = malloc(net->count[i]*sizeof(double));
+			assert(Theta[i] != NULL);
+			Phi[i] = malloc(net->count[i]*sizeof(double));
+			assert(Phi[i] != NULL);
+		}
+		else {
+			P[i] = NULL;
+			Theta[i] = NULL;
+			Phi[i] = NULL;
+		}
+	}
+
+	double *theta_temp = malloc((net->maxId+1)*sizeof(double));
+	assert(theta_temp != NULL);
+
+	if (net->count[infect_source] > 0) {
+		net_dmp_init(net, infect_source, P, Theta, Phi, PS, PI, PR);
+		net_dmp_core(net, infect_source, T, infect_rate, recover_rate, P, Theta, Phi, PS, PI, PR, theta_temp);
+	}
+
+	for (i=0; i<net->maxId+1; ++i) {
+		if (net->count[i] > 0) {
+			free(P[i]);
+			free(Theta[i]);
+			free(Phi[i]);
+		}
+	}
+	free(theta_temp);
+	free(P);
+	free(Theta);
+	free(Phi);
+
+	return PS;
 }
 
 // find v2's index in net->edges[v1][index] = v2.

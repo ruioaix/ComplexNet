@@ -23,6 +23,7 @@ void *verifyNet(void *arg);
 //DMP algorithm
 //void net_dmp(int T);
 void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate);
+double *net_dmp_is(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate);
 //void net_dmp(int T, double infect_rate, double recover_rate);
 long net_find_index(struct Net *net, int v1, int v2);
 
