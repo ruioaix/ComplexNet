@@ -176,11 +176,11 @@ void deleteHEfromHT_DMP(struct HashTable_DMP *ht, int i1, int i2)
 
 
 void clean_HashTable_DMP(struct HashTable_DMP *ht, int infect_source) {
-	int i;
-	struct HashElement_DMP *l;
-	for (i=0; i<ht->length; ++i) {
-		l = ht->
-	}
+	//int i;
+	//struct HashElement_DMP *l;
+	//for (i=0; i<ht->length; ++i) {
+	//	l = ht->
+	//}
 }
 
 void init_HashTable_DMP(struct HashTable_DMP *ht, struct iiLineFile *file, int infect_source) {
