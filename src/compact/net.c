@@ -141,13 +141,90 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 
 	int affectdataNum = 0;
 
-	for (j=0; j<net->count[infect_source]; ++j) {
-		sign[net->edges[infect_source][j]] = 1;
-		affectdata[affectdataNum] = net->edges[infect_source][j];
-		++affectdataNum;
-	}
+	//for (j=0; j<net->count[infect_source]; ++j) {
+	//	sign[net->edges[infect_source][j]] = 1;
+	//	affectdata[affectdataNum] = net->edges[infect_source][j];
+	//	++affectdataNum;
+	//}
+	sign[infect_source] = 1;
+	affectdata[affectdataNum++] = infect_source;
 
+	int adn;
+	int sing = 0;
 	while (step <= T) {
+		if (affectdataNum == net->vtsNum && sing == 0) {
+			printf("infect_source: %d, step: %d\n", infect_source, step);
+			sing = 1;
+		}
+		int current_affectdataNum = affectdataNum;
+		for (adn=0; adn<current_affectdataNum; ++adn) {
+			i = affectdata[adn];
+			for (j=0; j<net->count[i]; ++j) {
+				Theta[i][j] = Theta[i][j] - infect_rate*Phi[i][j];
+				if (!sign[net->edges[i][j]]) {
+					sign[net->edges[i][j]] = 1;
+					affectdata[affectdataNum++] = net->edges[i][j];
+				}
+			}
+		}
+		current_affectdataNum = affectdataNum;
+		for (adn=0; adn<current_affectdataNum; ++adn) {
+			i = affectdata[adn];
+			for (j=0; j<net->count[i]; ++j) {
+				long index = net_find_index(net, net->edges[i][j], i);
+				if (index == -1) isError("index == -1");
+				theta_temp[j] = Theta[net->edges[i][j]][index];
+			}
+
+			if (i != infect_source) {
+				for (j=0; j<net->count[i]; ++j) {
+					double temp = 1;
+					for (k=0; k<net->count[i]; ++k) {
+						if (j != k) {
+							temp *= theta_temp[k];
+						}
+					}
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j] - temp;
+					P[i][j] = temp;
+					if (!sign[net->edges[i][j]]) {
+						sign[net->edges[i][j]] = 1;
+						affectdata[affectdataNum++] = net->edges[i][j];
+					}
+				}
+			}
+			else {
+				for (j=0; j<net->count[i]; ++j) {
+					Phi[i][j] = (1-infect_rate)*(1-recover_rate)*Phi[i][j] + P[i][j];
+					P[i][j] = 0;
+					if (!sign[net->edges[i][j]]) {
+						sign[net->edges[i][j]] = 1;
+						affectdata[affectdataNum++] = net->edges[i][j];
+					}
+				}
+			}
+		}
+		
+		//compute and store PS PI PR.
+		for (adn=0; adn<affectdataNum; ++adn) {
+			i = affectdata[adn];
+			if (i!=infect_source) {
+				PS[i] = 1;
+				for (j=0; j<net->count[i]; ++j) {
+					int jj = net->edges[i][j];
+					long index = net_find_index(net, jj,i);
+					if (index == -1) isError("PS index == -1");
+					PS[i] *= Theta[jj][index];
+				}
+			}
+			else {
+				PS[i] = 0;
+			}
+			PR[i] = PR[i] + recover_rate*PI[i];
+			PI[i] = 1 - PS[i] - PR[i];
+		}
+		
+		++step;
+		/*
 		//compute theta, phi, PSi->j
 		for (i=0; i<maxId+1; ++i) {
 			for (j=0; j<net->count[i]; ++j) {
@@ -205,6 +282,7 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 		}
 		
 		++step;
+		*/
 	}
 }
 
