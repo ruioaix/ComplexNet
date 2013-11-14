@@ -11,12 +11,17 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 
+	struct iiLineFile *file = create_iiLineFile("data/movielen/movielens.txt");
+	struct Bip2 *set = create_Bip2(file, 0);
 
 	struct iiLineFile *testfile = create_iiLineFile("data/movielen/movielen0.1");
 	struct iiLineFile *trainfile = create_iiLineFile("data/movielen/movielen0.9");
+	struct Bip2 *testseti1 = create_Bip2(testfile, 1);
+	struct Bip2 *testseti2 = create_Bip2(testfile, 0);
+	struct Bip2 *trainset1 = create_Bip2(trainfile, 1);
+	struct Bip2 *trainset2 = create_Bip2(trainfile, 0);
 
-	struct Bip2 *testset = create_Bip2(testfile, 0);
-	struct Bip2 *trainset = create_Bip2(trainfile, 0);
+	recovery_Bip2(trainset1, trainset2);
 
 	/*
 	long i;
