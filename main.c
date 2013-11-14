@@ -15,8 +15,10 @@
 #include <limits.h>
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 
-char *get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_source);
+//char *get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_source);
+int get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_source, char *stat);
 
 int main(int argc, char **argv)
 {
@@ -64,9 +66,11 @@ int main(int argc, char **argv)
 	//get real_infect_source information
 	printf("Pareparing...\n");fflush(stdout);
 	int real_infect_source;
-	char *stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
+	char *stat = calloc(net->maxId + 1, sizeof(char));
+	assert(stat != NULL);
+	int ok = get_Next_Snapshot(snapshot, net, &real_infect_source, stat);
 	double *PSIR = net_dmp_is(net, real_infect_source, T, infect_rate, recover_rate);
-	while(stat) {
+	while(ok) {
 		double E = 0;
 		for (j=0; j<eye_nodes->linesNum; ++j) {
 			int eye = eye_nodes->lines[j].i1;
@@ -81,8 +85,7 @@ int main(int argc, char **argv)
 		realE[real_infect_source] = E;
 		rank[real_infect_source] = 0;
 		sign[real_infect_source] = 1;
-		free(stat);
-		stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
+		ok = get_Next_Snapshot(snapshot, net, &real_infect_source, stat);
 		free(PSIR);
 		PSIR = net_dmp_is(net, real_infect_source, T, infect_rate, recover_rate);
 	}
@@ -92,13 +95,14 @@ int main(int argc, char **argv)
 	//rank
 	
 	printf("computing:\n");fflush(stdout);
-	for (i=0; i<net->maxId + 1; ++i) {
-		if (i%100 == 0) {printf("%.5f\r", ((double)i)/net->maxId);fflush(stdout);}
+	//for (i=0; i<net->maxId + 1; ++i) {
+	for (i=0; i<100; ++i) {
+		if (i%100 == 0) {printf("%.5f %d\r", ((double)i)/net->maxId, i);fflush(stdout);}
 		if (net->count[i]) {
 			double *PSIR = net_dmp_is(net, i, T, infect_rate, recover_rate);
 			int real_infect_source;
-			char *stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
-			while(stat) {
+			ok = get_Next_Snapshot(snapshot, net, &real_infect_source, stat);
+			while(ok) {
 				double E = 0;
 				for (j=0; j<eye_nodes->linesNum; ++j) {
 					int eye = eye_nodes->lines[j].i1;
@@ -113,8 +117,7 @@ int main(int argc, char **argv)
 				if (E < realE[real_infect_source]) {
 					++rank[real_infect_source];
 				}
-				free(stat);
-				stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
+				ok = get_Next_Snapshot(snapshot, net, &real_infect_source, stat);
 			}
 			free(PSIR);
 		} 
@@ -135,6 +138,7 @@ int main(int argc, char **argv)
 	free(rank);
 	free(realE);
 	free(sign);
+	free(stat);
 	free_i3LineFile(snapshot);
 	free_iLineFile(eye_nodes);
 	free_Net(net);
@@ -148,14 +152,15 @@ int main(int argc, char **argv)
 
 //request: snapshot file is related to net file.
 //request: in snapshot file, only 1&2 is recorded, 0 is not.
-char *get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_source) {
+int get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_source, char *stat) {
 	static int snapshot_z = 0;
 	if (snapshot_z == file->linesNum) {
 		snapshot_z = 0;
-		return NULL;
+		return 0;
 	}	
-	char *stat = calloc(net->maxId + 1, sizeof(char));
-	assert(stat != NULL);
+
+	//calloc(net->maxId + 1, sizeof(char));
+	memset(stat, 0, (net->maxId + 1)*sizeof(char));
 
 	int i=snapshot_z;
 	*infect_source = file->lines[i].i1;
@@ -164,5 +169,5 @@ char *get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_so
 		++i;
 	}
 	snapshot_z = i;
-	return stat;
+	return 1;
 }
