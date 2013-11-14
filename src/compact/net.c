@@ -283,6 +283,8 @@ static void net_dmp_core(struct Net *net, int infect_source, int T, double infec
 		++step;
 		*/
 	}
+	free(sign);
+	free(affectdata);
 }
 
 static void net_dmp_init(struct Net *net, int infect_source, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR) {

@@ -141,3 +141,19 @@ void print_i3LineFile(struct i3LineFile *file, char *filename) {
 	fclose(fp);
 	printf("print_i3LineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
 }
+
+int geti1num_i3LineFile(struct i3LineFile *file) {
+	long i;
+	char *i1 = calloc((file->i1Max + 1), sizeof(char));
+	assert(i1 != NULL);
+	for (i=0; i<file->linesNum; ++i) {
+		i1[file->lines[i].i1] = 1;
+	}
+	int i1num;
+	for (i=0; i<file->i1Max + 1; ++i) {
+		if (i1[i]) {
+			++i1num;
+		}
+	}
+	return i1num;
+}
