@@ -20,26 +20,36 @@ char *get_Next_Snapshot(struct i3LineFile *file, struct Net *net, int *infect_so
 
 int main(int argc, char **argv)
 {
+	if (argc != 8) {
+		printf("main error\n\twrong args number: %d\n", argc);
+		return -1;
+	}
+	char *pEnd;
+	int T = strtol(argv[1], &pEnd, 10);
+	double infect_rate = strtod(argv[2], &pEnd);
+	double recover_rate = strtod(argv[3], &pEnd);
+
+	char *net_filename = argv[4];
+	char *eye_filename = argv[5];
+	char *snapshot_filename = argv[6];
+
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	
 	//net
-	//struct iiLineFile *file = create_iiLineFile("data/youtube/net_youtube_ungraph_0.000.txt");
-	//struct iiLineFile *file = create_iiLineFile("data/net_power4941.txt");
-	struct iiLineFile *file = create_iiLineFile("data/amazon/net_amazonungraph0.000.txt");
+	struct iiLineFile *file = create_iiLineFile(net_filename);
+	//struct iiLineFile *file = create_iiLineFile("data/amazon/net_amazonungraph0.000.txt");
 	struct Net *net = create_Net(file);
-	//net_dmp(net, 10, 0.6, 0.5);
 	
 	//eye
-	//struct iLineFile *eye_nodes = create_iLineFile("data/eye_rndNon_0.05.txt");
-	struct iLineFile *eye_nodes = create_iLineFile("data/amazon/eye_amazon_rndNon-0.01.txt");
+	struct iLineFile *eye_nodes = create_iLineFile(eye_filename);
+	//struct iLineFile *eye_nodes = create_iLineFile("data/amazon/eye_amazon_rndNon-0.01.txt");
 
 	//snapshot
-	//struct i3LineFile *snapshot = create_i3LineFile("data/snapshot_InstanceAllnew0.60.txt");
-	struct i3LineFile *snapshot = create_i3LineFile("data/amazon/snapshot_amazonInstanceAllnew0.60.txt");
-	//struct i3LineFile *snapshot = create_i3LineFile("data/youtube/snapshot_youtube_InstaceAllnew0.60.txt");
-	//iint snapshotNum = geti1num_i3LineFile(snapshot);
+	struct i3LineFile *snapshot = create_i3LineFile(snapshot_filename);
+	//struct i3LineFile *snapshot = create_i3LineFile("data/amazon/snapshot_amazonInstanceAllnew0.60.txt");
 
+	//for output
 	double *realE = malloc((net->maxId + 1)*sizeof(double));
 	assert(realE != NULL);
 	int  *rank = malloc((net->maxId + 1)*sizeof(int));
@@ -47,16 +57,15 @@ int main(int argc, char **argv)
 	char *sign = calloc((net->maxId + 1), sizeof(int));
 	assert(sign != NULL);
 	
-
 	FILE *fp;
-	fp = fopen("Results/de_infectsource_rank.txt", "w");
-	int Rank=1;
-	int j, k, i;
+	fp = fopen(argv[7], "w");
+	int j, i;
 
-	int guess_infect_source = 1;
+	//get real_infect_source information
+	printf("Pareparing...\n");fflush(stdout);
 	int real_infect_source;
 	char *stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
-	double *PSIR = net_dmp_is(net, real_infect_source, 10, 0.6, 0.5);
+	double *PSIR = net_dmp_is(net, real_infect_source, T, infect_rate, recover_rate);
 	while(stat) {
 		double E = 0;
 		for (j=0; j<eye_nodes->linesNum; ++j) {
@@ -75,15 +84,18 @@ int main(int argc, char **argv)
 		free(stat);
 		stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
 		free(PSIR);
-		PSIR = net_dmp_is(net, real_infect_source, 10, 0.6, 0.5);
+		PSIR = net_dmp_is(net, real_infect_source, T, infect_rate, recover_rate);
 	}
 	free(PSIR);
+	printf("Pareparing done\n");fflush(stdout);
 
+	//rank
+	
+	printf("computing:\n");fflush(stdout);
 	for (i=0; i<net->maxId + 1; ++i) {
-	//for (i=0; i<100; ++i) {
-		if (i%100 == 0) {printf("%d\n", i);fflush(stdout);}
+		if (i%100 == 0) {printf("%.5f\r", ((double)i)/net->maxId);fflush(stdout);}
 		if (net->count[i]) {
-			double *PSIR = net_dmp_is(net, i, 10, 0.6, 0.5);
+			double *PSIR = net_dmp_is(net, i, T, infect_rate, recover_rate);
 			int real_infect_source;
 			char *stat = get_Next_Snapshot(snapshot, net, &real_infect_source);
 			while(stat) {
@@ -109,25 +121,24 @@ int main(int argc, char **argv)
 	}
 
 	double ave=0;
-	int xx = 0;
+	int count = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
 		if (sign[i]) {
 			fprintf(fp, "%d, %d\n", i, rank[i]);
 			ave += rank[i];
-			++xx;
+			++count;
 		}
 	}
 	fclose(fp);
-	printf("ave: %f\n", ave/xx);
+	printf("ave: %f\n", ave/count);
 
-	free_iiLineFile(file);
 	free(rank);
 	free(realE);
 	free(sign);
 	free_i3LineFile(snapshot);
 	free_iLineFile(eye_nodes);
-	//free(PS);
 	free_Net(net);
+	free_iiLineFile(file);
 	
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
