@@ -505,12 +505,14 @@ double recovery_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1
 				tmp += rank[id];
 			}
 			tmp /= o_k;
-			tmp /= testi1->count[i1];
+			//tmp /= testi1->count[i1];
 			//printf("%f\n", tmp);
 			Rank += tmp;
 		}
 	}
-
-	printf("%f\n", Rank/bipi1->maxId);
+	if (count == testi1->edgesNum) {
+		printf("ddfadf\n");
+	}
+	printf("%f\n", Rank/testi1->edgesNum);
 	return Rank/count;
 }
