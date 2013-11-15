@@ -19,19 +19,32 @@ int main(int argc, char **argv)
 	}
 
 	struct iiLineFile *file = create_iiLineFile(filename);
+	//struct Bip2 *set = create_Bip2(file, 1);
+	//struct Bip2 *set2 = create_Bip2(file, 0);
+	////verifyBip2(set, set2);
+
+	//struct iiLineFile *ab1 = abstract_Bip2(set);
+	//struct iiLineFile *ab2 = abstract_Bip2(set);
+
 	struct iiLineFile *n2file = divide_iiLineFile(file, 0.1);
-	n2file = divide_iiLineFile(file, 0.1);
 	//print_iiLineFile(n2file, "Results/netflix0.1");
 	//print_iiLineFile(n2file+1, "Results/netflix0.9");
+	struct Bip2 *trainset1 = create_Bip2(n2file + 1, 1);
+	struct Bip2 *trainset2 = create_Bip2(n2file + 1, 0);
+	struct Bip2 *testseti1 = create_Bip2(n2file, 1);
 	//exit(0);
 
 
-	struct iiLineFile *test = create_iiLineFile("data/netflix/netflix0.1");
-	struct iiLineFile *train = create_iiLineFile("data/netflix/netflix0.9");
-	struct Bip2 *testseti1 = create_Bip2(test, 1);
-	struct Bip2 *testseti2 = create_Bip2(test, 0);
+	/*
+	//struct iiLineFile *test = create_iiLineFile("data/netflix/netflix0.1");
+	struct iiLineFile *test = create_iiLineFile("data/movielen/movielen0.1");
+	//struct iiLineFile *train = create_iiLineFile("data/test2");
+	struct iiLineFile *train = create_iiLineFile("data/test1");
+	//struct iiLineFile *train = create_iiLineFile("data/netflix/netflix0.9");
 	struct Bip2 *trainset1 = create_Bip2(train, 1);
 	struct Bip2 *trainset2 = create_Bip2(train, 0);
+	struct Bip2 *testseti1 = create_Bip2(test, 1);
+	*/
 
 	//struct iiLineFile *testfile = create_iiLineFile("data/movielen/movielen0.1");
 	//struct iiLineFile *trainfile = create_iiLineFile("data/movielen/movielen0.9");
@@ -49,7 +62,9 @@ int main(int argc, char **argv)
 	
 
 	//double rank2 = recovery_Bip2_2(trainset1, trainset2, testseti1);
-	recovery_Bip2(trainset1, trainset2, testseti1);
+	//recovery_probs_Bip2(trainset1, trainset2, testseti1);
+	//recovery_heats_Bip2(trainset1, trainset2, testseti1);
+	recovery_grank_Bip2(trainset1, trainset2, testseti1);
 
 	/*
 	long i;

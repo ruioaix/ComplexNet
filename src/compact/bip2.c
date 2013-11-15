@@ -425,8 +425,9 @@ double recovery_Bip2_2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *test
 }
 
 //calculate recovery of deleted links.
-double recovery_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
 	double Rank = 0;
+	double Ep = 0;
 	int count = 0;
 
 	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
@@ -448,7 +449,7 @@ double recovery_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1
 	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
 		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			count += testi1->count[i1];
+			++count;
 
 			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 			for (j=0; j<bipi1->count[i1]; ++j) {
@@ -480,11 +481,111 @@ double recovery_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1
 				}
 			}
 
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				i2id[i] = i;
+			}
+			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				rank[i] = i+1;
+			}
+			qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				if (bipi2->count[i]) {
+					printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
+				}
+			}
+			exit(0);
+			int o_k = bipi2->idNum - bipi1->count[i1];
+			int tmp = 0;
+			int L = 20;
+			int DiL = 0;			
+			for (j=0; j<testi1->count[i1]; ++j) {
+				id = testi1->id[i1][j];
+				tmp += rank[id];
+				if (rank[id] < L) {
+					++DiL;
+				}
+			}
+			double PL = (double)DiL/(double)L;
+			//double RL = (double)DiL/(double)testi1->count[i1];
+			//tmp /= o_k;
+			//tmp /= testi1->count[i1];
+			//printf("%f\n", tmp);
+			Rank += (double)tmp/(double)o_k;
+			Ep += PL;
+		}
+	}
+	Ep /= count;
+	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
+	printf("%f\n", Rank/testi1->edgesNum);
+	printf("%f\n", Ep);
+	return Rank/count;
+}
+
+double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+	double Rank = 0;
+	double Ep = 0;
+	int count = 0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i, i1;
+	long j, degree;
+	double source;
+	int neigh, id;
+
+	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+			++count;
+
+			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+			for (j=0; j<bipi1->count[i1]; ++j) {
+				neigh = bipi1->id[i1][j];
+				i2source[neigh] = 1;
+			}
+
+			memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				if (i2source[i]) {
+					for (j=0; j<bipi2->count[i]; ++j) {
+						neigh = bipi2->id[i][j];
+						i1source[neigh] += i2source[i];
+					}
+				}
+			}
+
+			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+			for (i=0; i<bipi1->maxId + 1; ++i) {
+				if (i1source[i]) {
+					degree = bipi1->count[i];
+					source = (double)i1source[i]/(double)degree;
+					for (j=0; j<degree; ++j) {
+						neigh = bipi1->id[i][j];
+						i2source[neigh] += source;
+					}
+				}
+			}
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				if (i2source[i]) {
+					i2source[i] /= bipi2->count[i];
+				}
+			}
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
 				i2id[i] = i;
 			}
-
 			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
@@ -493,26 +594,141 @@ double recovery_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1
 			qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 
 			//for (i=0; i<bipi2->maxId + 1; ++i) {
-			//	if (i2source[i]) {
+			//	if (bipi2->count[i]) {
 			//		printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
 			//	}
 			//}
 			//exit(0);
-			double o_k = (double)(bipi2->idNum - bipi1->count[i1]);
-			double tmp = 0.0;
+			int o_k = bipi2->idNum - bipi1->count[i1];
+			int tmp = 0;
+			int L = 20;
+			int DiL = 0;			
 			for (j=0; j<testi1->count[i1]; ++j) {
 				id = testi1->id[i1][j];
 				tmp += rank[id];
+				if (rank[id] < L) {
+					++DiL;
+				}
 			}
-			tmp /= o_k;
+			double PL = (double)DiL/(double)L;
+			//double RL = (double)DiL/(double)testi1->count[i1];
+			//tmp /= o_k;
 			//tmp /= testi1->count[i1];
 			//printf("%f\n", tmp);
-			Rank += tmp;
+			Rank += (double)tmp/(double)o_k;
+			Ep += PL;
 		}
 	}
-	if (count == testi1->edgesNum) {
-		printf("ddfadf\n");
-	}
+	Ep /= count;
+	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
 	printf("%f\n", Rank/testi1->edgesNum);
+	printf("%f\n", Ep);
 	return Rank/count;
+}
+
+double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+	double Rank = 0;
+	double Ep = 0;
+	int count = 0;
+
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int *degree = malloc((bipi2->maxId + 1)*sizeof(int));;	
+	assert(degree != NULL);
+
+	int i, j, i1, id;
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		degree[i] = bipi2->count[i];
+	}
+	qsort_ii_desc(degree, 0, bipi2->maxId, i2id);
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		rank[i] = i+1;
+	}
+	qsort_i3_asc(i2id, 0, bipi2->maxId, rank, degree);
+
+			//for (i=0; i<bipi2->maxId + 1; ++i) {
+			//	if (bipi2->count[i]) {
+			//		printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
+			//	}
+			//}
+			//exit(0);
+	for (i1=0; i1<bipi1->maxId + 1; ++i1) {
+		if(bipi1->count[i]) {
+			++count;
+			int o_k = bipi2->idNum - bipi1->count[i1];
+			int tmp = 0;
+			int L = 20;
+			int DiL = 0;			
+			for (j=0; j<testi1->count[i1]; ++j) {
+				id = testi1->id[i1][j];
+				tmp += rank[id];
+				if (rank[id] < L) {
+					++DiL;
+				}
+			}
+			double PL = (double)DiL/(double)L;
+			//double RL = (double)DiL/(double)testi1->count[i1];
+			//tmp /= o_k;
+			//tmp /= testi1->count[i1];
+			//printf("%f\n", tmp);
+			Rank += (double)tmp/(double)o_k;
+			Ep += PL;
+		}
+	}
+	Ep /= count;
+	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
+	printf("%f\n", Rank/testi1->edgesNum);
+	printf("%f\n", Ep);
+	return Rank/count;
+}
+
+
+void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
+	long i;
+	int j,k;
+	int *place = malloc((bipi2->maxId+1)*sizeof(int));
+	FILE *fp = fopen("data/duplicatePairsinNet", "w");
+	fileError(fp, "data/duplicatePairsinNet");
+	FILE *fp2 = fopen("data/NoDuplicatePairsNetFile", "w");
+	fileError(fp2, "data/NoDuplicatePairsNetFile");
+	fprintf(fp, "the following pairs are duplicate in the net file\n");
+	char sign=0;
+	for (j=0; j<bipi1->maxId+1; ++j) {
+		if (bipi1->count[j]>0) {
+			for (k=0; k<bipi2->maxId + 1; ++k) {
+				place[k] = -1;
+			}
+			for (i=0; i<bipi1->count[j]; ++i) {
+				int origin = bipi1->id[j][i];
+				int next = place[origin];
+				if (next == -1) {
+					place[origin]=origin;
+					fprintf(fp2, "%d\t%d\n", j,origin);
+				}
+				else {
+					fprintf(fp, "%d\t%d\n", j, next);
+					sign=1;
+				}
+			}
+		}
+		if (j%10000 == 0) {
+			printf("%d\n", j);
+			fflush(stdout);
+		}
+	}
+	free(place);
+	fclose(fp);
+	fclose(fp2);
+	if (sign == 1) {
+		isError("the file has duplicate pairs, you can check data/duplicatePairsinNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
+	}
+	else {
+		printf("verifyBip2: perfect network.\n");
+	}
+	return (void *)0;
 }

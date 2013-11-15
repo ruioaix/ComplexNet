@@ -3,6 +3,7 @@
 
 void qsort_i_asc(int s[], int l, int r);
 void qsort_ii_asc(int s[], int l, int r, int in[]);
+void qsort_ii_desc(int s[], int l, int r, int in[]);
 void qsort_i3_asc(int s[], int l, int r, int in[], int in2[]);
 void qsort_id3_asc(int s[], int l, int r, double in[], double in1[], double in2[]);
 void qsort_d_asc(double s[], int l, int r);
