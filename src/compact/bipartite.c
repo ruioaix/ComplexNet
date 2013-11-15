@@ -313,7 +313,7 @@ void sortBytime_Bipartite(struct Bipartite *bip) {
 	int i;
 	for (i=0; i < bip->maxId + 1; ++i) {
 		if (bip->count[i] > 0) {
-			quick_sort_int_index_index(bip->i4[i], 0, bip->count[i]-1, bip->id[i], bip->i3[i]);
+			qsort_i3_asc(bip->i4[i], 0, bip->count[i]-1, bip->id[i], bip->i3[i]);
 		}
 	}
 }
