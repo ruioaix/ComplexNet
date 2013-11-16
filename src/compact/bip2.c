@@ -424,33 +424,10 @@ double recovery_Bip2_2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *test
 	return Rank/count;
 }
 
-//calculate recovery of deleted links.
-double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
-	double Rank = 0;
-	double Ep = 0;
-	int count = 0;
-
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i, i1;
-	long j, degree;
+static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int *i2id, int *rank) {
+	int i, j, neigh;
+	long degree;
 	double source;
-	int neigh, id;
-
-	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			++count;
-
 			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 			for (j=0; j<bipi1->count[i1]; ++j) {
 				neigh = bipi1->id[i1][j];
@@ -483,20 +460,45 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
 				i2id[i] = i;
-			}
-			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-
-			for (i=0; i<bipi2->maxId + 1; ++i) {
 				rank[i] = i+1;
 			}
+			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
 			qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+//calculate recovery of deleted links.
+double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+	double Rank = 0;
+	double Ep = 0;
+	int count = 0;
 
-			for (i=0; i<bipi2->maxId + 1; ++i) {
-				if (bipi2->count[i]) {
-					printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
-				}
-			}
-			exit(0);
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i1;
+	long j;
+	int  id;
+
+	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+			++count;
+
+			recovery_probs_Bip2_core(i1, bipi1, bipi2, i1source, i2source, i2id, rank);
+
+			//for (i=0; i<bipi2->maxId + 1; ++i) {
+			//	if (bipi2->count[i]) {
+			//		printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
+			//	}
+			//}
+			//exit(0);
 			int o_k = bipi2->idNum - bipi1->count[i1];
 			int tmp = 0;
 			int L = 20;
@@ -521,34 +523,17 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
 	printf("%f\n", Rank/testi1->edgesNum);
 	printf("%f\n", Ep);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
 	return Rank/count;
 }
 
-double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
-	double Rank = 0;
-	double Ep = 0;
-	int count = 0;
-
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i, i1;
-	long j, degree;
+static void recovery_heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int *i2id, int *rank) {
+	int neigh, i;
 	double source;
-	int neigh, id;
-
-	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			++count;
+	long j, degree;
 
 			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 			for (j=0; j<bipi1->count[i1]; ++j) {
@@ -585,13 +570,34 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
 				i2id[i] = i;
-			}
-			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-
-			for (i=0; i<bipi2->maxId + 1; ++i) {
 				rank[i] = i+1;
 			}
+			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
 			qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+
+double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+	double Rank = 0;
+	double Ep = 0;
+	int count = 0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i1, id;
+	long j;
+
+	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+			++count;
+			recovery_heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, i2id, rank);
 
 			//for (i=0; i<bipi2->maxId + 1; ++i) {
 			//	if (bipi2->count[i]) {
@@ -611,10 +617,6 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 				}
 			}
 			double PL = (double)DiL/(double)L;
-			//double RL = (double)DiL/(double)testi1->count[i1];
-			//tmp /= o_k;
-			//tmp /= testi1->count[i1];
-			//printf("%f\n", tmp);
 			Rank += (double)tmp/(double)o_k;
 			Ep += PL;
 		}
@@ -623,6 +625,11 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
 	printf("%f\n", Rank/testi1->edgesNum);
 	printf("%f\n", Ep);
+
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
 	return Rank/count;
 }
 
@@ -684,6 +691,11 @@ double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
 	printf("%f\n", Rank/testi1->edgesNum);
 	printf("%f\n", Ep);
+
+	free(i2id);
+	free(rank);
+	free(degree);
+
 	return Rank/count;
 }
 

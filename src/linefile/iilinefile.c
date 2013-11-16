@@ -206,3 +206,11 @@ struct iiLineFile *divide_iiLineFile(struct iiLineFile *file, double rate) {
 	printf("divide_iiLineFile done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 	return twofile;
 }
+
+void free_2_iiLineFile(struct iiLineFile *twofile) {
+	if(twofile != NULL) {
+		free(twofile[0].lines);
+		free(twofile[1].lines);
+		free(twofile);
+	}
+}

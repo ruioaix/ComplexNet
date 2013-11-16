@@ -36,6 +36,7 @@ void print_Bip2(struct Bip2*bip, char *filename);
 
 void cutcount_Bip2(struct Bip2 *bip, long count);
 
+//recommend methods
 double recovery_Bip2_2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1);
 double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1);
 double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1);

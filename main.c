@@ -62,8 +62,8 @@ int main(int argc, char **argv)
 	
 
 	//double rank2 = recovery_Bip2_2(trainset1, trainset2, testseti1);
-	//recovery_probs_Bip2(trainset1, trainset2, testseti1);
-	//recovery_heats_Bip2(trainset1, trainset2, testseti1);
+	recovery_probs_Bip2(trainset1, trainset2, testseti1);
+	recovery_heats_Bip2(trainset1, trainset2, testseti1);
 	recovery_grank_Bip2(trainset1, trainset2, testseti1);
 
 	/*
@@ -78,6 +78,12 @@ int main(int argc, char **argv)
 	fclose(fp);
 	*/
 
+	free_iiLineFile(file);
+	free_2_iiLineFile(n2file);
+	free_Bip2(trainset1);
+	free_Bip2(trainset2);
+	free_Bip2(testseti1);
+	
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
