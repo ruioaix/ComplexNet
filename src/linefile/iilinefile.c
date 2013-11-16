@@ -214,3 +214,17 @@ void free_2_iiLineFile(struct iiLineFile *twofile) {
 		free(twofile);
 	}
 }
+
+void print_2_iiLineFile(struct iiLineFile *file1, struct iiLineFile *file2, char *filename) {
+	long i;
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_2_iiLineFile");
+	for (i=0; i<file1->linesNum; ++i) {
+		fprintf(fp, "%d %d\n", file1->lines[i].i1, file1->lines[i].i2);
+	}
+	for (i=0; i<file2->linesNum; ++i) {
+		fprintf(fp, "%d %d\n", file2->lines[i].i1, file2->lines[i].i2);
+	}
+	fclose(fp);
+	printf("print_2_iiLineFile %s done. %ld (%ld + %ld) lines generated.\n", filename, file1->linesNum + file2->linesNum, file1->linesNum, file2->linesNum);fflush(stdout);
+}

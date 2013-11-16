@@ -1,6 +1,8 @@
 #ifndef HASHTABLE_H
 #define HASHTABLE_H
 
+#include "../linefile/iilinefile.h"
+
 struct HashElement {
 	long element;
 	struct HashElement *next;
@@ -37,5 +39,6 @@ long getelementValueHT(struct HashTable *ht, int index);
 //thread routine, arg type is iiLineFile.
 void *writeContinuousiiLineFileHT(void * arg);
 void *writeContinuousi4LineFileHT(void * arg);
+void wc_bip2_ii_HT(struct iiLineFile *file, char *filename);
 
 #endif

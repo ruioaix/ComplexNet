@@ -302,3 +302,23 @@ void *writeContinuousi4LineFileHT(void * arg) {
 	//freeHashTable(ht_i4);
 	return (void *)0;
 }
+
+void wc_bip2_ii_HT(struct iiLineFile *file, char *filename) {
+	struct HashTable *i1 = createHashTable(3000000);
+	struct HashTable *i2 = createHashTable(3000000);
+	long i;
+	for (i=0; i<file->linesNum; ++i) {
+		insertHEtoHT(i1, file->lines[i].i1);
+		insertHEtoHT(i2, file->lines[i].i2);
+	}
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "wc_bip2_ii_HT");
+	for (i=0; i<file->linesNum; ++i) {
+		int ii1 = getelementIndexHT(i1, file->lines[i].i1);
+		int ii2 = getelementIndexHT(i2, file->lines[i].i2);
+		fprintf(fp, "%d\t%d\n", ii1, ii2);
+	}
+	fclose(fp);
+	freeHashTable(i1);
+	freeHashTable(i2);
+}
