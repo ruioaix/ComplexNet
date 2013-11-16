@@ -431,7 +431,7 @@ static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bi
 			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 			for (j=0; j<bipi1->count[i1]; ++j) {
 				neigh = bipi1->id[i1][j];
-				i2source[neigh] = 1;
+				i2source[neigh] = 1.0;
 			}
 
 			memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
@@ -456,6 +456,9 @@ static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bi
 						i2source[neigh] += source;
 					}
 				}
+			}
+			for (i=0; i<bipi1->count[i1]; ++i) {
+				i2source[bipi1->id[i1][i]] = 0;
 			}
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
@@ -499,6 +502,7 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 			//	}
 			//}
 			//exit(0);
+			//int o_k = bipi2->maxId - bipi1->count[i1];
 			int o_k = bipi2->idNum - bipi1->count[i1];
 			int tmp = 0;
 			int L = 20;
@@ -567,6 +571,9 @@ static void recovery_heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bi
 					i2source[i] /= bipi2->count[i];
 				}
 			}
+			for (i=0; i<bipi1->count[i1]; ++i) {
+				i2source[bipi1->id[i1][i]] = 0;
+			}
 
 			for (i=0; i<bipi2->maxId + 1; ++i) {
 				i2id[i] = i;
@@ -606,6 +613,7 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 			//}
 			//exit(0);
 			int o_k = bipi2->idNum - bipi1->count[i1];
+			//int o_k = bipi2->maxId - bipi1->count[i1];
 			int tmp = 0;
 			int L = 20;
 			int DiL = 0;			
@@ -647,16 +655,7 @@ double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	assert(degree != NULL);
 
 	int i, j, i1, id;
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		degree[i] = bipi2->count[i];
-	}
-	qsort_ii_desc(degree, 0, bipi2->maxId, i2id);
 
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i] = i+1;
-	}
-	qsort_i3_asc(i2id, 0, bipi2->maxId, rank, degree);
 
 			//for (i=0; i<bipi2->maxId + 1; ++i) {
 			//	if (bipi2->count[i]) {
@@ -665,7 +664,17 @@ double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 			//}
 			//exit(0);
 	for (i1=0; i1<bipi1->maxId + 1; ++i1) {
-		if(bipi1->count[i]) {
+		if(bipi1->count[i1]) {
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				i2id[i] = i;
+				degree[i] = bipi2->count[i];
+				rank[i] = i+1;
+			}
+			for (j=0; j<bipi1->count[i1]; ++j) {
+				degree[bipi1->id[i1][j]] = 0;
+			}
+			qsort_ii_desc(degree, 0, bipi2->maxId, i2id);
+			qsort_i3_asc(i2id, 0, bipi2->maxId, rank, degree);
 			++count;
 			int o_k = bipi2->idNum - bipi1->count[i1];
 			int tmp = 0;
