@@ -1,4 +1,4 @@
-#define NDEBUG  //for assert
+//#define NDEBUG  //for assert
 #include <stdio.h>
 #include <time.h>
 #include "inc/linefile/i5linefile.h"
@@ -19,29 +19,33 @@ int main(int argc, char **argv)
 		filename = argv[1];
 	}
 
-	/*
 	struct iiLineFile *file = create_iiLineFile(filename);
 	//wc_bip2_ii_HT(file, "Results/movielen_c");
 	struct Bip2 *set = create_Bip2(file, 1);
 	struct Bip2 *set2 = create_Bip2(file, 0);
 	////verifyBip2(set, set2);
 
-	struct iiLineFile *ab1 = abstract_Bip2(set);
-	free_iiLineFile(file);
-	file = backtofile_Bip2(set);
+	//struct iiLineFile *ab1 = abstract_Bip2(set);
+	//free_iiLineFile(file);
+	//file = backtofile_Bip2(set);
 	//struct iiLineFile *ab2 = abstract_Bip2(set);
 
-	struct iiLineFile *n2file = divide_iiLineFile(file, 0.1);
-	print_iiLineFile(n2file, "Results/netflix0.1");
-	print_2_iiLineFile(n2file+1, ab1, "Results/netflix0.9");
-	return 0;
+	//struct iiLineFile *n2file = divide_iiLineFile(file, 0.1);
+	//print_2_iiLineFile(n2file+1, ab1, "Results/netflix0.9");
+	//return 0;
+	struct iiLineFile *n2file = divide_Bip2(set, set2, 0.1);
+	//print_iiLineFile(n2file + 1, "Results/netflix0.9");
+	//print_iiLineFile(n2file, "Results/netflix0.1");
+	//return 0;
+
 	struct Bip2 *trainset1 = create_Bip2(n2file + 1, 1);
 	struct Bip2 *trainset2 = create_Bip2(n2file + 1, 0);
 	struct Bip2 *testseti1 = create_Bip2(n2file, 1);
+	struct Bip2 *testseti2 = create_Bip2(n2file, 0);
 	//exit(0);
-	*/
 
 
+	/*
 	struct iiLineFile *test = create_iiLineFile("data/netflix/netflix0.1");
 	//struct iiLineFile *test = create_iiLineFile("data/movielen/movielen0.1");
 	//struct iiLineFile *train = create_iiLineFile("data/test2");
@@ -50,6 +54,7 @@ int main(int argc, char **argv)
 	struct Bip2 *trainset1 = create_Bip2(train, 1);
 	struct Bip2 *trainset2 = create_Bip2(train, 0);
 	struct Bip2 *testseti1 = create_Bip2(test, 1);
+	*/
 
 	//struct iiLineFile *testfile = create_iiLineFile("data/movielen/movielen0.1");
 	//struct iiLineFile *trainfile = create_iiLineFile("data/movielen/movielen0.9");

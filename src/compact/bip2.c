@@ -53,6 +53,7 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 		minId = file->i2Min;
 	}
 
+
 	//once get maxId, the four points can be assigned with memory.
 	count=calloc(maxId+1, sizeof(long));
 	assert(count!=NULL);
@@ -89,7 +90,6 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 			id[j] = NULL;
 		}
 	}
-
 
 	//fill id, i3, i4
 	long *temp = calloc(maxId+1, sizeof(long));
@@ -752,4 +752,122 @@ void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 		printf("verifyBip2: perfect network.\n");
 	}
 	return (void *)0;
+}
+
+struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {
+	if (rate <=0 || rate >= 1) {
+		printf("divide_Bip2 error: wrong rate.\n");
+		return NULL;
+	}
+	long l1, l2;
+	if (bipi1->edgesNum > 100000) {
+		l1 = (int)(bipi1->edgesNum*(rate+0.1));
+		l2 = (int)(bipi1->edgesNum*(1-rate+0.1));
+	}
+	else {
+		l2 = l1 = bipi1->edgesNum;
+	}
+
+	struct iiLineFile *twofile = malloc(2*sizeof(struct iiLineFile));
+	assert(twofile != NULL);
+
+	twofile[0].lines = malloc(l1*sizeof(struct iiLine));
+	assert(twofile[0].lines != NULL);
+	twofile[1].lines = malloc(l2*sizeof(struct iiLine));
+	assert(twofile[1].lines != NULL);
+
+	long line1=0, line2=0;
+	int i1Max=-1; 
+	int i2Max=-1;
+    int i1Min=INT_MAX;
+    int i2Min=INT_MAX;
+	int _i1Max=-1; 
+	int _i2Max=-1;
+    int _i1Min=INT_MAX;
+    int _i2Min=INT_MAX;
+
+	char *i1sign = calloc(bipi1->maxId + 1, sizeof(char));
+	assert(i1sign);
+	char *i2sign = calloc(bipi1->maxId + 1, sizeof(char));
+	assert(i2sign);
+
+	long *counti1 = malloc((bipi1->maxId + 1)*sizeof(long));
+	assert(counti1 != NULL);
+	memcpy(counti1, bipi1->count, (bipi1->maxId + 1)*sizeof(long));
+	long *counti2 = malloc((bipi2->maxId + 1)*sizeof(long));
+	assert(counti2 != NULL);
+	memcpy(counti2, bipi2->count, (bipi2->maxId + 1)*sizeof(long));
+
+	int i, neigh;
+	long j;
+	int i1 = bipi1->minId, i2 = bipi2->minId;
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		for (j=0; j<bipi1->count[i]; ++j) {
+			neigh = bipi1->id[i][j];
+			//if (i == i1 || neigh == i2) {
+			//	twofile[1].lines[line2].i1 = i;	
+			//	twofile[1].lines[line2].i2 = neigh;	
+			//	if (i == i1) ++i1;
+			//	if (neigh == i2) ++i2;
+			//	_i1Max = _i1Max>i?_i1Max:i;
+			//	_i2Max = _i2Max>neigh?_i2Max:neigh;
+			//	_i1Min = _i1Min<i?_i1Min:i;
+			//	_i2Min = _i2Min<neigh?_i2Min:neigh;
+			//	++line2;
+			//}
+			//else 
+			if (genrand_real1() < rate) {
+				if ((counti1[i] == 1 && i1sign[i] == 0) || (counti2[neigh] == 1 && i2sign[neigh] == 0)) {
+					twofile[1].lines[line2].i1 = i;	
+					twofile[1].lines[line2].i2 = neigh;	
+					--counti1[i];
+					--counti2[neigh];
+					i1sign[i] = 1;
+					i2sign[neigh] = 1;
+					_i1Max = _i1Max>i?_i1Max:i;
+					_i2Max = _i2Max>neigh?_i2Max:neigh;
+					_i1Min = _i1Min<i?_i1Min:i;
+					_i2Min = _i2Min<neigh?_i2Min:neigh;
+					++line2;
+				}
+				twofile[0].lines[line1].i1 = i;	
+				twofile[0].lines[line1].i2 = neigh;	
+				--counti1[i];
+				--counti2[neigh];
+				i1Max = i1Max>i?i1Max:i;
+				i2Max = i2Max>neigh?i2Max:neigh;
+				i1Min = i1Min<i?i1Min:i;
+				i2Min = i2Min<neigh?i2Min:neigh;
+				++line1;
+			}
+			else {
+				twofile[1].lines[line2].i1 = i;	
+				twofile[1].lines[line2].i2 = neigh;	
+				i1sign[i] = 1;
+				i2sign[neigh] = 1;
+				--counti1[i];
+				--counti2[neigh];
+				_i1Max = _i1Max>i?_i1Max:i;
+				_i2Max = _i2Max>neigh?_i2Max:neigh;
+				_i1Min = _i1Min<i?_i1Min:i;
+				_i2Min = _i2Min<neigh?_i2Min:neigh;
+				++line2;
+			}
+		}
+	}
+	assert((line1 <= l1) && (line2 <= l2));
+
+	twofile[0].linesNum = line1;
+	twofile[0].i1Max = i1Max;
+	twofile[0].i2Max = i2Max;
+	twofile[0].i1Min = i1Min;
+	twofile[0].i2Min = i2Min;
+
+	twofile[1].linesNum = line2;
+	twofile[1].i1Max = _i1Max;
+	twofile[1].i2Max = _i2Max;
+	twofile[1].i1Min = _i1Min;
+	twofile[1].i2Min = _i2Min;
+	printf("divide_Bip2 done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
+	return twofile;
 }

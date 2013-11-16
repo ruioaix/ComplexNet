@@ -43,4 +43,6 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1);
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
+
+struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate);
 #endif
