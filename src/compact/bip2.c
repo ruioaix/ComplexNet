@@ -290,6 +290,9 @@ static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct 
 			int rank_i1_j = 0;
 			int DiL = 0;
 			int j, id;
+			double *sim = malloc((bipi2->maxId + 1)*sizeof(double));
+			assert(sim != NULL);
+			long k;
 			for (j=0; j<testi1->count[i1]; ++j) {
 				id = testi1->id[i1][j];
 				rank_i1_j += rank[id];
@@ -301,6 +304,34 @@ static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct 
 			*PL += (double)DiL/(double)L;
 }
 
+static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
+	double *sign = calloc((bipi2->maxId + 1), sizeof(double));
+	assert(sign != NULL);
+	int i, j;
+	long k;
+	double IL = 0;
+	int cou = 0;
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (bipi1->count[i] && testi1->count[i]) {
+			++cou;
+			int *tmp = Hij + i*L;
+			for (j=0; j<L; ++j) {
+				int id = tmp[j];
+				memset(sign, 0, (bipi2->maxId + 1)*sizeof(double));
+				for (k=0; k<sim->count[id]; ++k) {
+					sign[sim->edges[id][k]] = sim->d3[id][k];
+				}
+				for (k=j+1; k<L; ++k) {
+					id = tmp[k];
+					IL += sign[id];
+				}
+			}
+		}
+	}
+	IL /= L*(L-1)*cou;
+	return 2*IL;
+}
+
 static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
 	int *sign = calloc((bipi2->maxId + 1), sizeof(int));
 	assert(sign != NULL);
@@ -309,7 +340,7 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	int cou = 0;
 	int Cij = 0;
 	double HL = 0;
-	for (i=3; i<bipi1->maxId + 1; ++i) {
+	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (bipi1->count[i] && testi1->count[i]) {
 			memset(sign, 0, (bipi2->maxId + 1)*sizeof(int));
 			for (k=i*L; k<i*L+L; ++k) {
@@ -382,7 +413,7 @@ static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bi
 }
 
 //calculate recovery of deleted links.
-double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2) {
+double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
 	//the metrics needed to be calculated.
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -420,8 +451,9 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	R /= testi1->edgesNum;
 	PL /= testi1->idNum;
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 
-	printf("R: %f, PL: %f, HL: %f\n", R, PL, HL);
+	printf("R: %f, PL: %f, HL: %f, IL: %f\n", R, PL, HL, IL);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -748,4 +780,41 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 	twofile[1].i2Min = _i2Min;
 	printf("divide_Bip2 done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 	return twofile;
+}
+
+void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {
+	int i,j;
+	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
+	assert(sign != NULL);
+
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "similarity_Bip2");
+
+	long k;
+	int Sij;
+	double soij;
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (bipi2->count[i]) {
+			memset(sign, 0, (bipi1->maxId + 1)*sizeof(int));
+			for (k=0; k<bipi2->count[i]; ++k) {
+				sign[bipi2->id[i][k]] = 1;
+			}
+			for (j = i+1; j<bipi2->maxId + 1; ++j) {
+				if (bipi2->count[j]) {
+					Sij = 0;
+					for (k=0; k<bipi2->count[j]; ++k) {
+						if (sign[bipi2->id[j][k]]) {
+							++Sij;
+						}
+					}
+					if (Sij) {
+						soij = (double)Sij/pow(bipi2->count[i] * bipi2->count[j], 0.5);
+						fprintf(fp, "%d, %d, %.17f\n", i, j, soij);
+					}
+				}
+			}
+		}
+	}
+	fclose(fp);
+	printf("similarity_Bip2 done. generate similarity file %s\n", filename);fflush(stdout);
 }

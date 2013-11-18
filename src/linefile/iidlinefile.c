@@ -127,3 +127,14 @@ void free_iidLineFile(struct iidLineFile *file) {
 		free(file);
 	}
 }
+
+void print_iidLineFile(struct iidLineFile *file, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_iidLineFile");
+	long i;
+	for (i=0; i<file->linesNum; ++i) {
+		fprintf(fp, "%d, %d, %.17f\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].d3);
+	}
+	fclose(fp);
+	printf("print_iidLineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
+}

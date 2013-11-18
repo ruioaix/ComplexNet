@@ -17,5 +17,6 @@ struct iidLineFile {
 };
 void free_iidLineFile(struct iidLineFile *file);
 struct iidLineFile *create_iidLineFile(const char *const filename);
+void print_iidLineFile(struct iidLineFile *file, char *filename);
 
 #endif

@@ -3,7 +3,9 @@
 #include <time.h>
 #include "inc/linefile/i5linefile.h"
 #include "inc/linefile/iilinefile.h"
+#include "inc/linefile/iidlinefile.h"
 #include "inc/compact/bip2.h"
+#include "inc/compact/iidnet.h"
 #include "inc/utility/error.h"
 #include "inc/utility/hashtable.h"
 
@@ -24,6 +26,7 @@ int main(int argc, char **argv)
 	//return 0;
 	struct Bip2 *set = create_Bip2(file, 1);
 	struct Bip2 *set2 = create_Bip2(file, 0);
+
 	////verifyBip2(set, set2);
 
 	//struct iiLineFile *ab1 = abstract_Bip2(set);
@@ -35,6 +38,7 @@ int main(int argc, char **argv)
 	//print_2_iiLineFile(n2file+1, ab1, "Results/netflix0.9");
 	//return 0;
 	struct iiLineFile *n2file = divide_Bip2(set, set2, 0.1);
+
 	//print_iiLineFile(n2file + 1, "Results/netflix0.9");
 	//print_iiLineFile(n2file, "Results/netflix0.1");
 	//return 0;
@@ -45,6 +49,15 @@ int main(int argc, char **argv)
 	struct Bip2 *testseti2 = create_Bip2(n2file, 0);
 	//exit(0);
 
+	//similarity_Bip2(trainset1, trainset2, "Results/trainsetSimilarity");
+	//return 0;
+	//struct iidLineFile *similarity = create_iidLineFile("data/movielen_similarity");
+	struct iidLineFile *similarity = create_iidLineFile("data/netflix_similarity");
+	//print_iidLineFile(similarity, "Results/xx");
+	struct iidNet *trainSim = create_iidNet(similarity);
+	//print_iidNet(iidnet, "Results/yy");
+
+	//return 0;
 
 	/*
 	struct iiLineFile *test = create_iiLineFile("data/netflix/netflix0.1");
@@ -73,7 +86,7 @@ int main(int argc, char **argv)
 	
 
 	//double rank2 = recovery_Bip2_2(trainset1, trainset2, testseti1);
-	recovery_probs_Bip2(trainset1, trainset2, testseti1, testseti2);
+	recovery_probs_Bip2(trainset1, trainset2, testseti1, testseti2, trainSim);
 	//recovery_heats_Bip2(trainset1, trainset2, testseti1, testseti2);
 	//recovery_grank_Bip2(trainset1, trainset2, testseti1, testseti2);
 
