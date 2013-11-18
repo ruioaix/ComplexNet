@@ -21,6 +21,7 @@ int main(int argc, char **argv)
 
 	struct iiLineFile *file = create_iiLineFile(filename);
 	//wc_bip2_ii_HT(file, "Results/movielen_c");
+	//return 0;
 	struct Bip2 *set = create_Bip2(file, 1);
 	struct Bip2 *set2 = create_Bip2(file, 0);
 	////verifyBip2(set, set2);
@@ -72,9 +73,9 @@ int main(int argc, char **argv)
 	
 
 	//double rank2 = recovery_Bip2_2(trainset1, trainset2, testseti1);
-	recovery_probs_Bip2(trainset1, trainset2, testseti1);
-	recovery_heats_Bip2(trainset1, trainset2, testseti1);
-	recovery_grank_Bip2(trainset1, trainset2, testseti1);
+	recovery_probs_Bip2(trainset1, trainset2, testseti1, testseti2);
+	recovery_heats_Bip2(trainset1, trainset2, testseti1, testseti2);
+	//recovery_grank_Bip2(trainset1, trainset2, testseti1, testseti2);
 
 	/*
 	long i;
