@@ -285,7 +285,7 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }
 
-static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, int L, int *rank, double *R, double *PL, double *IL, double *NL) {
+static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, int L, int *rank, double *R, double *PL, double *NL) {
 			int unselected_list_length = bipi2->idNum - bipi1->count[i1];
 			int rank_i1_j = 0;
 			int DiL = 0;
@@ -366,6 +366,23 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	return HL/cou;
 }
 
+static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
+	int i,j;
+	long NL = 0;
+	int cou = 0;
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (bipi1->count[i] && testi1->count[i]) {
+			++cou;
+			int *tmp = Hij + i*L;
+			for (j=0; j<L; ++j) {
+				NL += bipi2->count[tmp[j]];
+			}
+		}
+	}
+	NL /= L*cou;
+	return NL;
+}
+
 static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
 	int i, j, neigh;
 	long degree;
@@ -438,7 +455,7 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 			//get rank
 			recovery_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
 			//use rank to get metrics values
-			metrics_Bip2(i, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &IL, &NL);
+			metrics_Bip2(i, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &NL);
 		}
 	}
 	//int j;
@@ -452,8 +469,9 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	PL /= testi1->idNum;
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, HL: %f, IL: %f\n", R, PL, HL, IL);
+	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -529,7 +547,7 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
 			recovery_heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, i2id, rank);
-			metrics_Bip2(i1, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &IL, &NL);
+			metrics_Bip2(i1, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &NL);
 
 			//for (i=0; i<bipi2->maxId + 1; ++i) {
 			//	if (bipi2->count[i]) {
