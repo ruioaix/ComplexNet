@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 void free_iidNet(struct iidNet *net) {
+	if (!net) return;
 	int i=0;
 	for(i=0; i<net->maxId+1; ++i) {
 		if (net->count[i]>0) {
@@ -22,6 +23,7 @@ void free_iidNet(struct iidNet *net) {
 }
 
 struct iidNet *create_iidNet(const struct iidLineFile * const file) {
+	if (!file) return NULL;
 	int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
 	int minId=file->i1Min<file->i2Min?file->i1Min:file->i2Min;
 	long linesNum=file->linesNum;

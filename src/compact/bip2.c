@@ -302,6 +302,7 @@ static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct 
 }
 
 static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
+	if (!sim) return -1;
 	double *sign = calloc((bipi2->maxId + 1), sizeof(double));
 	assert(sign != NULL);
 	int i, j;

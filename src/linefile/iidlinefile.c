@@ -74,6 +74,7 @@ static void fill_iidLine(char *line, struct iidLine *LI_origin,  long *lNum, int
 
 struct iidLineFile *create_iidLineFile(const char * const filename)
 {
+	if (!filename) return NULL;
 	printf("read iidLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
