@@ -286,22 +286,19 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 }
 
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, int L, int *rank, double *R, double *PL, double *NL) {
-			int unselected_list_length = bipi2->idNum - bipi1->count[i1];
-			int rank_i1_j = 0;
-			int DiL = 0;
-			int j, id;
-			double *sim = malloc((bipi2->maxId + 1)*sizeof(double));
-			assert(sim != NULL);
-			long k;
-			for (j=0; j<testi1->count[i1]; ++j) {
-				id = testi1->id[i1][j];
-				rank_i1_j += rank[id];
-				if (rank[id] < L) {
-					++DiL;
-				}
-			}
-			*R += (double)rank_i1_j/(double)unselected_list_length;
-			*PL += (double)DiL/(double)L;
+	int unselected_list_length = bipi2->idNum - bipi1->count[i1];
+	int rank_i1_j = 0;
+	int DiL = 0;
+	int j, id;
+	for (j=0; j<testi1->count[i1]; ++j) {
+		id = testi1->id[i1][j];
+		rank_i1_j += rank[id];
+		if (rank[id] < L) {
+			++DiL;
+		}
+	}
+	*R += (double)rank_i1_j/(double)unselected_list_length;
+	*PL += (double)DiL/(double)L;
 }
 
 static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
@@ -328,6 +325,7 @@ static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 			}
 		}
 	}
+	free(sign);
 	IL /= L*(L-1)*cou;
 	return 2*IL;
 }
@@ -362,7 +360,8 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 			}
 		}
 	}
-	printf("pairs of users: %d, %f\n", cou, HL);
+	free(sign);
+	//printf("pairs of users: %d, %f\n", cou, HL);
 	return HL/cou;
 }
 
@@ -472,6 +471,7 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
 	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -716,7 +716,7 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 
 	char *i1sign = calloc(bipi1->maxId + 1, sizeof(char));
 	assert(i1sign);
-	char *i2sign = calloc(bipi1->maxId + 1, sizeof(char));
+	char *i2sign = calloc(bipi2->maxId + 1, sizeof(char));
 	assert(i2sign);
 
 	long *counti1 = malloc((bipi1->maxId + 1)*sizeof(long));
@@ -728,22 +728,9 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 
 	int i, neigh;
 	long j;
-	int i1 = bipi1->minId, i2 = bipi2->minId;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		for (j=0; j<bipi1->count[i]; ++j) {
 			neigh = bipi1->id[i][j];
-			//if (i == i1 || neigh == i2) {
-			//	twofile[1].lines[line2].i1 = i;	
-			//	twofile[1].lines[line2].i2 = neigh;	
-			//	if (i == i1) ++i1;
-			//	if (neigh == i2) ++i2;
-			//	_i1Max = _i1Max>i?_i1Max:i;
-			//	_i2Max = _i2Max>neigh?_i2Max:neigh;
-			//	_i1Min = _i1Min<i?_i1Min:i;
-			//	_i2Min = _i2Min<neigh?_i2Min:neigh;
-			//	++line2;
-			//}
-			//else 
 			if (genrand_real1() < rate) {
 				if ((counti1[i] == 1 && i1sign[i] == 0) || (counti2[neigh] == 1 && i2sign[neigh] == 0)) {
 					twofile[1].lines[line2].i1 = i;	
@@ -784,6 +771,11 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 		}
 	}
 	assert((line1 <= l1) && (line2 <= l2));
+
+	free(i1sign);
+	free(i2sign);
+	free(counti1);
+	free(counti2);
 
 	twofile[0].linesNum = line1;
 	twofile[0].i1Max = i1Max;
