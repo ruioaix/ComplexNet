@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 	char *netfilename, *simfilename;
 	if (argc == 1) {
 		netfilename = "data/movielen/movielens.txt";
+		simfilename = NULL;
 	}
 	if (argc == 2) {
 		netfilename = argv[1];
@@ -42,21 +43,19 @@ int main(int argc, char **argv)
 
 	struct Bip2 *traini1= create_Bip2(n2file + 1, 1);
 	struct Bip2 *traini2 = create_Bip2(n2file + 1, 0);
-	//similarity_Bip2(traini1, traini2, "Results/netflix_similarity");
 	struct Bip2 *testi1 = create_Bip2(n2file, 1);
 	struct Bip2 *testi2 = create_Bip2(n2file, 0);
 	free_2_iiLineFile(n2file);
 
 	//the similarity is get from traini1
-	//struct iidLineFile *similarity = create_iidLineFile("data/netflix_similarity");
 	struct iidLineFile *similarity = create_iidLineFile(simfilename);
 	struct iidNet *trainSim = create_iidNet(similarity);
 	free_iidLineFile(similarity);
 
 	//recommendation
-	recovery_probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
-	//recovery_heats_Bip2(trainset1, trainset2, testseti1, testseti2);
-	//recovery_grank_Bip2(trainset1, trainset2, testseti1, testseti2);
+	probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
+	heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
+	hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, 0.2);
 
 	free_iidNet(trainSim);
 	free_Bip2(traini1);

@@ -285,7 +285,7 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }
 
-static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, int L, int *rank, double *R, double *PL, double *NL) {
+static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
 	int unselected_list_length = bipi2->idNum - bipi1->count[i1];
 	int rank_i1_j = 0;
 	int DiL = 0;
@@ -362,7 +362,6 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 		}
 	}
 	free(sign);
-	//printf("pairs of users: %d, %f\n", cou, HL);
 	return HL/cou;
 }
 
@@ -383,7 +382,7 @@ static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	return NL;
 }
 
-static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
+static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -429,8 +428,8 @@ static void recovery_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bi
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
-//calculate recovery of deleted links.
-double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
+//calculate deleted links.
+double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
 	//the metrics needed to be calculated.
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -453,17 +452,11 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 		//only compute the i in both bipi1 and testi1.
 		if (bipi1->count[i] && testi1->count[i]) {
 			//get rank
-			recovery_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
+			probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
 			//use rank to get metrics values
-			metrics_Bip2(i, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &NL);
+			metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
 		}
 	}
-	//int j;
-	//for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-	//	for (j=0; j<50; ++j) {
-	//		printf("%d, %d, %d\n", i, j, Hij[i*50 + j]);
-	//	}
-	//}
 
 	R /= testi1->edgesNum;
 	PL /= testi1->idNum;
@@ -480,56 +473,107 @@ double recovery_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	return 0;
 }
 
-static void recovery_heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int *i2id, int *rank) {
+static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
 	int neigh, i;
 	double source;
 	long j, degree;
 
-			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-			for (j=0; j<bipi1->count[i1]; ++j) {
-				neigh = bipi1->id[i1][j];
-				i2source[neigh] = 1;
-			}
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1;
+	}
 
-			memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-			for (i=0; i<bipi2->maxId + 1; ++i) {
-				if (i2source[i]) {
-					for (j=0; j<bipi2->count[i]; ++j) {
-						neigh = bipi2->id[i][j];
-						i1source[neigh] += i2source[i];
-					}
-				}
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += i2source[i];
 			}
+		}
+	}
 
-			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-			for (i=0; i<bipi1->maxId + 1; ++i) {
-				if (i1source[i]) {
-					degree = bipi1->count[i];
-					source = (double)i1source[i]/(double)degree;
-					for (j=0; j<degree; ++j) {
-						neigh = bipi1->id[i][j];
-						i2source[neigh] += source;
-					}
-				}
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
 			}
-			for (i=0; i<bipi2->maxId + 1; ++i) {
-				if (i2source[i]) {
-					i2source[i] /= bipi2->count[i];
-				}
-			}
-			for (i=0; i<bipi1->count[i1]; ++i) {
-				i2source[bipi1->id[i1][i]] = 0;
-			}
+		}
+	}
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			i2source[i] /= bipi2->count[i];
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
 
-			for (i=0; i<bipi2->maxId + 1; ++i) {
-				i2id[i] = i;
-				rank[i] = i+1;
-			}
-			qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-			qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
-double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2) {
+static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
+	int neigh, i;
+	double source;
+	long j, degree;
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1;
+	}
+
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += i2source[i]/pow(bipi2->count[i], 1-lambda);
+			}
+		}
+	}
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/pow(degree, lambda);
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			i2source[i] /= bipi2->count[i];
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+
+double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
 
@@ -544,25 +588,23 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 
 	int i1;
 	int L = 50;
+	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
+	assert(Hij != NULL);
 	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
 		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			recovery_heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, i2id, rank);
-			metrics_Bip2(i1, bipi1, bipi2, testi1, testi2, L, rank, &R, &PL, &NL);
-
-			//for (i=0; i<bipi2->maxId + 1; ++i) {
-			//	if (bipi2->count[i]) {
-			//		printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
-			//	}
-			//}
-			//exit(0);
+			heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
+			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
 		}
 	}
 	R /= testi1->edgesNum;
 	PL /= testi1->idNum;
-	printf("%f\n", R);
-	printf("%f\n", PL);
+	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
+	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -570,7 +612,46 @@ double recovery_heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	return 0;
 }
 
-double recovery_grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i1;
+	int L = 50;
+	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
+	assert(Hij != NULL);
+	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+			hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, lambda);
+			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+		}
+	}
+	R /= testi1->edgesNum;
+	PL /= testi1->idNum;
+	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+
+	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	free(Hij);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return 0;
+}
+
+double grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
 	double Rank = 0;
 	double Ep = 0;
 	int count = 0;
