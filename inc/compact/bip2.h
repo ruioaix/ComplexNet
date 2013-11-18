@@ -30,10 +30,6 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2);
 struct iiLineFile *abstract_Bip2(struct Bip2 *bip);
 struct iiLineFile *backtofile_Bip2(struct Bip2 *bip);
 
-void deleteid_Bip2(struct Bip2 *bip, int id);
-//write a file from a bip.
-void print_Bip2(struct Bip2*bip, char *filename);
-
 void cutcount_Bip2(struct Bip2 *bip, long count);
 
 //recommend methods

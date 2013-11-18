@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
 	//double rank2 = recovery_Bip2_2(trainset1, trainset2, testseti1);
 	recovery_probs_Bip2(trainset1, trainset2, testseti1, testseti2);
-	recovery_heats_Bip2(trainset1, trainset2, testseti1, testseti2);
+	//recovery_heats_Bip2(trainset1, trainset2, testseti1, testseti2);
 	//recovery_grank_Bip2(trainset1, trainset2, testseti1, testseti2);
 
 	/*
