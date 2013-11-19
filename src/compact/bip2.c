@@ -464,7 +464,7 @@ double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -539,7 +539,7 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 		if (i2source[i]) {
 			for (j=0; j<bipi2->count[i]; ++j) {
 				neigh = bipi2->id[i][j];
-				i1source[neigh] += i2source[i]/pow(bipi2->count[i], 1-lambda);
+				i1source[neigh] += i2source[i]/pow(bipi2->count[i], lambda);
 			}
 		}
 	}
@@ -548,18 +548,18 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (i1source[i]) {
 			degree = bipi1->count[i];
-			source = (double)i1source[i]/pow(degree, lambda);
+			source = (double)i1source[i]/degree;
 			for (j=0; j<degree; ++j) {
 				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
+				i2source[neigh] += source/pow(bipi2->count[neigh], 1-lambda);
 			}
 		}
 	}
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			i2source[i] /= bipi2->count[i];
-		}
-	}
+	//for (i=0; i<bipi2->maxId + 1; ++i) {
+	//	if (i2source[i]) {
+	//		i2source[i] /= bipi2->count[i];
+	//	}
+	//}
 	for (i=0; i<bipi1->count[i1]; ++i) {
 		i2source[bipi1->id[i1][i]] = 0;
 	}
@@ -603,7 +603,91 @@ double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(Hij);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return 0;
+}
+
+static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0*pow(bipi2->count[neigh], theta);
+	}
+
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+double HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i1;
+	int L = 50;
+	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
+	assert(Hij != NULL);
+	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+			HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, theta);
+			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+		}
+	}
+	R /= testi1->edgesNum;
+	PL /= testi1->idNum;
+	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+
+	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -642,7 +726,7 @@ double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, 
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, HL: %f, IL: %f, NL: %f\n", R, PL, HL, IL, NL);
+	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);

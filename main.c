@@ -54,6 +54,7 @@ int main(int argc, char **argv)
 
 	//recommendation
 	probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
+	HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.8);
 	heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 	hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, 0.2);
 
