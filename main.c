@@ -7,28 +7,24 @@
 #include "inc/compact/bip2.h"
 #include "inc/compact/iidnet.h"
 #include "inc/utility/error.h"
+#include "inc/utility/random.h"
 #include "inc/utility/hashtable.h"
 
 int main(int argc, char **argv)
 {
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
-	char *netfilename, *simfilename;
+	char *netfilename;
 	if (argc == 1) {
 		netfilename = "data/movielen/movielens.txt";
-		simfilename = NULL;
 	}
 	if (argc == 2) {
 		netfilename = argv[1];
-		simfilename = NULL;
-	}
-	if (argc == 3) {
-		netfilename = argv[1];
-		simfilename = argv[2];
 	}
 
-	//unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
-	//init_by_array_MersenneTwister(init, length);
+	//printf("%ld\n", t);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
 
 	//divide file into two part: train and test.
 	//train will contain every user and every item.
@@ -48,14 +44,16 @@ int main(int argc, char **argv)
 	free_2_iiLineFile(n2file);
 
 	//the similarity is get from traini1
-	struct iidLineFile *similarity = create_iidLineFile(simfilename);
+	//struct iidLineFile *similarity = create_iidLineFile(simfilename);
+	struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2);
 	struct iidNet *trainSim = create_iidNet(similarity);
 	free_iidLineFile(similarity);
 
 	//recommendation
 	probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
-	HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.8);
-	heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
+	HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.7);
+	RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.75);
+	//heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 	hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, 0.2);
 
 	free_iidNet(trainSim);

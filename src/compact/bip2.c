@@ -448,7 +448,7 @@ double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
 	assert(Hij != NULL);
 	for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-		if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 		//only compute the i in both bipi1 and testi1.
 		if (bipi1->count[i] && testi1->count[i]) {
 			//get rank
@@ -464,7 +464,130 @@ double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	printf("Probs:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(Hij);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return 0;
+}
+
+static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	
+	memcpy(i2sourceA, i2source, (bipi2->maxId + 1)*sizeof(double));
+
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2sourceA[i] += eta*i2source[i];
+	}
+
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2sourceA[bipi1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2sourceA, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2sourceA);
+}
+
+double RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
+	//the metrics needed to be calculated.
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+	double *i2sourceA = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2sourceA != NULL);
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i;
+	int L = 50;
+	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
+	assert(Hij != NULL);
+	for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
+		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+		//only compute the i in both bipi1 and testi1.
+		if (bipi1->count[i] && testi1->count[i]) {
+			//get rank
+			RENBI_Bip2_core(i, bipi1, bipi2, i1source, i2source, i2sourceA, L, i2id, rank, Hij, eta);
+			//use rank to get metrics values
+			metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
+		}
+	}
+
+	R /= testi1->edgesNum;
+	PL /= testi1->idNum;
+	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+
+	printf("RENBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -591,7 +714,7 @@ double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
 	assert(Hij != NULL);
 	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
 			heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
 			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
@@ -603,7 +726,7 @@ double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	printf("heats:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -675,7 +798,7 @@ double HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, st
 	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
 	assert(Hij != NULL);
 	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
 			HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, theta);
 			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
@@ -687,7 +810,7 @@ double HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, st
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	printf("HNBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -714,7 +837,7 @@ double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, 
 	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
 	assert(Hij != NULL);
 	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
 			hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, lambda);
 			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
@@ -726,7 +849,7 @@ double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, 
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
-	printf("R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
@@ -993,4 +1116,72 @@ void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {
 	}
 	fclose(fp);
 	printf("similarity_Bip2 done. generate similarity file %s\n", filename);fflush(stdout);
+}
+
+struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
+	int i,j;
+	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
+	assert(sign != NULL);
+
+	struct iidLineFile *simfile = malloc(sizeof(struct iidLineFile));
+	assert(simfile != NULL);
+
+	int con = 1000000;
+	struct iidLine *lines = malloc(con*sizeof(struct iidLine));
+	assert(lines != NULL);
+	long linesNum = 0;
+
+	int i1Max=-1;
+	int i1Min=INT_MAX;
+	int i2Max=-1;
+	int i2Min=INT_MAX;
+
+	long k;
+	int Sij;
+	double soij;
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (bipi2->count[i]) {
+			memset(sign, 0, (bipi1->maxId + 1)*sizeof(int));
+			for (k=0; k<bipi2->count[i]; ++k) {
+				sign[bipi2->id[i][k]] = 1;
+			}
+			for (j = i+1; j<bipi2->maxId + 1; ++j) {
+				if (bipi2->count[j]) {
+					Sij = 0;
+					for (k=0; k<bipi2->count[j]; ++k) {
+						if (sign[bipi2->id[j][k]]) {
+							++Sij;
+						}
+					}
+					if (Sij) {
+						soij = (double)Sij/pow(bipi2->count[i] * bipi2->count[j], 0.5);
+						//fprintf(fp, "%d, %d, %.17f\n", i, j, soij);
+						i1Min = i1Min<i?i1Min:i;
+						i1Max = i;
+						i2Min = i2Min<j?i2Min:j;
+						i2Max = i2Max>j?i2Max:j;
+						lines[linesNum].i1 = i;
+						lines[linesNum].i2 = j;
+						lines[linesNum].d3 = soij;
+						++linesNum;
+						if (linesNum == con) {
+							con += 1000000;
+							struct iidLine *temp = realloc(lines, con*sizeof(struct iidLine));
+							assert(temp != NULL);
+							lines = temp;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	simfile->i1Max = i1Max;
+	simfile->i2Max = i2Max;
+	simfile->i1Min = i1Min;
+	simfile->i2Min = i2Min;
+	simfile->linesNum = linesNum;
+	simfile->lines = lines;
+	printf("calculate similarity done.\n");
+	return simfile;
 }
