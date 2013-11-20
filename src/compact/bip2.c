@@ -286,7 +286,8 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 }
 
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
-	int unselected_list_length = bipi2->idNum - bipi1->count[i1];
+	//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
+	int unselected_list_length = bipi2->maxId - bipi1->count[i1];
 	int rank_i1_j = 0;
 	int DiL = 0;
 	int j, id;
@@ -429,7 +430,7 @@ static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 }
 
 //calculate deleted links.
-double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
+struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
 	//the metrics needed to be calculated.
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -464,13 +465,22 @@ double probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
+	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
+	assert(retn != NULL);
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
+
+
 	printf("Probs:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
 	free(rank);
-	return 0;
+	return retn;
 }
 
 static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
@@ -550,7 +560,7 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2sourceA);
 }
 
-double RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
+struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
 	//the metrics needed to be calculated.
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -586,14 +596,22 @@ double RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
+	assert(retn != NULL);
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
 
 	printf("RENBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
+	free(i2sourceA);
 	free(i2id);
 	free(rank);
-	return 0;
+	return retn;
 }
 
 static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
@@ -696,7 +714,7 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
-double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
+struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
 
@@ -725,6 +743,13 @@ double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
+	assert(retn != NULL);
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
 
 	printf("heats:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
@@ -732,7 +757,7 @@ double heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, s
 	free(i2source);
 	free(i2id);
 	free(rank);
-	return 0;
+	return retn;
 }
 
 static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
@@ -780,7 +805,7 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
-double HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
+struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
 
@@ -810,16 +835,24 @@ double HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, st
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
 
+	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
+	assert(retn != NULL);
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
+
 	printf("HNBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
 	free(rank);
-	return 0;
+	return retn;
 }
 
-double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
+struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
 
@@ -848,6 +881,13 @@ double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, 
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
+	assert(retn != NULL);
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
 
 	printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
@@ -855,10 +895,10 @@ double hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, 
 	free(i2source);
 	free(i2id);
 	free(rank);
-	return 0;
+	return retn;
 }
 
-double grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
+struct L_Bip2 *grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
 	double Rank = 0;
 	double Ep = 0;
 	int count = 0;
@@ -922,7 +962,7 @@ double grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
 	free(rank);
 	free(degree);
 
-	return Rank/count;
+	return NULL;
 }
 
 
@@ -1175,6 +1215,8 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 			}
 		}
 	}
+
+	free(sign);
 
 	simfile->i1Max = i1Max;
 	simfile->i2Max = i2Max;
