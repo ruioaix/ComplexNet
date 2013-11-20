@@ -1,4 +1,4 @@
-#define NDEBUG  //for assert
+//#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
