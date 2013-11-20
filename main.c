@@ -106,6 +106,10 @@ int main(int argc, char **argv)
 	free_iiLineFile(net_file);
 	free_Bip2(seti1);
 	free_Bip2(seti2);
+	free(probs_result);
+	free(HNBI_result);
+	free(RENBI_result);
+	free(hybrid_result);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
