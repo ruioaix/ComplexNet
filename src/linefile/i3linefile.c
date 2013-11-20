@@ -109,7 +109,7 @@ struct i3LineFile *create_i3LineFile(const char * const filename) {
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("\tread valid lines: %ld, file lines: %ld\n\tMax: %d, Min: %d\n", linesNum, filelineNum, maxId, minId); fflush(stdout);
+	printf("\tread valid lines: %ld, file lines: %ld\n\ti1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", linesNum, filelineNum, maxId, minId, _maxId, _minId); fflush(stdout);
 	fclose(fp);
 
 	struct i3LineFile *file=malloc(sizeof(struct i3LineFile));
@@ -136,7 +136,7 @@ void print_i3LineFile(struct i3LineFile *file, char *filename) {
 	FILE *fp = fopen(filename, "w");
 	fileError(fp, "print_i3LineFile");
 	for (i=0; i<file->linesNum; ++i) {
-		fprintf(fp, "%d,%d,%d\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].i3);
+		fprintf(fp, "%d %d %d\n", file->lines[i].i1, file->lines[i].i2, file->lines[i].i3);
 	}
 	fclose(fp);
 	printf("print_i3LineFile %s done. %ld lines generated.\n", filename, file->linesNum);fflush(stdout);
