@@ -20,6 +20,35 @@
 //	long edgesNum;
 //};
 
+struct L_Bip2 *create_L_Bip2(void) {
+	struct L_Bip2 *lp = malloc(sizeof(struct L_Bip2));
+	assert(lp != NULL);
+	lp->R = 0;
+	lp->PL = 0;
+	lp->HL = 0;
+	lp->IL = 0;
+	lp->NL = 0;
+	lp->LNum = 0;
+	free(lp->L);
+	lp->L = NULL;
+	return lp;
+}
+
+void clean_L_Bip2(struct L_Bip2 *lp) {
+	lp->R = 0;
+	lp->PL = 0;
+	lp->HL = 0;
+	lp->IL = 0;
+	lp->NL = 0;
+	lp->LNum = 0;
+	lp->L = NULL;
+}
+
+void free_L_Bip2(struct L_Bip2 *lp) {
+	free(lp->L);
+	free(lp);
+}
+
 void free_Bip2(struct Bip2 *Bip) {
 	int i=0;
 	for(i=0; i<Bip->maxId+1; ++i) {
@@ -666,8 +695,8 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 
 static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
 	int neigh, i;
-	double source;
-	long j, degree;
+	//double source;
+	long j;
 
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (j=0; j<bipi1->count[i1]; ++j) {
@@ -678,24 +707,35 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (i2source[i]) {
+			double powl = pow(bipi2->count[i], lambda);
 			for (j=0; j<bipi2->count[i]; ++j) {
 				neigh = bipi2->id[i][j];
-				i1source[neigh] += i2source[i]/pow(bipi2->count[i], lambda);
+				i1source[neigh] += i2source[i]/powl;
 			}
 		}
 	}
 
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source/pow(bipi2->count[neigh], 1-lambda);
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (bipi2->count[i]) {
+			double powl = pow(bipi2->count[i], 1-lambda);
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i2source[i] += i1source[neigh]/bipi1->count[neigh];
 			}
+			i2source[i] /= powl;
 		}
 	}
+	//for (i=0; i<bipi1->maxId + 1; ++i) {
+	//	if (i1source[i]) {
+	//		degree = bipi1->count[i];
+	//		source = (double)i1source[i]/degree;
+	//		for (j=0; j<degree; ++j) {
+	//			neigh = bipi1->id[i][j];
+	//			i2source[neigh] += source/pow(bipi2->count[neigh], 1-lambda);
+	//		}
+	//	}
+	//}
 	//for (i=0; i<bipi2->maxId + 1; ++i) {
 	//	if (i2source[i]) {
 	//		i2source[i] /= bipi2->count[i];
@@ -888,9 +928,10 @@ struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	retn->HL = HL;
 	retn->IL = IL;
 	retn->NL = NL;
+	retn->L = Hij;
+	retn->LNum =L;
 
 	printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);

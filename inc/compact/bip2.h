@@ -28,13 +28,18 @@ struct L_Bip2 {
 	double HL;
     double IL;
     double NL;
+	int *L;
+	int LNum;
 };
 
 void free_Bip2(struct Bip2 *bip);
+void free_L_Bip2(struct L_Bip2 *bip);
 //if i1toi2 is not zero, means the  column 1 is the index, and column 2 is the data saved into (int **id).
 //column 1 and column 2 is the data in origin file.
 //if i1toi2 is zero, means column 2 is the index.
 struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2);
+struct L_Bip2 *create_L_Bip2(void);
+void clean_L_Bip2(struct L_Bip2 *lp);
 
 //abstract_Bip2 will abstract one edge from each user or item and return.
 //the arg bip which has been abstracted will be changed, all abstracted edges will be deleted in the arg bip.
