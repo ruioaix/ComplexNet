@@ -132,7 +132,7 @@ struct Bip3i *create_Bip3i(const struct i3LineFile * const file, int i1toi2) {
 	Bip->countMin = countMin;
 	Bip->count=count;
 	Bip->id = id;
-	Bip->id = i3;
+	Bip->i3 = i3;
 	Bip->edgesNum=edgesNum;
 
 	if (i1toi2) {
