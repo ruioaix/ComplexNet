@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 				_r += bipi2->i3[i][j];
 			}
 			fprintf(fp, "%ld, %d, %.17f\n", bipi2->count[i], i, (double)_r/(double)bipi2->count[i]);
+			//fprintf(fp, "%ld, %.17f\n", bipi2->count[i], (double)_r/(double)bipi2->count[i]);
 		}
 	}
 	fclose(fp);
