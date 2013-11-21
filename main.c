@@ -8,6 +8,7 @@
 #include "inc/linefile/i3linefile.h"
 #include "inc/linefile/iidlinefile.h"
 #include "inc/compact/bip2.h"
+#include "inc/compact/bip3i.h"
 #include "inc/compact/iidnet.h"
 #include "inc/utility/error.h"
 #include "inc/utility/random.h"
@@ -35,8 +36,30 @@ int main(int argc, char **argv)
 	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
 	init_by_array(init, length);
 
-
 	struct i3LineFile *scorefile = create_i3LineFile(scorefilename);
+	struct Bip3i *scorei1 = create_Bip3i(scorefile, 1);
+	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
+
+	int i;
+	long j;
+	double *score = calloc(scorei2->maxId + 1, sizeof(double));
+	assert(score != NULL);
+	for (i=0; i<scorei2->maxId + 1; ++i) {
+		if (scorei2->count[i]) {
+			for (j=0; j<scorei2->count[i]; ++j) {
+				score[i] += scorei2->i3[i];
+			}
+			score[i] /= scorei2->count[i];
+		}
+	}
+	//FILE *fp = fopen("Results/movielen2", "w");
+	//for (ii=0; ii<scorefile->linesNum; ++ii) {
+	//	if (scorefile->lines[ii].i3>2) {
+	//		fprintf(fp, "%d, %d\n", scorefile->lines[ii].i1, scorefile->lines[ii].i3);
+	//	}
+	//}
+	//fclose(fp);
+	//return 0;
 
 	//divide file into two part: train and test.
 	//train will contain every user and every item.
@@ -44,15 +67,14 @@ int main(int argc, char **argv)
 	struct iiLineFile *net_file = create_iiLineFile(netfilename);
 	struct Bip2 *seti1 = create_Bip2(net_file, 1);
 	struct Bip2 *seti2 = create_Bip2(net_file, 0);
-	int i;
 
 	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
 
 	int loopNum = 1;
-	int j;
+	int k;
 	double lambda;
-	for (j=3; j<5; ++j) {
-		lambda = j*0.05 + 0.05;
+	for (k=3; k<5; ++k) {
+		lambda = k*0.05 + 0.05;
 		clean_L_Bip2(hybrid_result);
 		for (i=0; i<loopNum; ++i) {
 			struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
@@ -96,6 +118,8 @@ int main(int argc, char **argv)
 			hybrid_result->HL += r4->HL;
 			hybrid_result->IL += r4->IL;
 			hybrid_result->NL += r4->NL;
+
+			
 
 			free_iidNet(trainSim);
 			free_Bip2(traini1);

@@ -501,10 +501,11 @@ struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *t
 	retn->HL = HL;
 	retn->IL = IL;
 	retn->NL = NL;
+	retn->L = Hij;
+	retn->LNum = L;
 
 
 	printf("Probs:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -632,9 +633,10 @@ struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *t
 	retn->HL = HL;
 	retn->IL = IL;
 	retn->NL = NL;
+	retn->L = Hij;
+	retn->LNum = L;
 
 	printf("RENBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2sourceA);
@@ -790,9 +792,10 @@ struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *t
 	retn->HL = HL;
 	retn->IL = IL;
 	retn->NL = NL;
+	retn->L = Hij;
+	retn->LNum = L;
 
 	printf("heats:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(Hij);
 	free(i1source);
 	free(i2source);
 	free(i2id);
@@ -882,6 +885,8 @@ struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *te
 	retn->HL = HL;
 	retn->IL = IL;
 	retn->NL = NL;
+	retn->L = Hij;
+	retn->LNum = L;
 
 	printf("HNBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(Hij);
