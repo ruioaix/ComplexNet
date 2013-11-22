@@ -37,7 +37,6 @@ int main(int argc, char **argv)
 	init_by_array(init, length);
 
 	struct i3LineFile *scorefile = create_i3LineFile(scorefilename);
-	struct Bip3i *scorei1 = create_Bip3i(scorefile, 1);
 	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
 
 	int i;
@@ -47,7 +46,7 @@ int main(int argc, char **argv)
 	for (i=0; i<scorei2->maxId + 1; ++i) {
 		if (scorei2->count[i]) {
 			for (j=0; j<scorei2->count[i]; ++j) {
-				score[i] += scorei2->i3[i];
+				score[i] += scorei2->i3[i][j];
 			}
 			score[i] /= scorei2->count[i];
 		}
@@ -76,6 +75,7 @@ int main(int argc, char **argv)
 	for (k=3; k<5; ++k) {
 		lambda = k*0.05 + 0.05;
 		clean_L_Bip2(hybrid_result);
+		double score_ave = 0;
 		for (i=0; i<loopNum; ++i) {
 			struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
 
@@ -118,8 +118,12 @@ int main(int argc, char **argv)
 			hybrid_result->HL += r4->HL;
 			hybrid_result->IL += r4->IL;
 			hybrid_result->NL += r4->NL;
-
-			
+			int LNum = r4->LNum;
+			int *list = r4->L;
+			for (j=0; j<LNum*(traini1->maxId + 1); ++j) {
+				score_ave += score[list[j]];
+			}
+			score_ave /= LNum*(traini1->maxId + 1);
 
 			free_iidNet(trainSim);
 			free_Bip2(traini1);
@@ -129,7 +133,7 @@ int main(int argc, char **argv)
 			//free(r1); free(r2); free(r3); 
 			free(r4);
 		}
-		printf("hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
+		printf("hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
 	}
 	
 	//printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);

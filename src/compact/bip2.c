@@ -29,7 +29,6 @@ struct L_Bip2 *create_L_Bip2(void) {
 	lp->IL = 0;
 	lp->NL = 0;
 	lp->LNum = 0;
-	free(lp->L);
 	lp->L = NULL;
 	return lp;
 }
@@ -41,6 +40,7 @@ void clean_L_Bip2(struct L_Bip2 *lp) {
 	lp->IL = 0;
 	lp->NL = 0;
 	lp->LNum = 0;
+	free(lp->L);
 	lp->L = NULL;
 }
 
@@ -608,7 +608,7 @@ struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *t
 
 	int i;
 	int L = 50;
-	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
+	int *Hij = malloc(L*(bipi1->maxId + 1)*sizeof(int));
 	assert(Hij != NULL);
 	for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
 		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
