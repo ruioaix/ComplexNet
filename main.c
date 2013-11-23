@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 
 	struct i3LineFile *scorefile = create_i3LineFile(scorefilename);
 	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
+	free_i3LineFile(scorefile);
 
 	int i;
 	long j;
@@ -51,10 +52,12 @@ int main(int argc, char **argv)
 			score[i] /= scorei2->count[i];
 		}
 	}
+	free_Bip3i(scorei2);
 	//FILE *fp = fopen("Results/movielen2", "w");
+	//int ii;
 	//for (ii=0; ii<scorefile->linesNum; ++ii) {
 	//	if (scorefile->lines[ii].i3>2) {
-	//		fprintf(fp, "%d, %d\n", scorefile->lines[ii].i1, scorefile->lines[ii].i3);
+	//		fprintf(fp, "%d, %d\n", scorefile->lines[ii].i1, scorefile->lines[ii].i2);
 	//	}
 	//}
 	//fclose(fp);
@@ -69,11 +72,11 @@ int main(int argc, char **argv)
 
 	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
 
-	int loopNum = 1;
+	int loopNum = 20;
 	int k;
 	double lambda;
-	for (k=3; k<5; ++k) {
-		lambda = k*0.05 + 0.05;
+	for (k=0; k<21; ++k) {
+		lambda = k*0.05;
 		clean_L_Bip2(hybrid_result);
 		double score_ave = 0;
 		for (i=0; i<loopNum; ++i) {
@@ -118,12 +121,22 @@ int main(int argc, char **argv)
 			hybrid_result->HL += r4->HL;
 			hybrid_result->IL += r4->IL;
 			hybrid_result->NL += r4->NL;
-			int LNum = r4->LNum;
-			int *list = r4->L;
-			for (j=0; j<LNum*(traini1->maxId + 1); ++j) {
-				score_ave += score[list[j]];
+			int L = r4->L;
+			int *topL = r4->topL;
+			//int i1;
+			//for (i1 = 0; i1<traini1->maxId + 1; ++i1) { //each user
+			//	if (traini1->count[i1] > 0 && testi1->count[i1] > 0) {
+			//		int i2;
+			//		for (i2 = 0; i2 < traini1->count[i1]; ++i2) {
+			//			int id = list[i1*LNum + i2];
+			//			score_ave += score[id];
+			//		}
+			//	}
+			//}
+			for (j=0; j<L*(traini1->maxId + 1); ++j) {
+				score_ave += score[topL[j]];
 			}
-			score_ave /= LNum*(traini1->maxId + 1);
+			score_ave /= L*(traini1->maxId + 1);
 
 			free_iidNet(trainSim);
 			free_Bip2(traini1);
@@ -131,10 +144,12 @@ int main(int argc, char **argv)
 			free_Bip2(testi1);
 			free_Bip2(testi2);
 			//free(r1); free(r2); free(r3); 
-			free(r4);
+			free_L_Bip2(r4);
 		}
 		printf("hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
 	}
+	free_L_Bip2(hybrid_result);
+	free(score);
 	
 	//printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
 	//printf("HNBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
@@ -146,7 +161,6 @@ int main(int argc, char **argv)
 	//free(probs_result);
 	//free(HNBI_result);
 	//free(RENBI_result);
-	free(hybrid_result);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

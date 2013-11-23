@@ -28,8 +28,8 @@ struct L_Bip2 *create_L_Bip2(void) {
 	lp->HL = 0;
 	lp->IL = 0;
 	lp->NL = 0;
-	lp->LNum = 0;
-	lp->L = NULL;
+	lp->L = 0;
+	lp->topL = NULL;
 	return lp;
 }
 
@@ -39,13 +39,13 @@ void clean_L_Bip2(struct L_Bip2 *lp) {
 	lp->HL = 0;
 	lp->IL = 0;
 	lp->NL = 0;
-	lp->LNum = 0;
-	free(lp->L);
-	lp->L = NULL;
+	lp->L = 0;
+	free(lp->topL);
+	lp->topL = NULL;
 }
 
 void free_L_Bip2(struct L_Bip2 *lp) {
-	free(lp->L);
+	free(lp->topL);
 	free(lp);
 }
 
@@ -458,59 +458,100 @@ static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
-//calculate deleted links.
-struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	//the metrics needed to be calculated.
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
+static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
+	int neigh, i;
+	double source;
+	long j, degree;
 
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1;
+	}
 
-	int i;
-	int L = 50;
-	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
-	assert(Hij != NULL);
-	for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-		//only compute the i in both bipi1 and testi1.
-		if (bipi1->count[i] && testi1->count[i]) {
-			//get rank
-			probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
-			//use rank to get metrics values
-			metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += i2source[i];
+			}
 		}
 	}
 
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			i2source[i] /= bipi2->count[i];
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
 
-	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
-	assert(retn != NULL);
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->L = Hij;
-	retn->LNum = L;
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
 
+static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0*pow(bipi2->count[neigh], theta);
+	}
 
-	printf("Probs:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(i1source);
-	free(i2source);
-	free(i2id);
-	free(rank);
-	return retn;
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
 static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
@@ -590,111 +631,6 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2sourceA);
 }
 
-struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
-	//the metrics needed to be calculated.
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
-
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-	double *i2sourceA = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2sourceA != NULL);
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i;
-	int L = 50;
-	int *Hij = malloc(L*(bipi1->maxId + 1)*sizeof(int));
-	assert(Hij != NULL);
-	for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-		//only compute the i in both bipi1 and testi1.
-		if (bipi1->count[i] && testi1->count[i]) {
-			//get rank
-			RENBI_Bip2_core(i, bipi1, bipi2, i1source, i2source, i2sourceA, L, i2id, rank, Hij, eta);
-			//use rank to get metrics values
-			metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-		}
-	}
-
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
-	assert(retn != NULL);
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->L = Hij;
-	retn->LNum = L;
-
-	printf("RENBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(i1source);
-	free(i2source);
-	free(i2sourceA);
-	free(i2id);
-	free(rank);
-	return retn;
-}
-
-static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
-	int neigh, i;
-	double source;
-	long j, degree;
-
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1;
-	}
-
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += i2source[i];
-			}
-		}
-	}
-
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			i2source[i] /= bipi2->count[i];
-		}
-	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-	}
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
-	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-}
-
 static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
 	int neigh, i;
 	//double source;
@@ -756,261 +692,129 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 
+/** 
+ * type :
+ * 1 -- probs
+ * 2 -- heats
+ * 3 -- HNBI
+ * 4 -- RNBI
+ * 5 -- hybrid
+ */
+static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta, double eta, double lambda) {
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
+	assert(i2source != NULL);
+	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
+	assert(i2id != NULL);
+
+	int i1, i;
+	int L = 50;
+	int *topL = calloc(L*(bipi1->maxId + 1), sizeof(int));
+	assert(topL != NULL);
+	switch (type) {
+		case 1:
+			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both bipi1 and testi1.
+				if (bipi1->count[i] && testi1->count[i]) {
+					//get rank
+					probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					//use rank to get metrics values
+					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 2:
+			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+					heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 3:
+			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+					HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, theta);
+					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 4:
+			assert(i2source != NULL);
+			double *i2sourceA = calloc((bipi2->maxId + 1),sizeof(double));
+			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both bipi1 and testi1.
+				if (bipi1->count[i] && testi1->count[i]) {
+					//get rank
+					RENBI_Bip2_core(i, bipi1, bipi2, i1source, i2source, i2sourceA, L, i2id, rank, topL, eta);
+					//use rank to get metrics values
+					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			free(i2sourceA);
+			break;
+		case 5:
+			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+					hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda);
+					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+	}
+	R /= testi1->edgesNum;
+	PL /= testi1->idNum;
+	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, topL);
+	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, topL, trainSim);
+	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, topL);
+	struct L_Bip2 *retn = create_L_Bip2();
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
+	retn->topL = topL;
+	retn->L = L;
+
+	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return retn;
+}
+
+//calculate deleted links.
+struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
+	return recommend_Bip2(1, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, 0);
+}
+
 struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
-
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i1;
-	int L = 50;
-	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
-	assert(Hij != NULL);
-	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij);
-			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-		}
-	}
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
-	assert(retn != NULL);
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->L = Hij;
-	retn->LNum = L;
-
-	printf("heats:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(i1source);
-	free(i2source);
-	free(i2id);
-	free(rank);
-	return retn;
+	return recommend_Bip2(2, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, 0);
 }
 
-static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0*pow(bipi2->count[neigh], theta);
-	}
-
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-	}
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
-	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-}
 struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
+	return recommend_Bip2(3, bipi1, bipi2, testi1, testi2, trainSim, theta, 0, 0);
+}
 
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i1;
-	int L = 50;
-	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
-	assert(Hij != NULL);
-	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, theta);
-			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-		}
-	}
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
-
-	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
-	assert(retn != NULL);
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->L = Hij;
-	retn->LNum = L;
-
-	printf("HNBI:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(Hij);
-	free(i1source);
-	free(i2source);
-	free(i2id);
-	free(rank);
-	return retn;
+struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
+	return recommend_Bip2(4, bipi1, bipi2, testi1, testi2, trainSim, 0, eta, 0);
 }
 
 struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
-
-	double *i1source = calloc((bipi1->maxId + 1),sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = calloc((bipi2->maxId + 1),sizeof(double));
-	assert(i2source != NULL);
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int i1;
-	int L = 50;
-	int *Hij = malloc(50*(bipi1->maxId + 1)*sizeof(int));
-	assert(Hij != NULL);
-	for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-		//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-		if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
-			hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, Hij, lambda);
-			metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-		}
-	}
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, Hij, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, Hij);
-	struct L_Bip2 *retn = malloc(sizeof(struct L_Bip2));
-	assert(retn != NULL);
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->L = Hij;
-	retn->LNum =L;
-
-	printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(i1source);
-	free(i2source);
-	free(i2id);
-	free(rank);
-	return retn;
+	return recommend_Bip2(5, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, lambda);
 }
-
-struct L_Bip2 *grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1) {
-	double Rank = 0;
-	double Ep = 0;
-	int count = 0;
-
-	int *rank = calloc((bipi2->maxId + 1),sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  calloc((bipi2->maxId + 1),sizeof(int));
-	assert(i2id != NULL);
-
-	int *degree = malloc((bipi2->maxId + 1)*sizeof(int));;	
-	assert(degree != NULL);
-
-	int i, j, i1, id;
-
-
-			//for (i=0; i<bipi2->maxId + 1; ++i) {
-			//	if (bipi2->count[i]) {
-			//		printf("%d, %f, %d\n", i2id[i], i2source[i], rank[i]);
-			//	}
-			//}
-			//exit(0);
-	for (i1=0; i1<bipi1->maxId + 1; ++i1) {
-		if(bipi1->count[i1]) {
-			for (i=0; i<bipi2->maxId + 1; ++i) {
-				i2id[i] = i;
-				degree[i] = bipi2->count[i];
-				rank[i] = i+1;
-			}
-			for (j=0; j<bipi1->count[i1]; ++j) {
-				degree[bipi1->id[i1][j]] = 0;
-			}
-			qsort_ii_desc(degree, 0, bipi2->maxId, i2id);
-			qsort_i3_asc(i2id, 0, bipi2->maxId, rank, degree);
-			++count;
-			int o_k = bipi2->idNum - bipi1->count[i1];
-			int tmp = 0;
-			int L = 20;
-			int DiL = 0;			
-			for (j=0; j<testi1->count[i1]; ++j) {
-				id = testi1->id[i1][j];
-				tmp += rank[id];
-				if (rank[id] < L) {
-					++DiL;
-				}
-			}
-			double PL = (double)DiL/(double)L;
-			//double RL = (double)DiL/(double)testi1->count[i1];
-			//tmp /= o_k;
-			//tmp /= testi1->count[i1];
-			//printf("%f\n", tmp);
-			Rank += (double)tmp/(double)o_k;
-			Ep += PL;
-		}
-	}
-	Ep /= count;
-	Ep = Ep*bipi2->idNum*bipi1->idNum/testi1->edgesNum;
-	printf("%f\n", Rank/testi1->edgesNum);
-	printf("%f\n", Ep);
-
-	free(i2id);
-	free(rank);
-	free(degree);
-
-	return NULL;
-}
-
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 	long i;

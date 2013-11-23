@@ -1,4 +1,48 @@
-# scope of usage of dnet program
+# scope of usage of this program 
+
+## structure
+- main
+- src
+-- src/compact
+--- bip2.c
+--- bip3i.c
+--- bipartite.c
+--- dnet.c
+--- dtnet.c
+--- iidnet.c
+--- net.c
+-- src/hashtable
+--- dmp.c
+-- src/linefile
+--- i3dlinefile.c
+--- i3linefile.c
+--- i4linefile.c
+--- i5dslinefile.c
+--- i5linefile.c
+--- i5sslinefile.c
+--- i7ddslinefile.c
+--- iid3linefile.c
+--- iidlinefile.c
+--- iilinefile.c
+--- ilinefile.c
+--- innlinefile.c
+-- src/matrix
+--- pspipr.c
+--- snapshot.c
+-- src/utility
+--- bitsign.c
+--- error.c
+--- hashtable.c
+--- random.c
+--- sort.c
+--- threadpool.c
+--- threadsafe_random.c
+-- Main
+--- Main/xx
+-- inc
+--- inc/xx (same as src);
+
+
 ## complexnet_file
 1, in complexnet_file.h, there are many structures with similar name. like: iiLineFile, innLineFile, i5sdLineFIle.
 2, for now: 20130830, I got 8 kinds. ii means the file contains two parts(two int) in a line, all the line which not contains two int will be ignored. inn means unlimit int in one line. i4 means four int in one line. idi means int-double-int, i5sd means five int and a c string and a double. ...

@@ -36,16 +36,12 @@ int main(int argc, char **argv)
 	struct Bip2 *seti2 = create_Bip2(net_file, 0);
 	int i;
 
-	struct L_Bip2 *probs_result = malloc(sizeof(struct L_Bip2));
-	assert(probs_result != NULL);
-	struct L_Bip2 *HNBI_result = malloc(sizeof(struct L_Bip2));
-	assert(HNBI_result != NULL);
-	struct L_Bip2 *RENBI_result = malloc(sizeof(struct L_Bip2));
-	assert(RENBI_result != NULL);
-	struct L_Bip2 *hybrid_result = malloc(sizeof(struct L_Bip2));
-	assert(hybrid_result != NULL);
+	struct L_Bip2 *probs_result = create_L_Bip2();
+	struct L_Bip2 *HNBI_result = create_L_Bip2();
+	struct L_Bip2 *RENBI_result = create_L_Bip2();
+	struct L_Bip2 *hybrid_result = create_L_Bip2();
 
-	int loopNum = 4;
+	int loopNum = 1;
 	for (i=0; i<loopNum; ++i) {
 		struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
 
@@ -94,7 +90,10 @@ int main(int argc, char **argv)
 		free_Bip2(traini2);
 		free_Bip2(testi1);
 		free_Bip2(testi2);
-		free(r1); free(r2); free(r3); free(r4);
+		free_L_Bip2(r1);
+		free_L_Bip2(r2);
+		free_L_Bip2(r3);
+		free_L_Bip2(r4);
 	}
 	
 	printf("average:\n");
@@ -106,10 +105,10 @@ int main(int argc, char **argv)
 	free_iiLineFile(net_file);
 	free_Bip2(seti1);
 	free_Bip2(seti2);
-	free(probs_result);
-	free(HNBI_result);
-	free(RENBI_result);
-	free(hybrid_result);
+	free_L_Bip2(probs_result);
+	free_L_Bip2(HNBI_result);
+	free_L_Bip2(RENBI_result);
+	free_L_Bip2(hybrid_result);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

@@ -28,9 +28,11 @@ struct L_Bip2 {
 	double HL;
     double IL;
     double NL;
-	int *L;
-	int LNum;
+	int *topL;
+	int L;
 };
+
+
 
 void free_Bip2(struct Bip2 *bip);
 void free_L_Bip2(struct L_Bip2 *bip);
@@ -54,7 +56,6 @@ struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *te
 struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta);
 struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim);
 struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda);
-struct L_Bip2 *grank_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1);
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
 
