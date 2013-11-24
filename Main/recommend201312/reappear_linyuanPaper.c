@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 	int i;
 
 	struct L_Bip2 *probs_result = create_L_Bip2();
+	struct L_Bip2 *heats_result = create_L_Bip2();
 	struct L_Bip2 *HNBI_result = create_L_Bip2();
 	struct L_Bip2 *RENBI_result = create_L_Bip2();
 	struct L_Bip2 *hybrid_result = create_L_Bip2();
@@ -59,9 +60,9 @@ int main(int argc, char **argv)
 
 		//recommendation
 		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
+		struct L_Bip2 *r11= heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 		struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.8);
 		struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.75);
-		//heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 		struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, 0.2);
 
 		probs_result->R += r1->R;
@@ -69,6 +70,11 @@ int main(int argc, char **argv)
 		probs_result->HL += r1->HL;
 		probs_result->IL += r1->IL;
 		probs_result->NL += r1->NL;
+		heats_result->R += r11->R;
+		heats_result->PL += r11->PL;
+		heats_result->HL += r11->HL;
+		heats_result->IL += r11->IL;
+		heats_result->NL += r11->NL;
 		HNBI_result->R +=  r2->R;
 		HNBI_result->PL += r2->PL;
 		HNBI_result->HL += r2->HL;
@@ -91,6 +97,7 @@ int main(int argc, char **argv)
 		free_Bip2(testi1);
 		free_Bip2(testi2);
 		free_L_Bip2(r1);
+		free_L_Bip2(r11);
 		free_L_Bip2(r2);
 		free_L_Bip2(r3);
 		free_L_Bip2(r4);
@@ -98,6 +105,7 @@ int main(int argc, char **argv)
 	
 	printf("average:\n");
 	printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
+	printf("heats\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
 	printf("HNBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
 	printf("RENBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", RENBI_result->R/loopNum, RENBI_result->PL/loopNum, RENBI_result->IL/loopNum, RENBI_result->HL/loopNum, RENBI_result->NL/loopNum);
 	printf("hybrid\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
@@ -106,6 +114,7 @@ int main(int argc, char **argv)
 	free_Bip2(seti1);
 	free_Bip2(seti2);
 	free_L_Bip2(probs_result);
+	free_L_Bip2(heats_result);
 	free_L_Bip2(HNBI_result);
 	free_L_Bip2(RENBI_result);
 	free_L_Bip2(hybrid_result);
