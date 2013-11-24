@@ -1,3 +1,7 @@
+/**
+ *
+ * struct L_Bip2 contains the result fo all kinds of recommendation algorithm.
+ */
 #include "../../inc/compact/bip2.h"
 #include "../../inc/utility/error.h"
 #include "../../inc/utility/random.h"
@@ -32,7 +36,7 @@ struct L_Bip2 *create_L_Bip2(void) {
 	lp->topL = NULL;
 	return lp;
 }
-
+//free(NULL) is ok.
 void clean_L_Bip2(struct L_Bip2 *lp) {
 	lp->R = 0;
 	lp->PL = 0;
@@ -43,7 +47,6 @@ void clean_L_Bip2(struct L_Bip2 *lp) {
 	free(lp->topL);
 	lp->topL = NULL;
 }
-
 void free_L_Bip2(struct L_Bip2 *lp) {
 	free(lp->topL);
 	free(lp);
@@ -61,6 +64,9 @@ void free_Bip2(struct Bip2 *Bip) {
 	free(Bip);
 }
 
+//kind of simple, just create struct Bip2.
+//i1toi2 is 1, i1 of struct iiLineFile will be the index.
+//i1toi2 is 0, i2 of struct iiLineFile will be the index.
 struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 	//all elements of struct Bip2.
 	int maxId;
@@ -162,8 +168,123 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 	return Bip;
 }
 
+//divide Bip2 into two parts.
+//return two struct iiLineFile. the first one is always the small one.
+//the second is always the large one.
+struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {
+	if (rate <=0 || rate >= 1) {
+		printf("divide_Bip2 error: wrong rate.\n");
+		return NULL;
+	}
+	rate = rate>0.5?1-rate:rate;
+	long l1, l2;
+	if (bipi1->edgesNum > 100000) {
+		l1 = (int)(bipi1->edgesNum*(rate+0.1));
+		l2 = (int)(bipi1->edgesNum*(1-rate+0.1));
+	}
+	else {
+		l2 = l1 = bipi1->edgesNum;
+	}
+
+	struct iiLineFile *twofile = malloc(2*sizeof(struct iiLineFile));
+	assert(twofile != NULL);
+
+	twofile[0].lines = malloc(l1*sizeof(struct iiLine));
+	assert(twofile[0].lines != NULL);
+	twofile[1].lines = malloc(l2*sizeof(struct iiLine));
+	assert(twofile[1].lines != NULL);
+
+	long line1=0, line2=0;
+	int i1Max=-1; 
+	int i2Max=-1;
+    int i1Min=INT_MAX;
+    int i2Min=INT_MAX;
+	int _i1Max=-1; 
+	int _i2Max=-1;
+    int _i1Min=INT_MAX;
+    int _i2Min=INT_MAX;
+
+	char *i1sign = calloc(bipi1->maxId + 1, sizeof(char));
+	assert(i1sign);
+	char *i2sign = calloc(bipi2->maxId + 1, sizeof(char));
+	assert(i2sign);
+
+	long *counti1 = malloc((bipi1->maxId + 1)*sizeof(long));
+	assert(counti1 != NULL);
+	memcpy(counti1, bipi1->count, (bipi1->maxId + 1)*sizeof(long));
+	long *counti2 = malloc((bipi2->maxId + 1)*sizeof(long));
+	assert(counti2 != NULL);
+	memcpy(counti2, bipi2->count, (bipi2->maxId + 1)*sizeof(long));
+
+	int i, neigh;
+	long j;
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		for (j=0; j<bipi1->count[i]; ++j) {
+			neigh = bipi1->id[i][j];
+			if (genrand_real1() < rate) {
+				if ((counti1[i] == 1 && i1sign[i] == 0) || (counti2[neigh] == 1 && i2sign[neigh] == 0)) {
+					twofile[1].lines[line2].i1 = i;	
+					twofile[1].lines[line2].i2 = neigh;	
+					--counti1[i];
+					--counti2[neigh];
+					i1sign[i] = 1;
+					i2sign[neigh] = 1;
+					_i1Max = _i1Max>i?_i1Max:i;
+					_i2Max = _i2Max>neigh?_i2Max:neigh;
+					_i1Min = _i1Min<i?_i1Min:i;
+					_i2Min = _i2Min<neigh?_i2Min:neigh;
+					++line2;
+				}
+				twofile[0].lines[line1].i1 = i;	
+				twofile[0].lines[line1].i2 = neigh;	
+				--counti1[i];
+				--counti2[neigh];
+				i1Max = i1Max>i?i1Max:i;
+				i2Max = i2Max>neigh?i2Max:neigh;
+				i1Min = i1Min<i?i1Min:i;
+				i2Min = i2Min<neigh?i2Min:neigh;
+				++line1;
+			}
+			else {
+				twofile[1].lines[line2].i1 = i;	
+				twofile[1].lines[line2].i2 = neigh;	
+				i1sign[i] = 1;
+				i2sign[neigh] = 1;
+				--counti1[i];
+				--counti2[neigh];
+				_i1Max = _i1Max>i?_i1Max:i;
+				_i2Max = _i2Max>neigh?_i2Max:neigh;
+				_i1Min = _i1Min<i?_i1Min:i;
+				_i2Min = _i2Min<neigh?_i2Min:neigh;
+				++line2;
+			}
+		}
+	}
+	assert((line1 <= l1) && (line2 <= l2));
+
+	free(i1sign);
+	free(i2sign);
+	free(counti1);
+	free(counti2);
+
+	twofile[0].linesNum = line1;
+	twofile[0].i1Max = i1Max;
+	twofile[0].i2Max = i2Max;
+	twofile[0].i1Min = i1Min;
+	twofile[0].i2Min = i2Min;
+
+	twofile[1].linesNum = line2;
+	twofile[1].i1Max = _i1Max;
+	twofile[1].i2Max = _i2Max;
+	twofile[1].i1Min = _i1Min;
+	twofile[1].i2Min = _i2Min;
+	printf("divide_Bip2 done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
+	return twofile;
+}
+
+//Bip2 contains eight members. this function will correct six wrong members according to two right ones.
 //renew maxId/minId/countMax/countMin/idNum/edgesNum from count 
-//count and id is always good&right.
+//!!!count and id is always good&right.
 static void renew_Bip2(struct Bip2 *bip) {
 	int i;
 	long countMax = -1;
@@ -314,6 +435,9 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }
 
+//following is for recommendation.
+//R is rankscore.
+//PL is precision
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
 	//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
 	int unselected_list_length = bipi2->maxId - bipi1->count[i1];
@@ -330,7 +454,7 @@ static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct 
 	*R += (double)rank_i1_j/(double)unselected_list_length;
 	*PL += (double)DiL/(double)L;
 }
-
+//IL is intrasimilarity
 static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
 	if (!sim) return -1;
 	double *sign = calloc((bipi2->maxId + 1), sizeof(double));
@@ -360,7 +484,7 @@ static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	IL /= L*(L-1)*cou;
 	return 2*IL;
 }
-
+//HL is hamming distance.
 static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
 	int *sign = calloc((bipi2->maxId + 1), sizeof(int));
 	assert(sign != NULL);
@@ -394,7 +518,7 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	free(sign);
 	return HL/cou;
 }
-
+//NL is popularity.
 static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
 	int i,j;
 	long NL = 0;
@@ -411,7 +535,7 @@ static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	NL /= L*cou;
 	return NL;
 }
-
+//three-step random walk of Probs
 static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
 	int i, j, neigh;
 	long degree;
@@ -457,7 +581,7 @@ static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
-
+//three-step random walk of heats
 static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
 	int neigh, i;
 	double source;
@@ -507,7 +631,7 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
-
+//three-step random walk of HNBI
 static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
 	int i, j, neigh;
 	long degree;
@@ -553,7 +677,7 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
-
+//five-step random walk of RENBI
 static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
 	int i, j, neigh;
 	long degree;
@@ -630,7 +754,7 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2sourceA);
 }
-
+//three-step random walk of hybrid
 static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
 	int neigh, i;
 	//double source;
@@ -664,21 +788,6 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 			i2source[i] /= powl;
 		}
 	}
-	//for (i=0; i<bipi1->maxId + 1; ++i) {
-	//	if (i1source[i]) {
-	//		degree = bipi1->count[i];
-	//		source = (double)i1source[i]/degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = bipi1->id[i][j];
-	//			i2source[neigh] += source/pow(bipi2->count[neigh], 1-lambda);
-	//		}
-	//	}
-	//}
-	//for (i=0; i<bipi2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		i2source[i] /= bipi2->count[i];
-	//	}
-	//}
 	for (i=0; i<bipi1->count[i1]; ++i) {
 		i2source[bipi1->id[i1][i]] = 0;
 	}
@@ -693,6 +802,7 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 }
 
 /** 
+ * core function of recommendation.
  * type :
  * 1 -- probs
  * 2 -- heats
@@ -861,115 +971,6 @@ void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 	return (void *)0;
 }
 
-struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {
-	if (rate <=0 || rate >= 1) {
-		printf("divide_Bip2 error: wrong rate.\n");
-		return NULL;
-	}
-	long l1, l2;
-	if (bipi1->edgesNum > 100000) {
-		l1 = (int)(bipi1->edgesNum*(rate+0.1));
-		l2 = (int)(bipi1->edgesNum*(1-rate+0.1));
-	}
-	else {
-		l2 = l1 = bipi1->edgesNum;
-	}
-
-	struct iiLineFile *twofile = malloc(2*sizeof(struct iiLineFile));
-	assert(twofile != NULL);
-
-	twofile[0].lines = malloc(l1*sizeof(struct iiLine));
-	assert(twofile[0].lines != NULL);
-	twofile[1].lines = malloc(l2*sizeof(struct iiLine));
-	assert(twofile[1].lines != NULL);
-
-	long line1=0, line2=0;
-	int i1Max=-1; 
-	int i2Max=-1;
-    int i1Min=INT_MAX;
-    int i2Min=INT_MAX;
-	int _i1Max=-1; 
-	int _i2Max=-1;
-    int _i1Min=INT_MAX;
-    int _i2Min=INT_MAX;
-
-	char *i1sign = calloc(bipi1->maxId + 1, sizeof(char));
-	assert(i1sign);
-	char *i2sign = calloc(bipi2->maxId + 1, sizeof(char));
-	assert(i2sign);
-
-	long *counti1 = malloc((bipi1->maxId + 1)*sizeof(long));
-	assert(counti1 != NULL);
-	memcpy(counti1, bipi1->count, (bipi1->maxId + 1)*sizeof(long));
-	long *counti2 = malloc((bipi2->maxId + 1)*sizeof(long));
-	assert(counti2 != NULL);
-	memcpy(counti2, bipi2->count, (bipi2->maxId + 1)*sizeof(long));
-
-	int i, neigh;
-	long j;
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		for (j=0; j<bipi1->count[i]; ++j) {
-			neigh = bipi1->id[i][j];
-			if (genrand_real1() < rate) {
-				if ((counti1[i] == 1 && i1sign[i] == 0) || (counti2[neigh] == 1 && i2sign[neigh] == 0)) {
-					twofile[1].lines[line2].i1 = i;	
-					twofile[1].lines[line2].i2 = neigh;	
-					--counti1[i];
-					--counti2[neigh];
-					i1sign[i] = 1;
-					i2sign[neigh] = 1;
-					_i1Max = _i1Max>i?_i1Max:i;
-					_i2Max = _i2Max>neigh?_i2Max:neigh;
-					_i1Min = _i1Min<i?_i1Min:i;
-					_i2Min = _i2Min<neigh?_i2Min:neigh;
-					++line2;
-				}
-				twofile[0].lines[line1].i1 = i;	
-				twofile[0].lines[line1].i2 = neigh;	
-				--counti1[i];
-				--counti2[neigh];
-				i1Max = i1Max>i?i1Max:i;
-				i2Max = i2Max>neigh?i2Max:neigh;
-				i1Min = i1Min<i?i1Min:i;
-				i2Min = i2Min<neigh?i2Min:neigh;
-				++line1;
-			}
-			else {
-				twofile[1].lines[line2].i1 = i;	
-				twofile[1].lines[line2].i2 = neigh;	
-				i1sign[i] = 1;
-				i2sign[neigh] = 1;
-				--counti1[i];
-				--counti2[neigh];
-				_i1Max = _i1Max>i?_i1Max:i;
-				_i2Max = _i2Max>neigh?_i2Max:neigh;
-				_i1Min = _i1Min<i?_i1Min:i;
-				_i2Min = _i2Min<neigh?_i2Min:neigh;
-				++line2;
-			}
-		}
-	}
-	assert((line1 <= l1) && (line2 <= l2));
-
-	free(i1sign);
-	free(i2sign);
-	free(counti1);
-	free(counti2);
-
-	twofile[0].linesNum = line1;
-	twofile[0].i1Max = i1Max;
-	twofile[0].i2Max = i2Max;
-	twofile[0].i1Min = i1Min;
-	twofile[0].i2Min = i2Min;
-
-	twofile[1].linesNum = line2;
-	twofile[1].i1Max = _i1Max;
-	twofile[1].i2Max = _i2Max;
-	twofile[1].i1Min = _i1Min;
-	twofile[1].i2Min = _i2Min;
-	printf("divide_Bip2 done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
-	return twofile;
-}
 
 void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {
 	int i,j;
