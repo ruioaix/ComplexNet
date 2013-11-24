@@ -438,21 +438,24 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 //following is for recommendation.
 //R is rankscore.
 //PL is precision
+//Warning: about unselected_list_length, I use bipi2->maxId, not bipi2->idNum. this actually is wrong I think, but it's the way linyulv did.
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
-	//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
-	int unselected_list_length = bipi2->maxId - bipi1->count[i1];
-	int rank_i1_j = 0;
-	int DiL = 0;
-	int j, id;
-	for (j=0; j<testi1->count[i1]; ++j) {
-		id = testi1->id[i1][j];
-		rank_i1_j += rank[id];
-		if (rank[id] < L) {
-			++DiL;
+	if (testi1->count[i1]) {
+		//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
+		int unselected_list_length = bipi2->maxId - bipi1->count[i1];
+		int rank_i1_j = 0;
+		int DiL = 0;
+		int j, id;
+		for (j=0; j<testi1->count[i1]; ++j) {
+			id = testi1->id[i1][j];
+			rank_i1_j += rank[id];
+			if (rank[id] < L) {
+				++DiL;
+			}
 		}
+		*R += (double)rank_i1_j/(double)unselected_list_length;
+		*PL += (double)DiL/(double)L;
 	}
-	*R += (double)rank_i1_j/(double)unselected_list_length;
-	*PL += (double)DiL/(double)L;
 }
 //IL is intrasimilarity
 static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
@@ -511,7 +514,6 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 					//printf("%d %d %d\n", i, j, Cij);
 					++cou;
 				}
-
 			}
 		}
 	}
@@ -587,17 +589,14 @@ static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 //three-step random walk of heats
-static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij) {
+static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
 	int neigh, i;
-	//double source;
-	long j;//, //degree;
-
+	long j;
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (j=0; j<bipi1->count[i1]; ++j) {
 		neigh = bipi1->id[i1][j];
 		i2source[neigh] = 1;
 	}
-
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (bipi1->count[i]) {
@@ -608,15 +607,6 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			i1source[i] /= bipi1->count[i];
 		}
 	}
-	//for (i=0; i<bipi2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		for (j=0; j<bipi2->count[i]; ++j) {
-	//			neigh = bipi2->id[i][j];
-	//			i1source[neigh] += i2source[i];
-	//		}
-	//	}
-	//}
-
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (bipi2->count[i]) {
@@ -627,35 +617,22 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			i2source[i] /= bipi2->count[i];
 		}
 	}
-	//for (i=0; i<bipi1->maxId + 1; ++i) {
-	//	if (i1source[i]) {
-	//		degree = bipi1->count[i];
-	//		source = (double)i1source[i]/(double)degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = bipi1->id[i][j];
-	//			i2source[neigh] += source;
-	//		}
-	//	}
-	//}
-	//for (i=0; i<bipi2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		i2source[i] /= bipi2->count[i];
-	//	}
-	//}
 	for (i=0; i<bipi1->count[i1]; ++i) {
 		i2source[bipi1->id[i1][i]] = 0;
 	}
-
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
 	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 //three-step random walk of HNBI
-static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double theta) {
+static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -664,7 +641,6 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 		neigh = bipi1->id[i1][j];
 		i2source[neigh] = 1.0*pow(bipi2->count[neigh], theta);
 	}
-
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (i2source[i]) {
@@ -676,7 +652,6 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 			}
 		}
 	}
-
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (i1source[i]) {
@@ -696,8 +671,11 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 		i2id[i] = i;
 		rank[i] = i+1;
 	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 //five-step random walk of RENBI
@@ -706,11 +684,12 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	long degree;
 	double source;
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	//one
 	for (j=0; j<bipi1->count[i1]; ++j) {
 		neigh = bipi1->id[i1][j];
 		i2source[neigh] = 1.0;
 	}
-
+	//two
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (i2source[i]) {
@@ -722,7 +701,7 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			}
 		}
 	}
-
+	//three
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (i1source[i]) {
@@ -734,9 +713,9 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			}
 		}
 	}
-	
+	//save three steps result	
 	memcpy(i2sourceA, i2source, (bipi2->maxId + 1)*sizeof(double));
-
+	//four
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (i2source[i]) {
@@ -748,7 +727,7 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			}
 		}
 	}
-
+	//five
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (i1source[i]) {
@@ -760,7 +739,8 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			}
 		}
 	}
-
+	//now, i2source save w*w result.
+	//add: w+eta*w*w.
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2sourceA[i] += eta*i2source[i];
 	}
@@ -782,13 +762,13 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	int neigh, i;
 	//double source;
 	long j;
-
+	//one
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (j=0; j<bipi1->count[i1]; ++j) {
 		neigh = bipi1->id[i1][j];
 		i2source[neigh] = 1;
 	}
-
+	//two
 	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (i2source[i]) {
@@ -799,7 +779,7 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 			}
 		}
 	}
-
+	//three
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		if (bipi2->count[i]) {
@@ -855,7 +835,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i] && testi1->count[i]) {
+				if (bipi1->count[i]) {
 					//get rank
 					probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
 					//use rank to get metrics values
@@ -866,7 +846,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 		case 2:
 			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
 				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+				if (bipi1->count[i1]) {
 					heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
 					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
@@ -875,7 +855,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 		case 3:
 			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
 				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+				if (bipi1->count[i1]) {
 					HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, theta);
 					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
@@ -887,7 +867,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i] && testi1->count[i]) {
+				if (bipi1->count[i]) {
 					//get rank
 					RENBI_Bip2_core(i, bipi1, bipi2, i1source, i2source, i2sourceA, L, i2id, rank, topL, eta);
 					//use rank to get metrics values
@@ -899,7 +879,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 		case 5:
 			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
 				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1] > 0 && testi1->count[i1] > 0) {
+				if (bipi1->count[i1]) {
 					hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda);
 					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}

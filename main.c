@@ -52,16 +52,14 @@ int main(int argc, char **argv)
 			score[i] /= scorei2->count[i];
 		}
 	}
-	free_Bip3i(scorei2);
-	//FILE *fp = fopen("Results/movielen2", "w");
+	//FILE *fp = fopen("Results/score", "w");
 	//int ii;
-	//for (ii=0; ii<scorefile->linesNum; ++ii) {
-	//	if (scorefile->lines[ii].i3>2) {
-	//		fprintf(fp, "%d, %d\n", scorefile->lines[ii].i1, scorefile->lines[ii].i2);
-	//	}
+	//for (ii=0; ii<scorei2->maxId + 1; ++ii) {
+	//	fprintf(fp, "%d, %f\n", ii, score[ii]);
 	//}
 	//fclose(fp);
 	//return 0;
+	free_Bip3i(scorei2);
 
 	//divide file into two part: train and test.
 	//train will contain every user and every item.
@@ -72,11 +70,11 @@ int main(int argc, char **argv)
 
 	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
 
-	int loopNum = 20;
+	int loopNum = 10;
 	int k;
 	double lambda;
-	for (k=0; k<21; ++k) {
-		lambda = k*0.05;
+	for (k=0; k<101; ++k) {
+		lambda = k*0.01;
 		clean_L_Bip2(hybrid_result);
 		double score_ave = 0;
 		for (i=0; i<loopNum; ++i) {
@@ -133,11 +131,10 @@ int main(int argc, char **argv)
 			//		}
 			//	}
 			//}
+			long len = L*(traini1->maxId + 1);
 			for (j=0; j<L*(traini1->maxId + 1); ++j) {
-				score_ave += score[topL[j]];
+				score_ave += score[topL[j]]/len;
 			}
-			score_ave /= L*(traini1->maxId + 1);
-
 			free_iidNet(trainSim);
 			free_Bip2(traini1);
 			free_Bip2(traini2);
