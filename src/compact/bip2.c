@@ -24,6 +24,12 @@
 //	long edgesNum;
 //};
 
+struct param_recommend_Bip2 {
+	double theta;
+	double eta;
+	double lambda;
+};
+
 struct L_Bip2 *create_L_Bip2(void) {
 	struct L_Bip2 *lp = malloc(sizeof(struct L_Bip2));
 	assert(lp != NULL);
@@ -813,7 +819,11 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
  * 4 -- RNBI  (eta)
  * 5 -- hybrid (lambda)
  */
-static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta, double eta, double lambda) {
+static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct param_recommend_Bip2 param) {
+	double theta = param.theta;
+	double eta = param.eta;
+	double lambda = param.lambda;
+
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
 
@@ -910,23 +920,31 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 
 //calculate deleted links.
 struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	return recommend_Bip2(1, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, 0);
+	struct param_recommend_Bip2 param;
+	return recommend_Bip2(1, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	return recommend_Bip2(2, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, 0);
+	struct param_recommend_Bip2 param;
+	return recommend_Bip2(2, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
-	return recommend_Bip2(3, bipi1, bipi2, testi1, testi2, trainSim, theta, 0, 0);
+	struct param_recommend_Bip2 param;
+	param.theta = theta;
+	return recommend_Bip2(3, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
-	return recommend_Bip2(4, bipi1, bipi2, testi1, testi2, trainSim, 0, eta, 0);
+	struct param_recommend_Bip2 param;
+	param.eta = eta;
+	return recommend_Bip2(4, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
-	return recommend_Bip2(5, bipi1, bipi2, testi1, testi2, trainSim, 0, 0, lambda);
+	struct param_recommend_Bip2 param;
+	param.lambda = lambda;
+	return recommend_Bip2(5, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
