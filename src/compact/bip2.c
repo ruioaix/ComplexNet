@@ -866,6 +866,8 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
  * 3 -- HNBI  (theta)
  * 4 -- RNBI  (eta)
  * 5 -- hybrid (lambda)
+ *
+ * all L is from this function. if you want to change, change the L below.
  */
 static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct param_recommend_Bip2 param) {
 	double theta = param.theta;
@@ -873,6 +875,8 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	double lambda = param.lambda;
 	double epsilon = param.epsilon;
 	double *score = param.score;
+
+	int L = 50;
 
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -887,7 +891,6 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	assert(i2id != NULL);
 
 	int i1, i;
-	int L = 50;
 	int *topL = calloc(L*(bipi1->maxId + 1), sizeof(int));
 	assert(topL != NULL);
 	switch (type) {
