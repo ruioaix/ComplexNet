@@ -28,6 +28,8 @@ struct param_recommend_Bip2 {
 	double theta;
 	double eta;
 	double lambda;
+	double *score;
+	double epsilon;
 };
 
 struct L_Bip2 *create_L_Bip2(void) {
@@ -809,6 +811,52 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
+//three-step random walk of hybrid
+static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda, double *score, double epsilon) {
+	int neigh, i;
+	//double source;
+	long j;
+	//one
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1;
+	}
+	//two
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			double powl = pow(score[i], epsilon)/pow(bipi2->count[i], lambda);
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += i2source[i]*powl;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (bipi2->count[i]) {
+			double powl = pow(bipi2->count[i], 1-lambda);
+			for (j=0; j<bipi2->count[i]; ++j) {
+				neigh = bipi2->id[i][j];
+				i2source[i] += i1source[neigh]/bipi1->count[neigh];
+			}
+			i2source[i] /= powl;
+		}
+	}
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	memcpy(Hij+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
 
 /** 
  * core function of recommendation.
@@ -823,6 +871,8 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	double theta = param.theta;
 	double eta = param.eta;
 	double lambda = param.lambda;
+	double epsilon = param.epsilon;
+	double *score = param.score;
 
 	double R, PL, HL, IL, NL;
 	R=PL=HL=IL=NL=0;
@@ -895,6 +945,15 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 				}
 			}
 			break;
+		case 6:
+			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (bipi1->count[i1]) {
+					score_hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda, score, epsilon);
+					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
 	}
 	R /= testi1->edgesNum;
 	PL /= testi1->idNum;
@@ -945,6 +1004,14 @@ struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *
 	struct param_recommend_Bip2 param;
 	param.lambda = lambda;
 	return recommend_Bip2(5, bipi1, bipi2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip2 *score_hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda, double *score, double epsilon) {
+	struct param_recommend_Bip2 param;
+	param.lambda = lambda;
+	param.epsilon = epsilon;
+	param.score = score;
+	return recommend_Bip2(6, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
