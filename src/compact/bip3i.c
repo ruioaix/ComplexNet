@@ -165,10 +165,10 @@ void *verifyBip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {
 				int next = place[origin];
 				if (next == -1) {
 					place[origin]=origin;
-					fprintf(fp2, "%d\t%d\n", j,origin);
+					fprintf(fp2, "%d, %d, %d\n", j, origin, bipi1->i3[j][i]);
 				}
 				else {
-					fprintf(fp, "%d\t%d\n", j, next);
+					fprintf(fp, "%d, %d, %d\n", j, next, bipi1->i3[j][i]);
 					sign=1;
 				}
 			}

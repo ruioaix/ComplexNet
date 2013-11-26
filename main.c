@@ -39,14 +39,17 @@ int main(int argc, char **argv)
 		printf("wrong argc\n");
 		return 0;
 	}
+	epsilon = 5;
 
 	//printf("%ld\n", t);
 	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
 	init_by_array(init, length);
 
 	struct i3LineFile *scorefile = create_i3LineFile(scorefilename);
+	struct Bip3i *scorei1 = create_Bip3i(scorefile, 1);
 	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
 	free_i3LineFile(scorefile);
+	verifyBip3i(scorei1, scorei2);
 
 	int i;
 	long j;
@@ -67,6 +70,7 @@ int main(int argc, char **argv)
 	//}
 	//fclose(fp);
 	//return 0;
+	free_Bip3i(scorei1);
 	free_Bip3i(scorei2);
 
 	//divide file into two part: train and test.
@@ -75,13 +79,11 @@ int main(int argc, char **argv)
 	struct iiLineFile *net_file = create_iiLineFile(netfilename);
 	struct Bip2 *seti1 = create_Bip2(net_file, 1);
 	struct Bip2 *seti2 = create_Bip2(net_file, 0);
-	verifyBip2(seti1, seti2);
-	return 0;
 
 	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
 	struct L_Bip2 *score_hybrid_result = create_L_Bip2(); 
 
-	int loopNum = 10;
+	int loopNum = 2;
 	int k;
 	double lambda;
 	for (k=0; k<101; ++k) {
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
 			//heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 			struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
 			struct L_Bip2 *r5 = score_hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda, score, epsilon);
-
+			printf("xxx\n");fflush(stdout);
 			//probs_result->R += r1->R;
 			//probs_result->PL += r1->PL;
 			//probs_result->HL += r1->HL;
