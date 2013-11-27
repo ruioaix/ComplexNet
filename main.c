@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 		netfilename = argv[1];
 		scorefilename = argv[2];
 		char *pEnd;
-		loopNum = strtol(argv[3], &pEnd);
+		loopNum = strtol(argv[3], &pEnd, 10);
 	}
 	else {
 		printf("wrong argc\n");
