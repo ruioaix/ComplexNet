@@ -444,11 +444,12 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 }
 
 //following is for recommendation.
+//Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
 //R is rankscore.
 //PL is precision
 //Warning: about unselected_list_length, I use bipi2->maxId, not bipi2->idNum. this actually is wrong I think, but it's the way linyulv did.
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
-	if (testi1->count[i1]) {
+	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
 		int unselected_list_length = bipi2->maxId - bipi1->count[i1];
 		int rank_i1_j = 0;
@@ -475,7 +476,7 @@ static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	double IL = 0;
 	int cou = 0;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i] && testi1->count[i]) {
+		if (bipi1->count[i]) {
 			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {
@@ -505,7 +506,7 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	int Cij = 0;
 	double HL = 0;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i] && testi1->count[i]) {
+		if (bipi1->count[i]) {
 			memset(sign, 0, (bipi2->maxId + 1)*sizeof(int));
 			for (k=i*L; k<i*L+L; ++k) {
 				sign[Hij[k]] = 1;
@@ -534,7 +535,7 @@ static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	long NL = 0;
 	int cou = 0;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i] && testi1->count[i]) {
+		if (bipi1->count[i]) {
 			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {

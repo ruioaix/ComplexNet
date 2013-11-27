@@ -19,27 +19,23 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename, *scorefilename;
-	double epsilon;
+	int loopNum;
 	if (argc == 1) {
 		//netfilename = "data/movielen/movielen2";
 		netfilename = "data/movielen/movielens.txt";
 		scorefilename = "data/movielen/movielens.txt";
+		loopNum = 10;
 	}
-	else if (argc == 2) {
-		netfilename = "data/movielen/movielens.txt";
-		scorefilename = "data/movielen/movielens.txt";
-		char *pEnd;
-		epsilon = strtod(argv[1], &pEnd);
-	}
-	else if (argc == 3) {
+	else if (argc == 4) {
 		netfilename = argv[1];
 		scorefilename = argv[2];
+		char *pEnd;
+		loopNum = strtol(argv[3], &pEnd);
 	}
 	else {
 		printf("wrong argc\n");
 		return 0;
 	}
-	epsilon = 5;
 
 	//printf("%ld\n", t);
 	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
@@ -49,7 +45,7 @@ int main(int argc, char **argv)
 	struct Bip3i *scorei1 = create_Bip3i(scorefile, 1);
 	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
 	free_i3LineFile(scorefile);
-	verifyBip3i(scorei1, scorei2);
+	//verifyBip3i(scorei1, scorei2);
 
 	int i;
 	long j;
@@ -83,11 +79,10 @@ int main(int argc, char **argv)
 	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
 	struct L_Bip2 *score_hybrid_result = create_L_Bip2(); 
 
-	int loopNum = 2;
 	int k;
-	double lambda;
-	for (k=0; k<101; ++k) {
-		lambda = k*0.01;
+	double lambda = 0, epsilon;
+	for (k=0; k<26; ++k) {
+		epsilon = k*0.2;
 		clean_L_Bip2(hybrid_result);
 		clean_L_Bip2(score_hybrid_result);
 		double score_ave = 0;
@@ -114,7 +109,6 @@ int main(int argc, char **argv)
 			//heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
 			struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
 			struct L_Bip2 *r5 = score_hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda, score, epsilon);
-			printf("xxx\n");fflush(stdout);
 			//probs_result->R += r1->R;
 			//probs_result->PL += r1->PL;
 			//probs_result->HL += r1->HL;
