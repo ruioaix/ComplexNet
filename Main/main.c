@@ -76,17 +76,17 @@ int main(int argc, char **argv)
 	struct Bip2 *seti1 = create_Bip2(net_file, 1);
 	struct Bip2 *seti2 = create_Bip2(net_file, 0);
 
-	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
-	//struct L_Bip2 *score_hybrid_result = create_L_Bip2(); 
+	//struct L_Bip2 *hybrid_result = create_L_Bip2(); 
+	struct L_Bip2 *score_hybrid_result = create_L_Bip2(); 
 
 	int k;
-	double lambda;
-	for (k=0; k<101; ++k) {
-		lambda = k*0.01;
-		clean_L_Bip2(hybrid_result);
-		//clean_L_Bip2(score_hybrid_result);
-		double score_ave = 0;
-		//double score_ave_2 = 0;
+	double lambda = 0, epsilon;
+	for (k=0; k<2; ++k) {
+		epsilon = k*0.2;
+		//clean_L_Bip2(hybrid_result);
+		clean_L_Bip2(score_hybrid_result);
+		//double score_ave = 0;
+		double score_ave_2 = 0;
 		for (i=0; i<loopNum; ++i) {
 			struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
 
@@ -107,8 +107,8 @@ int main(int argc, char **argv)
 			//struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.8);
 			//struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.75);
 			//heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
-			struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
-			//struct L_Bip2 *r5 = score_hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda, score, epsilon);
+			//struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
+			struct L_Bip2 *r5 = score_hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda, score, epsilon);
 			//probs_result->R += r1->R;
 			//probs_result->PL += r1->PL;
 			//probs_result->HL += r1->HL;
@@ -124,18 +124,18 @@ int main(int argc, char **argv)
 			//RENBI_result->HL += r3->HL;
 			//RENBI_result->IL += r3->IL;
 			//RENBI_result->NL += r3->NL;
-			hybrid_result->R +=  r4->R;
-			hybrid_result->PL += r4->PL;
-			hybrid_result->HL += r4->HL;
-			hybrid_result->IL += r4->IL;
-			hybrid_result->NL += r4->NL;
-			//score_hybrid_result->R +=  r5->R;
-			//score_hybrid_result->PL += r5->PL;
-			//score_hybrid_result->HL += r5->HL;
-			//score_hybrid_result->IL += r5->IL;
-			//score_hybrid_result->NL += r5->NL;
-			int L = r4->L;
-			int *topL = r4->topL;
+			//hybrid_result->R +=  r4->R;
+			//hybrid_result->PL += r4->PL;
+			//hybrid_result->HL += r4->HL;
+			//hybrid_result->IL += r4->IL;
+			//hybrid_result->NL += r4->NL;
+			score_hybrid_result->R +=  r5->R;
+			score_hybrid_result->PL += r5->PL;
+			score_hybrid_result->HL += r5->HL;
+			score_hybrid_result->IL += r5->IL;
+			score_hybrid_result->NL += r5->NL;
+			int L = r5->L;
+			//int *topL = r4->topL;
 			//int i1;
 			//for (i1 = 0; i1<traini1->maxId + 1; ++i1) { //each user
 			//	if (traini1->count[i1] > 0 && testi1->count[i1] > 0) {
@@ -148,8 +148,8 @@ int main(int argc, char **argv)
 			//}
 			long len = L*(traini1->maxId + 1);
 			for (j=0; j<L*(traini1->maxId + 1); ++j) {
-				score_ave += score[topL[j]]/len;
-				//score_ave_2 += score[r5->topL[j]]/len;
+				//score_ave += score[topL[j]]/len;
+				score_ave_2 += score[r5->topL[j]]/len;
 			}
 			free_iidNet(trainSim);
 			free_Bip2(traini1);
@@ -157,14 +157,14 @@ int main(int argc, char **argv)
 			free_Bip2(testi1);
 			free_Bip2(testi2);
 			//free(r1); free(r2); free(r3); 
-			free_L_Bip2(r4);
-			//free_L_Bip2(r5);
+			//free_L_Bip2(r4);
+			free_L_Bip2(r5);
 		}
-		printf("      hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
-		//printf("score_hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f, epsilon: %f\n", lambda, loopNum, score_hybrid_result->R/loopNum, score_hybrid_result->PL/loopNum, score_hybrid_result->IL/loopNum, score_hybrid_result->HL/loopNum, score_hybrid_result->NL/loopNum, score_ave_2/loopNum, epsilon);
+		//printf("      hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
+		printf("score_hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f, epsilon: %f\n", lambda, loopNum, score_hybrid_result->R/loopNum, score_hybrid_result->PL/loopNum, score_hybrid_result->IL/loopNum, score_hybrid_result->HL/loopNum, score_hybrid_result->NL/loopNum, score_ave_2/loopNum, epsilon);
 	}
-	free_L_Bip2(hybrid_result);
-	//free_L_Bip2(score_hybrid_result);
+	//free_L_Bip2(hybrid_result);
+	free_L_Bip2(score_hybrid_result);
 	free(score);
 	
 	//printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
