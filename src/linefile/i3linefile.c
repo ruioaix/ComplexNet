@@ -131,6 +131,14 @@ void free_i3LineFile(struct i3LineFile *file) {
 	}
 }
 
+void free_2_i3LineFile(struct i3LineFile *twofile) {
+	if(twofile != NULL) {
+		free(twofile[0].lines);
+		free(twofile[1].lines);
+		free(twofile);
+	}
+}
+
 void print_i3LineFile(struct i3LineFile *file, char *filename) {
 	long i;
 	FILE *fp = fopen(filename, "w");

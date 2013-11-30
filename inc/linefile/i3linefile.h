@@ -15,6 +15,7 @@ struct i3LineFile{
 	struct i3Line *lines;
 };
 void free_i3LineFile(struct i3LineFile *file);
+void free_2_i3LineFile(struct i3LineFile *twofile);
 struct i3LineFile *create_i3LineFile(const char * const filename);
 void print_i3LineFile(struct i3LineFile *file, char *filename);
 int geti1num_i3LineFile(struct i3LineFile *file);
