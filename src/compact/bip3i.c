@@ -443,22 +443,24 @@ static double metrics_NL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 	return NL;
 }
 //three-step random walk of Probs
-static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {
 	int i, j, neigh;
 	long degree;
 	double source;
 	//one 
+	double totalsouce = 0;
 	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
 	for (j=0; j<traini1->count[i1]; ++j) {
 		neigh = traini1->id[i1][j];
-		i2source[neigh] = 1.0;
+		i2source[neigh] = pow(traini1->i3[i][j], theta);
+		totalsouce += i2source[neigh];	
 	}
 	//two
 	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		if (i2source[i]) {
 			degree = traini2->count[i];
-			source = i2source[i]/(double)degree;
+			source = i2source[i]/totalsouce;
 			for (j=0; j<degree; ++j) {
 				neigh = traini2->id[i][j];
 				i1source[neigh] += source;
@@ -526,7 +528,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				if (traini1->count[i]) {
 					//get rank
-					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL);
+					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL, theta);
 					//use rank to get metrics values
 					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
