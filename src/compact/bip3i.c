@@ -343,7 +343,7 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 //Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
 //R is rankscore.
 //PL is precision
-//Warning: about unselected_list_length, I use triani2->maxId, not traini2->idNum. this actually is wrong I think, but it's the way linyulv did.
+//Warning: about unselected_list_length, I use traini2->maxId, not traini2->idNum. this actually is wrong I think, but it's the way linyulv did.
 static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		//int unselected_list_length = traini2->idNum - traini1->count[i1];
@@ -443,27 +443,41 @@ static double metrics_NL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 	return NL;
 }
 //three-step random walk of Probs
-static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {
+static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double theta) {
 	int i, j, neigh;
 	long degree;
 	double source;
+	//double t=0;
 	//one 
-	double totalsouce = 0;
+	double totalsource = 0;
+	memset(i2id, 0, (traini2->maxId +1)*sizeof(int));
 	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
 	for (j=0; j<traini1->count[i1]; ++j) {
 		neigh = traini1->id[i1][j];
-		i2source[neigh] = pow(traini1->i3[i][j], theta);
-		totalsouce += i2source[neigh];	
+		i2id[neigh] = traini1->i3[i1][j];
+		i2source[neigh] = pow(traini1->i3[i1][j], theta);
+		totalsource += i2source[neigh];	
+	}
+	for (j=0; j<traini1->count[i1]; ++j) {
+		i2source[neigh] = i2source[neigh]*traini1->count[i1]/totalsource;
 	}
 	//two
 	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	//memset(i1sourceA, 0, (traini1->maxId+1)*sizeof(double));
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		if (i2source[i]) {
 			degree = traini2->count[i];
-			source = i2source[i]/totalsouce;
+			source = i2source[i];
+			totalsource = 0;
 			for (j=0; j<degree; ++j) {
 				neigh = traini2->id[i][j];
-				i1source[neigh] += source;
+				i1sourceA[neigh] = pow(5 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
+				//i1source[neigh] = source*source2;
+				totalsource += i1sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source*i1sourceA[neigh]/totalsource;
 			}
 		}
 	}
@@ -471,18 +485,28 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
 	for (i=0; i<traini1->maxId + 1; ++i) {
 		if (i1source[i]) {
+			totalsource = 0;
 			degree = traini1->count[i];
-			source = (double)i1source[i]/(double)degree;
+			source = i1source[i];
 			for (j=0; j<degree; ++j) {
 				neigh = traini1->id[i][j];
-				i2source[neigh] += source;
+				i2sourceA[neigh] = pow(traini1->i3[i][j], theta);
+				totalsource += i2sourceA[neigh];	
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2source[neigh] += source*i2sourceA[neigh]/totalsource;
 			}
 		}
 	}
+	//for (i=0; i<traini2->maxId + 1; ++i) {
+	//	t += i2source[i];
+	//}
 	//set selected item's source to 0
 	for (i=0; i<traini1->count[i1]; ++i) {
 		i2source[traini1->id[i1][i]] = 0;
 	}
+	//printf("%d, %ld, %f\n", i1, traini1->count[i1], t);
 	//set i2id and rank.
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
@@ -512,8 +536,12 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
+	double *i1sourceA = malloc((traini1->maxId + 1)*sizeof(double));
+	assert(i1sourceA != NULL);
 	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
 	assert(i2source != NULL);
+	double *i2sourceA = malloc((traini2->maxId + 1)*sizeof(double));
+	assert(i2sourceA != NULL);
 	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
 	assert(rank != NULL);
 	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
@@ -528,7 +556,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				if (traini1->count[i]) {
 					//get rank
-					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL, theta);
+					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i1sourceA, i2sourceA, L, i2id, rank, topL, theta);
 					//use rank to get metrics values
 					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
@@ -552,6 +580,8 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(i1source);
 	free(i2source);
+	free(i1sourceA);
+	free(i2sourceA);
 	free(i2id);
 	free(rank);
 	return retn;
