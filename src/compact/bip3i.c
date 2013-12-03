@@ -447,7 +447,6 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	int i, j, neigh;
 	long degree;
 	double source;
-	//double t=0;
 	//one 
 	double totalsource = 0;
 	memset(i2id, 0, (traini2->maxId +1)*sizeof(int));
@@ -490,8 +489,8 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 			source = i1source[i];
 			for (j=0; j<degree; ++j) {
 				neigh = traini1->id[i][j];
-				i2sourceA[neigh] = pow(traini1->i3[i][j], theta);
-				totalsource += i2sourceA[neigh];	
+				i2sourceA[neigh] = pow((double)traini1->i3[i][j]/(double)traini2->count[neigh], theta);
+				totalsource += i2sourceA[neigh];
 			}
 			for (j=0; j<degree; ++j) {
 				neigh = traini1->id[i][j];
@@ -499,15 +498,15 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 			}
 		}
 	}
+	//double t=0;
 	//for (i=0; i<traini2->maxId + 1; ++i) {
 	//	t += i2source[i];
 	//}
-	//set selected item's source to 0
+	//printf("%d, %ld, %f\n", i1, traini1->count[i1], t);
+	//set i2id and rank.
 	for (i=0; i<traini1->count[i1]; ++i) {
 		i2source[traini1->id[i1][i]] = 0;
 	}
-	//printf("%d, %ld, %f\n", i1, traini1->count[i1], t);
-	//set i2id and rank.
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
