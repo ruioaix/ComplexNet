@@ -1,5 +1,5 @@
-#ifndef COMPLEXNET_NET_H
-#define COMPLEXNET_NET_H
+#ifndef IIDNET_H
+#define IIDNET_H
 
 #include "../linefile/iidlinefile.h"
 
