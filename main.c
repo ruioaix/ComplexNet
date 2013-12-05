@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	struct L_Bip3i *dmass_result = create_L_Bip3i();
 	struct L_Bip3i *tmass_result = create_L_Bip3i();
 
-	for (k=0; k<2; ++k) {
+	for (k=0; k<10; ++k) {
 		double theta = begin + k*0.02;
 		clean_L_Bip3i(smass_result);
 		clean_L_Bip3i(dmass_result);
