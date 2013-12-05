@@ -52,6 +52,7 @@ void free_L_Bip3i(struct L_Bip3i *lp) {
 struct param_recommend_Bip3i {
 	double theta;
 	double eta;
+	double epsilon;
 };
 
 void free_Bip3i(struct Bip3i *Bip) {
@@ -578,17 +579,77 @@ static void d_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
 }
 
+static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = traini2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	double totalsource;
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			totalsource = 0;
+			degree = traini1->count[i];
+			source = i1source[i];
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2sourceA[neigh] = pow((double)traini1->i3[i][j]/(double)traini2->count[neigh], epsilon);
+				totalsource += i2sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2source[neigh] += source*i2sourceA[neigh]/totalsource;
+			}
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<traini1->count[i1]; ++i) {
+		i2source[traini1->id[i1][i]] = 0;
+	}
+	//set i2id and rank.
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+
 /** 
  * core function of recommendation.
  * type :
  * 1 -- score degree mass (theta)
  * 2 -- degree mass (eta)
+ * 3 -- only third step change, similar to 2, but with both score and degree. (epsilon)
  *
  * all L is from this function. if you want to change, change the L below.
  */
 static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, struct param_recommend_Bip3i param) {
 	double theta = param.theta;
 	double eta = param.eta;
+	double epsilon = param.epsilon;
 
 	int L = 50;
 
@@ -634,6 +695,17 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				}
 			}
 			break;
+		case 3:
+			for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (traini1->count[i]) {
+					//get rank
+					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon);
+					//use rank to get metrics values
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
 
 	}
 	R /= testi1->edgesNum;
@@ -670,6 +742,12 @@ struct L_Bip3i *d_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struc
 	struct param_recommend_Bip3i param;
 	param.eta = eta;
 	return recommend_Bip3i(2, traini1, traini2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon) {
+	struct param_recommend_Bip3i param;
+	param.epsilon = epsilon;
+	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
 struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {
