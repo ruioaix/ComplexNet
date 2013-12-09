@@ -472,7 +472,7 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 			totalsource = 0;
 			for (j=0; j<degree; ++j) {
 				neigh = traini2->id[i][j];
-				i1sourceA[neigh] = pow(5 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
+				i1sourceA[neigh] = pow(10 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
 				//i1source[neigh] = source*source2;
 				totalsource += i1sourceA[neigh];
 			}
@@ -751,6 +751,7 @@ struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *trai
 }
 
 struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {
+	printf("calculate similarity begin...\t");fflush(stdout);
 	int i,j;
 	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
 	assert(sign != NULL);
@@ -816,6 +817,6 @@ struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i 
 	simfile->i2Min = i2Min;
 	simfile->linesNum = linesNum;
 	simfile->lines = lines;
-	printf("calculate similarity done.\n");
+	printf("calculate similarity done.\n");fflush(stdout);
 	return simfile;
 }

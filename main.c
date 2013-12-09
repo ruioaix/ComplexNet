@@ -66,6 +66,9 @@ int main(int argc, char **argv)
 	struct L_Bip3i *dmass_result = create_L_Bip3i();
 	struct L_Bip3i *tmass_result = create_L_Bip3i();
 
+	//struct i3LineFile *trainfile = create_i3LineFile(trainfilename);
+	//struct i3LineFile *testfile = create_i3LineFile(testfilename);
+
 	for (k=0; k<10; ++k) {
 		double theta = begin + k*0.02;
 		clean_L_Bip3i(smass_result);
@@ -79,6 +82,11 @@ int main(int argc, char **argv)
 			struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
 			print_i3LineFile(twofile+1, trainfilename);
 			print_i3LineFile(twofile, testfilename);
+
+			//struct Bip3i *traini1 = create_Bip3i(trainfile, 1);
+			//struct Bip3i *traini2 = create_Bip3i(trainfile, 0);
+			//struct Bip3i *testi1 = create_Bip3i(testfile, 1);
+			//struct Bip3i *testi2 = create_Bip3i(testfile, 0);
 
 			struct Bip3i *traini1 = create_Bip3i(twofile + 1, 1);
 			struct Bip3i *traini2 = create_Bip3i(twofile + 1, 0);
