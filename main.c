@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 {
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
-	char *netfilename;
+	char *netfilename, *trainfilename, *testfilename;
 	int loopNum;
 	double begin;
 	if (argc == 1) {
@@ -26,6 +26,14 @@ int main(int argc, char **argv)
 		char *pEnd;
 		loopNum = strtol(argv[2], &pEnd, 10);
 		begin = strtod(argv[3], &pEnd);
+	}
+	else if (argc == 6) {
+		netfilename = argv[1];
+		char *pEnd;
+		loopNum = strtol(argv[2], &pEnd, 10);
+		begin = strtod(argv[3], &pEnd);
+		trainfilename = argv[4];
+		testfilename = argv[5];
 	}
 	else {
 		printf("wrong argc\n");
@@ -69,6 +77,8 @@ int main(int argc, char **argv)
 		for (i=0; i<loopNum; ++i) {
 
 			struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
+			print_i3LineFile(twofile+1, trainfilename);
+			print_i3LineFile(twofile, testfilename);
 
 			struct Bip3i *traini1 = create_Bip3i(twofile + 1, 1);
 			struct Bip3i *traini2 = create_Bip3i(twofile + 1, 0);
