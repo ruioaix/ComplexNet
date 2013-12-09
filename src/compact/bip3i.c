@@ -292,16 +292,18 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 					_i2Min = _i2Min<neigh?_i2Min:neigh;
 					++line2;
 				}
-				twofile[0].lines[line1].i1 = i;	
-				twofile[0].lines[line1].i2 = neigh;	
-				twofile[0].lines[line2].i3 = score;	
-				--counti1[i];
-				--counti2[neigh];
-				i1Max = i1Max>i?i1Max:i;
-				i2Max = i2Max>neigh?i2Max:neigh;
-				i1Min = i1Min<i?i1Min:i;
-				i2Min = i2Min<neigh?i2Min:neigh;
-				++line1;
+				else {
+					twofile[0].lines[line1].i1 = i;	
+					twofile[0].lines[line1].i2 = neigh;	
+					twofile[0].lines[line2].i3 = score;	
+					--counti1[i];
+					--counti2[neigh];
+					i1Max = i1Max>i?i1Max:i;
+					i2Max = i2Max>neigh?i2Max:neigh;
+					i1Min = i1Min<i?i1Min:i;
+					i2Min = i2Min<neigh?i2Min:neigh;
+					++line1;
+				}
 			}
 			else {
 				twofile[1].lines[line2].i1 = i;	
@@ -472,7 +474,7 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 			totalsource = 0;
 			for (j=0; j<degree; ++j) {
 				neigh = traini2->id[i][j];
-				i1sourceA[neigh] = pow(10 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
+				i1sourceA[neigh] = pow(5 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
 				//i1source[neigh] = source*source2;
 				totalsource += i1sourceA[neigh];
 			}

@@ -80,8 +80,8 @@ int main(int argc, char **argv)
 		for (i=0; i<loopNum; ++i) {
 
 			struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
-			print_i3LineFile(twofile+1, trainfilename);
-			print_i3LineFile(twofile, testfilename);
+			//print_i3LineFile(twofile+1, trainfilename);
+			//print_i3LineFile(twofile, testfilename);
 
 			//struct Bip3i *traini1 = create_Bip3i(trainfile, 1);
 			//struct Bip3i *traini2 = create_Bip3i(trainfile, 0);
@@ -101,6 +101,9 @@ int main(int argc, char **argv)
 			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
 			struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
 			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
+			//struct L_Bip3i *r1 = r2;
+			//struct L_Bip3i *r3 = r2;
+
 
 			smass_result->R +=  r1->R;
 			smass_result->PL += r1->PL;
