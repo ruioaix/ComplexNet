@@ -53,6 +53,7 @@ struct param_recommend_Bip3i {
 	double theta;
 	double eta;
 	double epsilon;
+	double lambda;
 	int maxscore;
 };
 
@@ -639,6 +640,52 @@ static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bi
 	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
 }
+//three-step random walk of hybrid
+static void hybrid_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double lambda) {
+	int neigh, i;
+	//double source;
+	long j;
+	//one
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			double powl = pow(traini2->count[i], lambda);
+			for (j=0; j<traini2->count[i]; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += i2source[i]/powl;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (traini2->count[i]) {
+			double powl = pow(traini2->count[i], 1-lambda);
+			for (j=0; j<traini2->count[i]; ++j) {
+				neigh = traini2->id[i][j];
+				i2source[i] += i1source[neigh]/traini1->count[neigh];
+			}
+			i2source[i] /= powl;
+		}
+	}
+	for (i=0; i<traini1->count[i1]; ++i) {
+		i2source[traini1->id[i1][i]] = 0;
+	}
+
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
 
 /** 
  * core function of recommendation.
@@ -646,6 +693,7 @@ static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bi
  * 1 -- score degree mass (theta)
  * 2 -- degree mass (eta)
  * 3 -- only third step change, similar to 2, but with both score and degree. (epsilon)
+ * 4 -- origin hybrid (lambda)
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -653,7 +701,8 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	double theta = param.theta;
 	double eta = param.eta;
 	double epsilon = param.epsilon;
-	double maxscore = param.maxscore;
+	double lambda = param.lambda;
+	int maxscore = param.maxscore;
 
 	int L = 50;
 
@@ -710,6 +759,17 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				}
 			}
 			break;
+		case 4:
+			for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (traini1->count[i]) {
+					//get rank
+					hybrid_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL, lambda);
+					//use rank to get metrics values
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
 
 	}
 	R /= testi1->edgesNum;
@@ -753,6 +813,12 @@ struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *trai
 	struct param_recommend_Bip3i param;
 	param.epsilon = epsilon;
 	param.maxscore = maxscore;
+	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip3i *hybrid_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double lambda) {
+	struct param_recommend_Bip3i param;
+	param.lambda = lambda;
 	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
