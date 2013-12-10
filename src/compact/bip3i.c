@@ -295,7 +295,7 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 				else {
 					twofile[0].lines[line1].i1 = i;	
 					twofile[0].lines[line1].i2 = neigh;	
-					twofile[0].lines[line2].i3 = score;	
+					twofile[0].lines[line1].i3 = score;	
 					--counti1[i];
 					--counti2[neigh];
 					i1Max = i1Max>i?i1Max:i;
