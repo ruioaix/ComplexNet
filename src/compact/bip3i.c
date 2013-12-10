@@ -53,6 +53,7 @@ struct param_recommend_Bip3i {
 	double theta;
 	double eta;
 	double epsilon;
+	int maxscore;
 };
 
 void free_Bip3i(struct Bip3i *Bip) {
@@ -447,7 +448,7 @@ static double metrics_NL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 	return NL;
 }
 //three-step random walk of Probs
-static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double theta) {
+static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double theta, int maxscore) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -581,7 +582,7 @@ static void d_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
 }
 
-static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon) {
+static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon, int maxscore) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -652,6 +653,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	double theta = param.theta;
 	double eta = param.eta;
 	double epsilon = param.epsilon;
+	double maxscore = param.maxscore;
 
 	int L = 50;
 
@@ -680,7 +682,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				if (traini1->count[i]) {
 					//get rank
-					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i1sourceA, i2sourceA, L, i2id, rank, topL, theta);
+					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i1sourceA, i2sourceA, L, i2id, rank, topL, theta, maxscore);
 					//use rank to get metrics values
 					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
@@ -702,7 +704,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				if (traini1->count[i]) {
 					//get rank
-					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon);
+					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon, maxscore);
 					//use rank to get metrics values
 					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
@@ -734,9 +736,10 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	return retn;
 }
 
-struct L_Bip3i *s_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double theta) {
+struct L_Bip3i *s_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double theta, int maxscore) {
 	struct param_recommend_Bip3i param;
 	param.theta = theta;
+	param.maxscore = maxscore;
 	return recommend_Bip3i(1, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
@@ -746,9 +749,10 @@ struct L_Bip3i *d_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struc
 	return recommend_Bip3i(2, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
-struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon) {
+struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon, int maxscore) {
 	struct param_recommend_Bip3i param;
 	param.epsilon = epsilon;
+	param.maxscore = maxscore;
 	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
 }
 

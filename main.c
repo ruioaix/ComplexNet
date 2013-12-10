@@ -13,17 +13,25 @@ int main(int argc, char **argv)
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
 	int loopNum;
-	double begin;
+	int maxscore;
+	double stepbegin, stepLen;
+	int stepNum;
 	if (argc == 1) {
 		netfilename = "data/movielen/movielens.txt";
-		loopNum = 3;
-		begin = 0;
+		loopNum = 2;
+		maxscore = 5;
+		stepbegin = 0;
+		stepLen = 0.02;
+		stepNum = 10;
 	}
-	else if (argc == 4) {
+	else if (argc == 7) {
 		netfilename = argv[1];
 		char *pEnd;
-		loopNum = strtol(argv[2], &pEnd, 10);
-		begin = strtod(argv[3], &pEnd);
+		maxscore = strtol(argv[2], &pEnd, 10);
+		loopNum = strtol(argv[3], &pEnd, 10);
+		stepbegin = strtod(argv[4], &pEnd);
+		stepLen = strtod(argv[5], &pEnd);
+		stepNum = strtol(argv[6], &pEnd, 10);
 	}
 	else {
 		printf("wrong argc\n");
@@ -59,8 +67,8 @@ int main(int argc, char **argv)
 	//struct i3LineFile *trainfile = create_i3LineFile(trainfilename);
 	//struct i3LineFile *testfile = create_i3LineFile(testfilename);
 
-	for (k=0; k<10; ++k) {
-		double theta = begin + k*0.02;
+	for (k=0; k<stepNum; ++k) {
+		double theta = stepbegin + k*stepLen;
 		clean_L_Bip3i(smass_result);
 		clean_L_Bip3i(dmass_result);
 		clean_L_Bip3i(tmass_result);
@@ -81,9 +89,9 @@ int main(int argc, char **argv)
 			struct iidNet *trainSim = create_iidNet(simfile);
 			free_iidLineFile(simfile);
 
-			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
+			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
 			struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
-			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
+			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
 
 			smass_result->R +=  r1->R;
 			smass_result->PL += r1->PL;
