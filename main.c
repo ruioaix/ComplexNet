@@ -3,16 +3,9 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
-#include "inc/linefile/i5linefile.h"
-#include "inc/linefile/iilinefile.h"
 #include "inc/linefile/i3linefile.h"
-#include "inc/linefile/iidlinefile.h"
-#include "inc/compact/bip2.h"
 #include "inc/compact/bip3i.h"
-#include "inc/compact/iidnet.h"
-#include "inc/utility/error.h"
 #include "inc/utility/random.h"
-#include "inc/utility/hashtable.h"
 
 int main(int argc, char **argv)
 {
@@ -20,112 +13,129 @@ int main(int argc, char **argv)
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
 	int loopNum;
-	double stepLen;
+	int maxscore;
+	double stepbegin, stepLen;
 	int stepNum;
-	double stepbegin;
 	if (argc == 1) {
 		netfilename = "data/movielen/movielens.txt";
-		loopNum = 1;
+		loopNum = 2;
+		maxscore = 5;
 		stepbegin = 0;
-		stepLen = 0.01;
+		stepLen = 0.02;
 		stepNum = 10;
 	}
-	else if (argc == 6) {
+	else if (argc == 7) {
 		netfilename = argv[1];
 		char *pEnd;
-		loopNum = strtol(argv[2], &pEnd, 10);
-		stepbegin = strtod(argv[3], &pEnd);
-		stepLen = strtod(argv[4], &pEnd);
-		stepNum = strtol(argv[5], &pEnd, 10);
+		maxscore = strtol(argv[2], &pEnd, 10);
+		loopNum = strtol(argv[3], &pEnd, 10);
+		stepbegin = strtod(argv[4], &pEnd);
+		stepLen = strtod(argv[5], &pEnd);
+		stepNum = strtol(argv[6], &pEnd, 10);
 	}
 	else {
 		printf("wrong argc\n");
 		return 0;
 	}
 
-	//printf("%ld\n", t);
+	//random number init, make sure that random number generated differently every time program run.
 	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
 	init_by_array(init, length);
 
-	struct i3LineFile *scorefile = create_i3LineFile(netfilename);
-	struct Bip3i *scorei1 = create_Bip3i(scorefile, 1);
-	struct Bip3i *scorei2 = create_Bip3i(scorefile, 0);
-	free_i3LineFile(scorefile);
-	int i;
-	long j;
-	double *score = calloc(scorei2->maxId + 1, sizeof(double));
+	//main
+	struct i3LineFile *netfile = create_i3LineFile(netfilename);
+	struct Bip3i *neti1 = create_Bip3i(netfile, 1);
+	struct Bip3i *neti2 = create_Bip3i(netfile, 0);
+	free_i3LineFile(netfile);
+
+	int k,i,j;
+	double *score = calloc(neti2->maxId + 1, sizeof(double));
 	assert(score != NULL);
-	for (i=0; i<scorei2->maxId + 1; ++i) {
-		if (scorei2->count[i]) {
-			for (j=0; j<scorei2->count[i]; ++j) {
-				score[i] += scorei2->i3[i][j];
+	for (i=0; i<neti2->maxId + 1; ++i) {
+		if (neti2->count[i]) {
+			for (j=0; j<neti2->count[i]; ++j) {
+				score[i] += neti2->i3[i][j];
 			}
-			score[i] /= scorei2->count[i];
+			score[i] /= neti2->count[i];
 		}
 	}
-	free_Bip3i(scorei1);
-	free_Bip3i(scorei2);
 
+	struct L_Bip3i *smass_result = create_L_Bip3i();
+	struct L_Bip3i *dmass_result = create_L_Bip3i();
+	struct L_Bip3i *tmass_result = create_L_Bip3i();
 
-	//divide file into two part: train and test.
-	//train will contain every user and every item.
-	//but test maybe not.
-	struct iiLineFile *net_file = create_iiLineFile(netfilename);
-	struct Bip2 *seti1 = create_Bip2(net_file, 1);
-	struct Bip2 *seti2 = create_Bip2(net_file, 0);
-	free_iiLineFile(net_file);
+	//struct i3LineFile *trainfile = create_i3LineFile(trainfilename);
+	//struct i3LineFile *testfile = create_i3LineFile(testfilename);
 
-	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
-
-	int k;
-	double lambda;
 	for (k=0; k<stepNum; ++k) {
-		lambda = k*stepLen + stepbegin;
-		clean_L_Bip2(hybrid_result);
-		double score_ave = 0;
+		double theta = stepbegin + k*stepLen;
+		clean_L_Bip3i(smass_result);
+		clean_L_Bip3i(dmass_result);
+		clean_L_Bip3i(tmass_result);
+		double score_ave = 0;	
+		double score_ave_2 = 0;
+		double score_ave_3 = 0;
 		for (i=0; i<loopNum; ++i) {
-			struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
 
-			struct Bip2 *traini1= create_Bip2(n2file + 1, 1);
-			struct Bip2 *traini2 = create_Bip2(n2file + 1, 0);
-			struct Bip2 *testi1 = create_Bip2(n2file, 1);
-			struct Bip2 *testi2 = create_Bip2(n2file, 0);
-			free_2_iiLineFile(n2file);
+			struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
 
-			//the similarity is get from traini1
-			//struct iidLineFile *similarity = create_iidLineFile(simfilename);
-			struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2);
-			struct iidNet *trainSim = create_iidNet(similarity);
-			free_iidLineFile(similarity);
+			struct Bip3i *traini1 = create_Bip3i(twofile + 1, 1);
+			struct Bip3i *traini2 = create_Bip3i(twofile + 1, 0);
+			struct Bip3i *testi1 = create_Bip3i(twofile, 1);
+			struct Bip3i *testi2 = create_Bip3i(twofile, 0);
+			free_2_i3LineFile(twofile);
 
-			struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
+			struct iidLineFile *simfile = similarity_realtime_Bip3i(traini1, traini2);
+			struct iidNet *trainSim = create_iidNet(simfile);
+			free_iidLineFile(simfile);
 
-			hybrid_result->R +=  r4->R;
-			hybrid_result->PL += r4->PL;
-			hybrid_result->HL += r4->HL;
-			hybrid_result->IL += r4->IL;
-			hybrid_result->NL += r4->NL;
-			int L = r4->L;
-			int *topL = r4->topL;
+			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
+			struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
+			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
+
+			smass_result->R +=  r1->R;
+			smass_result->PL += r1->PL;
+			smass_result->HL += r1->HL;
+			smass_result->IL += r1->IL;
+			smass_result->NL += r1->NL;
+			dmass_result->R +=  r2->R;
+			dmass_result->PL += r2->PL;
+			dmass_result->HL += r2->HL;
+			dmass_result->IL += r2->IL;
+			dmass_result->NL += r2->NL;
+			tmass_result->R +=  r3->R;
+			tmass_result->PL += r3->PL;
+			tmass_result->HL += r3->HL;
+			tmass_result->IL += r3->IL;
+			tmass_result->NL += r3->NL;
+			int L = r1->L;
 			long len = L*(traini1->maxId + 1);
 			for (j=0; j<L*(traini1->maxId + 1); ++j) {
-				score_ave += score[topL[j]]/len;
+				score_ave += score[r1->topL[j]]/len;
+				score_ave_2 += score[r2->topL[j]]/len;
+				score_ave_3 += score[r3->topL[j]]/len;
 			}
-
+			
+			free_Bip3i(traini1);
+			free_Bip3i(traini2);
+			free_Bip3i(testi1);
+			free_Bip3i(testi2);
 			free_iidNet(trainSim);
-			free_Bip2(traini1);
-			free_Bip2(traini2);
-			free_Bip2(testi1);
-			free_Bip2(testi2);
-			free_L_Bip2(r4);
+			free_L_Bip3i(r1);
+			free_L_Bip3i(r2);
+			free_L_Bip3i(r3);
 		}
-		printf("      hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
+		printf("score_mass\ttheta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, smass_result->R/loopNum, smass_result->PL/loopNum, smass_result->IL/loopNum, smass_result->HL/loopNum, smass_result->NL/loopNum, score_ave/loopNum);
+		printf("degree_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, dmass_result->R/loopNum, dmass_result->PL/loopNum, dmass_result->IL/loopNum, dmass_result->HL/loopNum, dmass_result->NL/loopNum, score_ave_2/loopNum);
+		printf("third_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, tmass_result->R/loopNum, tmass_result->PL/loopNum, tmass_result->IL/loopNum, tmass_result->HL/loopNum, tmass_result->NL/loopNum, score_ave_3/loopNum);
 	}
 
-	free_L_Bip2(hybrid_result);
-	free_Bip2(seti1);
-	free_Bip2(seti2);
+	free_L_Bip3i(smass_result);
+	free_L_Bip3i(dmass_result);
+	free_L_Bip3i(tmass_result);
 	free(score);
+	free_Bip3i(neti1);
+	free_Bip3i(neti2);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
