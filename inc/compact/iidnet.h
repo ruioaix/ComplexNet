@@ -17,8 +17,4 @@ void free_iidNet(struct iidNet *net);
 struct iidNet *create_iidNet(const struct iidLineFile * const file);
 void print_iidNet(struct iidNet *net, char *filename);
 
-//thread routine, don't need arg, the routine will use net;
-//of course, you can use this in the main thread.
-//void *verifyiidNet(void *arg);
-
 #endif

@@ -1101,9 +1101,98 @@ void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {
 	printf("similarity_Bip2 done. generate similarity file %s\n", filename);fflush(stdout);
 }
 
-struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
-	int i,j;
-	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
+//struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
+//	int i,j;
+//	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
+//	assert(sign != NULL);
+//
+//	struct iidLineFile *simfile = malloc(sizeof(struct iidLineFile));
+//	assert(simfile != NULL);
+//
+//	int con = 1000000;
+//	struct iidLine *lines = malloc(con*sizeof(struct iidLine));
+//	assert(lines != NULL);
+//	long linesNum = 0;
+//
+//	int i1Max=-1;
+//	int i1Min=INT_MAX;
+//	int i2Max=-1;
+//	int i2Min=INT_MAX;
+//
+//	long k;
+//	int Sij;
+//	double soij;
+//	for (i=0; i<bipi2->maxId + 1; ++i) {
+//		if (bipi2->count[i]) {
+//			memset(sign, 0, (bipi1->maxId + 1)*sizeof(int));
+//			for (k=0; k<bipi2->count[i]; ++k) {
+//				sign[bipi2->id[i][k]] = 1;
+//			}
+//			for (j = i+1; j<bipi2->maxId + 1; ++j) {
+//				if (bipi2->count[j]) {
+//					Sij = 0;
+//					for (k=0; k<bipi2->count[j]; ++k) {
+//						if (sign[bipi2->id[j][k]]) {
+//							++Sij;
+//						}
+//					}
+//					if (Sij) {
+//						soij = (double)Sij/pow(bipi2->count[i] * bipi2->count[j], 0.5);
+//						//fprintf(fp, "%d, %d, %.17f\n", i, j, soij);
+//						i1Min = i1Min<i?i1Min:i;
+//						i1Max = i;
+//						i2Min = i2Min<j?i2Min:j;
+//						i2Max = i2Max>j?i2Max:j;
+//						lines[linesNum].i1 = i;
+//						lines[linesNum].i2 = j;
+//						lines[linesNum].d3 = soij;
+//						++linesNum;
+//						if (linesNum == con) {
+//							con += 1000000;
+//							struct iidLine *temp = realloc(lines, con*sizeof(struct iidLine));
+//							assert(temp != NULL);
+//							lines = temp;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	free(sign);
+//
+//	simfile->i1Max = i1Max;
+//	simfile->i2Max = i2Max;
+//	simfile->i1Min = i1Min;
+//	simfile->i2Min = i2Min;
+//	simfile->linesNum = linesNum;
+//	simfile->lines = lines;
+//	printf("calculate similarity done.\n");
+//	return simfile;
+//}
+
+//if i1ori2 == 1, then calculate i1(user)'s similarity.
+//if i1ori2 == 0, then calculate i2(item)'s similarity.
+struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {
+	int idmax, idmax2;
+	long *count;
+	int **id;
+	if (i1ori2 == 1) {
+		idmax = bipi1->maxId;
+		idmax2 = bipi2->maxId;
+		count = bipi1->count;
+		id = bipi1->id;
+	}
+	else if (i1ori2 == 0) {
+		idmax = bipi2->maxId;
+		idmax2 = bipi1->maxId;
+		count = bipi2->count;
+		id = bipi2->id;
+	}
+	else {
+		isError("similarity_realtime_Bip2");
+	}
+	int *sign = calloc((idmax2 + 1),sizeof(int));
 	assert(sign != NULL);
 
 	struct iidLineFile *simfile = malloc(sizeof(struct iidLineFile));
@@ -1122,22 +1211,21 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 	long k;
 	int Sij;
 	double soij;
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (bipi2->count[i]) {
-			memset(sign, 0, (bipi1->maxId + 1)*sizeof(int));
-			for (k=0; k<bipi2->count[i]; ++k) {
-				sign[bipi2->id[i][k]] = 1;
+	int i,j;
+	for (i=0; i<idmax; ++i) {
+		if (count[i]) {
+			memset(sign, 0, (idmax2 + 1)*sizeof(int));
+			for (k=0; k<count[i]; ++k) {
+				sign[id[i][k]] = 1;
 			}
-			for (j = i+1; j<bipi2->maxId + 1; ++j) {
-				if (bipi2->count[j]) {
+			for (j = i+1; j<idmax + 1; ++j) {
+				if (count[j]) {
 					Sij = 0;
-					for (k=0; k<bipi2->count[j]; ++k) {
-						if (sign[bipi2->id[j][k]]) {
-							++Sij;
-						}
+					for (k=0; k<count[j]; ++k) {
+						Sij += sign[id[j][k]];
 					}
 					if (Sij) {
-						soij = (double)Sij/pow(bipi2->count[i] * bipi2->count[j], 0.5);
+						soij = (double)Sij/pow(count[i] * count[j], 0.5);
 						//fprintf(fp, "%d, %d, %.17f\n", i, j, soij);
 						i1Min = i1Min<i?i1Min:i;
 						i1Max = i;

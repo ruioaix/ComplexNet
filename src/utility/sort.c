@@ -182,6 +182,33 @@ void qsort_d_asc(double s[], int l, int r)
 	}
 }
 
+void qsort_d_desc(double s[], int l, int r)
+{
+	if (l < r)
+	{
+		int i = l, j = r; 
+		double x = s[l];
+		while (i < j)
+		{
+			while(i < j && s[j] < x)
+				j--; 
+			if(i < j) {
+				s[i++] = s[j];
+			}
+
+			while(i < j && s[i] >= x)
+				i++; 
+			if(i < j) {
+				s[j--] = s[i];
+			}
+		}
+		s[i] = x;
+		qsort_d_desc(s, l, i - 1);
+		qsort_d_desc(s, i + 1, r);
+	}
+}
+
+
 void qsort_di_desc(double s[], int l, int r, int in[])
 {
 	if (l < r)

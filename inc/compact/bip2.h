@@ -80,6 +80,6 @@ void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
 struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate);
 
 void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename);
-struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
+struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2);
 
 #endif
