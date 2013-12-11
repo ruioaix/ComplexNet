@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "inc/linefile/iilinefile.h"
@@ -37,12 +38,29 @@ int main(int argc, char **argv)
 	free_iiLineFile(netfile);
 
 	struct iidLineFile *similarity_file = similarity_realtime_Bip2(bipi1, bipi2, 1);
+	int i;
+	long j;
+	int stepNum = 100;
+	int *fenbu = calloc(stepNum, sizeof(int));
+	for (j=0; j<similarity_file->linesNum; ++j) {
+		double sim = similarity_file->lines[j].d3;
+		int index = floor(sim*stepNum);
+		++fenbu[index];
+	}
+	FILE *fp = fopen("Results/fenbu", "w");
+	fileError(fp, "main2");
+	for (i=0; i<stepNum; ++i) {
+		fprintf(fp, "%f, %f\n", (double)i/stepNum, (double)fenbu[i]/similarity_file->linesNum);
+	}
+	return 0;
+
+
+
 	struct iidNet *similarity = create_iidNet(similarity_file);
 	//print_iidNet(similarity, "Results/simm");
 	free_iidLineFile(similarity_file);
 
-	int i;
-	long j;
+
 	char filename[1000];
 	double *onesim = malloc((similarity->maxId +1)*sizeof(double));
 	assert(onesim!=NULL);
