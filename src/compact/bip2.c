@@ -31,6 +31,8 @@ struct param_recommend_Bip2 {
 	double *score;
 	double epsilon;
 	struct iidNet *userSim;
+	double orate;
+	int topR;
 };
 
 struct L_Bip2 *create_L_Bip2(void) {
@@ -860,7 +862,7 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 //three-step random walk of Probs
-static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, double orate) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -911,7 +913,7 @@ static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
 //three-step random walk of Probs
-static void degree_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int topR) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -984,6 +986,8 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	double epsilon = param.epsilon;
 	double *score = param.score;
 	struct iidNet *userSim = param.userSim;
+	double orate = param.orate;
+	int topR = param.topR;
 
 	int L = 50;
 
@@ -1072,7 +1076,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 				//only compute the i in both bipi1 and testi1.
 				if (bipi1->count[i]) {
 					//get rank
-					onion_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					onion_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, userSim, orate);
 					//use rank to get metrics values
 					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
@@ -1084,7 +1088,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 				//only compute the i in both bipi1 and testi1.
 				if (bipi1->count[i]) {
 					//get rank
-					degree_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					topR_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, userSim, topR);
 					//use rank to get metrics values
 					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
@@ -1148,6 +1152,20 @@ struct L_Bip2 *score_hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct 
 	param.epsilon = epsilon;
 	param.score = score;
 	return recommend_Bip2(6, bipi1, bipi2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip2 *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, double orate) {
+	struct param_recommend_Bip2 param;
+	param.userSim = userSim;
+	param.orate = orate;
+	return recommend_Bip2(7, bipi1, bipi2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip2 *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR) {
+	struct param_recommend_Bip2 param;
+	param.userSim = userSim;
+	param.topR = topR;
+	return recommend_Bip2(8, bipi1, bipi2, testi1, testi2, trainSim, param);
 }
 
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
