@@ -54,6 +54,8 @@ int main(int argc, char **argv)
 	//}
 	//return 0;
 
+	int vneigh = bipi1->idNum - 1;
+
 	struct iidNet *similarity = create_iidNet(similarity_file);
 	free_iidLineFile(similarity_file);
 
@@ -67,33 +69,36 @@ int main(int argc, char **argv)
 		double srate = k*0.05;
 		memset(M, 0, (similarity->maxId + 1)*sizeof(int));
 		memset(Mfb, 0, (similarity->maxId + 1)*sizeof(int));
-		for (i=0; i<similarity->maxId + 1; ++i) {
-			if (similarity->count[i]) {
-				for (j=0; j<similarity->count[i]; ++j) {
-					M[i] += similarity->d3[i][j] > srate ?1:0;
-				}
-			}
-		}
-		int total=0;
-		for (i=0; i<similarity->maxId + 1; ++i) {
-			if (M[i]) {
-				++Mfb[M[i]];
-				++total;
-			}
-		}
-		if (total) {
-			char filename[1000];
-			sprintf(filename, "Results/Mfb%.2f", srate);
-			FILE *fp = fopen(filename, "w");
-			fileError(fp, "main");
+		if (srate != 0) {
 			for (i=0; i<similarity->maxId + 1; ++i) {
-			//for (i=0; i<20; ++i) {
-				if (Mfb[i]) {
-					fprintf(fp, "%d, %.17f\n", i, (double)Mfb[i]/total);
+				if (similarity->count[i]) {
+					for (j=0; j<similarity->count[i]; ++j) {
+						M[i] += similarity->d3[i][j] >= srate ?1:0;
+					}
 				}
 			}
-			fclose(fp);
 		}
+		else {
+			for (i=0; i<similarity->maxId + 1; ++i) {
+				if (bipi1->count[i]) {
+					M[i] = vneigh;
+				}
+			}
+		}
+		for (i=0; i<similarity->maxId + 1; ++i) {
+			if (bipi1->count[i]) {	
+				++Mfb[M[i]];
+			}
+		}
+
+		char filename[1000];
+		sprintf(filename, "Results/Mfb%.2f", srate);
+		FILE *fp = fopen(filename, "w");
+		fileError(fp, "main");
+		for (i=0; i<similarity->maxId; ++i) {
+			fprintf(fp, "%d, %.17f\n", i, (double)Mfb[i]/vneigh);
+		}
+		fclose(fp);
 	}
 
 

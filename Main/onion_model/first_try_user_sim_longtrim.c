@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "inc/linefile/iilinefile.h"
@@ -37,32 +38,91 @@ int main(int argc, char **argv)
 	free_iiLineFile(netfile);
 
 	struct iidLineFile *similarity_file = similarity_realtime_Bip2(bipi1, bipi2, 1);
-	struct iidNet *similarity = create_iidNet(similarity_file);
-	//print_iidNet(similarity, "Results/simm");
-	free_iidLineFile(similarity_file);
-
 	int i;
 	long j;
-	char filename[1000];
-	double *onesim = malloc((similarity->maxId +1)*sizeof(double));
-	assert(onesim!=NULL);
-	//for (i=0; i<similarity->maxId + 1; ++i) {
-	int begin = 0;
-	for (i=begin; i<begin + 20; ++i) {
-		if (similarity->count[i]) {
-			sprintf(filename, "Results/sim%d", i);
-			FILE *fp = fopen(filename, "w");
-			fileError(fp, "main");
+	//int stepNum = 100;
+	//int *fenbu = calloc(stepNum, sizeof(int));
+	//for (j=0; j<similarity_file->linesNum; ++j) {
+	//	double sim = similarity_file->lines[j].d3;
+	//	int index = floor(sim*stepNum);
+	//	++fenbu[index];
+	//}
+	//FILE *fp = fopen("Results/fenbu", "w");
+	//fileError(fp, "main2");
+	//for (i=0; i<stepNum; ++i) {
+	//	fprintf(fp, "%f, %f\n", (double)i/stepNum, (double)fenbu[i]/similarity_file->linesNum);
+	//}
+	//return 0;
 
-			memcpy(onesim, similarity->d3[i], similarity->count[i]*sizeof(double));
-			qsort_d_desc(onesim, 0, similarity->count[i]-1);
-			for(j=0; j<similarity->count[i]; ++j) {
-				fprintf(fp, "%ld, %.17f\n", j, onesim[j]);
+	int vneigh = bipi1->idNum - 1;
+
+	struct iidNet *similarity = create_iidNet(similarity_file);
+	free_iidLineFile(similarity_file);
+
+	int *M = malloc((similarity->maxId + 1)*sizeof(int));
+	assert(M != NULL);
+	int *Mfb = malloc((similarity->maxId + 1)*sizeof(int));
+	assert(Mfb != NULL);
+
+	int k;
+	for (k=0; k<20; ++k) {
+		double srate = k*0.05;
+		memset(M, 0, (similarity->maxId + 1)*sizeof(int));
+		memset(Mfb, 0, (similarity->maxId + 1)*sizeof(int));
+		if (srate != 0) {
+			for (i=0; i<similarity->maxId + 1; ++i) {
+				if (similarity->count[i]) {
+					for (j=0; j<similarity->count[i]; ++j) {
+						M[i] += similarity->d3[i][j] >= srate ?1:0;
+					}
+				}
 			}
-
-			fclose(fp);
 		}
+		else {
+			for (i=0; i<similarity->maxId + 1; ++i) {
+				if (bipi1->count[i]) {
+					M[i] = vneigh;
+				}
+			}
+		}
+		for (i=0; i<similarity->maxId + 1; ++i) {
+			if (bipi1->count[i]) {	
+				++Mfb[M[i]];
+			}
+		}
+
+		char filename[1000];
+		sprintf(filename, "Results/Mfb%.2f", srate);
+		FILE *fp = fopen(filename, "w");
+		fileError(fp, "main");
+		for (i=0; i<similarity->maxId; ++i) {
+			fprintf(fp, "%d, %.17f\n", i, (double)Mfb[i]/vneigh);
+		}
+		fclose(fp);
 	}
+
+
+
+	//char filename[1000];
+	//double *onesim = malloc((similarity->maxId +1)*sizeof(double));
+	//assert(onesim!=NULL);
+	////for (i=0; i<similarity->maxId + 1; ++i) {
+	//int begin = 0;
+	//for (i=begin; i<begin + 20; ++i) {
+	//	if (similarity->count[i]) {
+	//		sprintf(filename, "Results/sim%d", i);
+	//		FILE *fp = fopen(filename, "w");
+	//		fileError(fp, "main");
+
+	//		memcpy(onesim, similarity->d3[i], similarity->count[i]*sizeof(double));
+	//		qsort_d_desc(onesim, 0, similarity->count[i]-1);
+	//		for(j=0; j<similarity->count[i]; ++j) {
+	//			fprintf(fp, "%ld, %.17f\n", j, onesim[j]);
+	//		}
+
+	//		fclose(fp);
+	//	}
+	//}
 
 
 	//printf end time;
