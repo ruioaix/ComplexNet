@@ -30,6 +30,7 @@ struct param_recommend_Bip2 {
 	double lambda;
 	double *score;
 	double epsilon;
+	struct iidNet *userSim;
 };
 
 struct L_Bip2 *create_L_Bip2(void) {
@@ -858,6 +859,109 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
 }
+//three-step random walk of Probs
+static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+	//set i2id and rank.
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+//three-step random walk of Probs
+static void degree_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = 0;
+	}
+	//set i2id and rank.
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
+
 
 /** 
  * core function of recommendation.
@@ -867,6 +971,9 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
  * 3 -- HNBI  (theta)
  * 4 -- RNBI  (eta)
  * 5 -- hybrid (lambda)
+ * 6 -- score hybrid (epsilon)
+ * 7 -- usersim onion probs (orate, userSim)
+ * 8 -- usersim degree probs (orate, userSim)
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -876,6 +983,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	double lambda = param.lambda;
 	double epsilon = param.epsilon;
 	double *score = param.score;
+	struct iidNet *userSim = param.userSim;
 
 	int L = 50;
 
@@ -955,6 +1063,30 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 				if (bipi1->count[i1]) {
 					score_hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda, score, epsilon);
 					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 7:
+			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both bipi1 and testi1.
+				if (bipi1->count[i]) {
+					//get rank
+					onion_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					//use rank to get metrics values
+					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 8:
+			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both bipi1 and testi1.
+				if (bipi1->count[i]) {
+					//get rank
+					degree_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					//use rank to get metrics values
+					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
 			}
 			break;
