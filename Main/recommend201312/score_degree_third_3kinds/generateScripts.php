@@ -37,6 +37,35 @@
   }
   fclose($subfp);
 
+  if ($filenamePre == 'netflix') {
+    $best_lambda = 0.17;
+    $best_rank = 0.060601;
+    $best_precision = 0.067722;
+    $best_intrasimilarity = 0.339877;
+    $best_hammingd = 0.555959;
+    $best_popularity = 827.64;
+    $best_score = 3.66041;
+  }
+  else if ($filenamePre == 'rym') {
+    $best_lambda = 0.23;
+    $best_rank = 0.057259;
+    $best_precision = 0.040551;
+    $best_intrasimilarity = 0.126140;
+    $best_hammingd = 0.923887;
+    $best_popularity = 608.25;
+    $best_score = 7.559685;
+  }
+  else {
+  // ($filenamePre == 'movielens') {
+    $best_lambda = 0.15;
+    $best_rank = 0.092687;
+    $best_precision = 0.098539;
+    $best_intrasimilarity = 0.319445;
+    $best_hammingd = 0.842276;
+    $best_popularity = 175.56;
+    $best_score = 3.596291;
+  }
+
   fprintf($dataprocessfp, "gnuplot << EOF
 
 set terminal postscript eps
@@ -44,37 +73,37 @@ set terminal postscript eps
 set xlabel 'theta'
 set ylabel 'top L=50 score average'
 set output '$outputdir/averagescore_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:17 w lp pt 19 ps 0.2 lc 3 title 'averagescore_score', '$outputdir/$datafile_degree' using 3:17 w lp pt 19 ps 0.2 lc 4 title 'averagescore_degree', '$outputdir/$datafile_third' using 3:17 w lp pt 19 ps 0.2 lc 1 title 'averagescore_third'
+plot '$outputdir/$datafile_score' using 3:17 w lp pt 19 ps 0.2 lc 3 title 'averagescore_score', '$outputdir/$datafile_degree' using 3:17 w lp pt 19 ps 0.2 lc 4 title 'averagescore_degree', '$outputdir/$datafile_third' using 3:17 w lp pt 19 ps 0.2 lc 1 title 'averagescore_third', $best_score with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 set xlabel 'theta'
 set ylabel 'RankScore'
 set output '$outputdir/RankScore_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:7 w lp pt 19 ps 0.2 lc 3 title 'RankScore_score', '$outputdir/$datafile_degree' using 3:7 w lp pt 19 ps 0.2 lc 4 title 'RankScore_degree', '$outputdir/$datafile_third' using 3:7 w lp pt 19 ps 0.2 lc 1 title 'RankScore_third'
+plot '$outputdir/$datafile_score' using 3:7 w lp pt 19 ps 0.2 lc 3 title 'RankScore_score', '$outputdir/$datafile_degree' using 3:7 w lp pt 19 ps 0.2 lc 4 title 'RankScore_degree', '$outputdir/$datafile_third' using 3:7 w lp pt 19 ps 0.2 lc 1 title 'RankScore_third', $best_rank with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 set xlabel 'theta'
 set ylabel 'Precision'
 set output '$outputdir/Precision_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:9 w lp pt 19 ps 0.2 lc 3 title 'Precision_score', '$outputdir/$datafile_degree' using 3:9 w lp pt 19 ps 0.2 lc 4 title 'Precision_degree', '$outputdir/$datafile_third' using 3:9 w lp pt 19 ps 0.2 lc 1 title 'Precision_third'
+plot '$outputdir/$datafile_score' using 3:9 w lp pt 19 ps 0.2 lc 3 title 'Precision_score', '$outputdir/$datafile_degree' using 3:9 w lp pt 19 ps 0.2 lc 4 title 'Precision_degree', '$outputdir/$datafile_third' using 3:9 w lp pt 19 ps 0.2 lc 1 title 'Precision_third', $best_precision with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 set xlabel 'theta'
 set ylabel 'Intrasimilarity'
 set output '$outputdir/Intrasimilarity_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:11 w lp pt 19 ps 0.2 lc 3 title 'Intrasimilarity_score', '$outputdir/$datafile_degree' using 3:11 w lp pt 19 ps 0.2 lc 4 title 'Intrasimilarity_degree', '$outputdir/$datafile_third' using 3:11 w lp pt 19 ps 0.2 lc 1 title 'Intrasimilarity_third'
+plot '$outputdir/$datafile_score' using 3:11 w lp pt 19 ps 0.2 lc 3 title 'Intrasimilarity_score', '$outputdir/$datafile_degree' using 3:11 w lp pt 19 ps 0.2 lc 4 title 'Intrasimilarity_degree', '$outputdir/$datafile_third' using 3:11 w lp pt 19 ps 0.2 lc 1 title 'Intrasimilarity_third', $best_intrasimilarity with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 set xlabel 'theta'
 set ylabel 'HammingD'
 set output '$outputdir/HammingD_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:13 w lp pt 19 ps 0.2 lc 3 title 'HammingD_score', '$outputdir/$datafile_degree' using 3:13 w lp pt 19 ps 0.2 lc 4 title 'HammingD_degree', '$outputdir/$datafile_third' using 3:13 w lp pt 19 ps 0.2 lc 1 title 'HammingD_third'
+plot '$outputdir/$datafile_score' using 3:13 w lp pt 19 ps 0.2 lc 3 title 'HammingD_score', '$outputdir/$datafile_degree' using 3:13 w lp pt 19 ps 0.2 lc 4 title 'HammingD_degree', '$outputdir/$datafile_third' using 3:13 w lp pt 19 ps 0.2 lc 1 title 'HammingD_third', $best_hammingd with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 set xlabel 'theta'
 set ylabel 'Popularity'
 set output '$outputdir/Popularity_3kinds_$filenamePre.eps'
-plot '$outputdir/$datafile_score' using 3:15 w lp pt 19 ps 0.2 lc 3 title 'Popularity_score', '$outputdir/$datafile_degree' using 3:15 w lp pt 19 ps 0.2 lc 4 title 'Popularity_degree', '$outputdir/$datafile_third' using 3:15 w lp pt 19 ps 0.2 lc 1 title 'Popularity_third'
+plot '$outputdir/$datafile_score' using 3:15 w lp pt 19 ps 0.2 lc 3 title 'Popularity_score', '$outputdir/$datafile_degree' using 3:15 w lp pt 19 ps 0.2 lc 4 title 'Popularity_degree', '$outputdir/$datafile_third' using 3:15 w lp pt 19 ps 0.2 lc 1 title 'Popularity_third', $best_popularity with points pt 18 ps 0.2 title 'best hybrid'
 set output
 
 EOF
