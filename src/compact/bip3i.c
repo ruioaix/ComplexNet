@@ -476,7 +476,7 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 			totalsource = 0;
 			for (j=0; j<degree; ++j) {
 				neigh = traini2->id[i][j];
-				i1sourceA[neigh] = pow(5 - fabs(traini2->i3[i][j]-i2id[i]), theta); 
+				i1sourceA[neigh] = pow(maxscore - fabs(traini2->i3[i][j]-i2id[i]), theta); 
 				//i1source[neigh] = source*source2;
 				totalsource += i1sourceA[neigh];
 			}
@@ -583,7 +583,7 @@ static void d_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
 }
 
-static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon, int maxscore) {
+static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon) {
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -753,7 +753,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
 				if (traini1->count[i]) {
 					//get rank
-					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon, maxscore);
+					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon);
 					//use rank to get metrics values
 					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
@@ -809,10 +809,9 @@ struct L_Bip3i *d_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struc
 	return recommend_Bip3i(2, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
-struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon, int maxscore) {
+struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon) {
 	struct param_recommend_Bip3i param;
 	param.epsilon = epsilon;
-	param.maxscore = maxscore;
 	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
