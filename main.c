@@ -61,8 +61,8 @@ int main(int argc, char **argv)
 	}
 
 	struct L_Bip3i *smass_result = create_L_Bip3i();
-	struct L_Bip3i *dmass_result = create_L_Bip3i();
-	struct L_Bip3i *tmass_result = create_L_Bip3i();
+	//struct L_Bip3i *dmass_result = create_L_Bip3i();
+	//struct L_Bip3i *tmass_result = create_L_Bip3i();
 
 	//struct i3LineFile *trainfile = create_i3LineFile(trainfilename);
 	//struct i3LineFile *testfile = create_i3LineFile(testfilename);
@@ -70,11 +70,11 @@ int main(int argc, char **argv)
 	for (k=0; k<stepNum; ++k) {
 		double theta = stepbegin + k*stepLen;
 		clean_L_Bip3i(smass_result);
-		clean_L_Bip3i(dmass_result);
-		clean_L_Bip3i(tmass_result);
+		//clean_L_Bip3i(dmass_result);
+		//clean_L_Bip3i(tmass_result);
 		double score_ave = 0;	
-		double score_ave_2 = 0;
-		double score_ave_3 = 0;
+		//double score_ave_2 = 0;
+		//double score_ave_3 = 0;
 		for (i=0; i<loopNum; ++i) {
 
 			struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
@@ -90,30 +90,30 @@ int main(int argc, char **argv)
 			free_iidLineFile(simfile);
 
 			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
-			struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
-			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
+			//struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
+			//struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
 
 			smass_result->R +=  r1->R;
 			smass_result->PL += r1->PL;
 			smass_result->HL += r1->HL;
 			smass_result->IL += r1->IL;
 			smass_result->NL += r1->NL;
-			dmass_result->R +=  r2->R;
-			dmass_result->PL += r2->PL;
-			dmass_result->HL += r2->HL;
-			dmass_result->IL += r2->IL;
-			dmass_result->NL += r2->NL;
-			tmass_result->R +=  r3->R;
-			tmass_result->PL += r3->PL;
-			tmass_result->HL += r3->HL;
-			tmass_result->IL += r3->IL;
-			tmass_result->NL += r3->NL;
+			//dmass_result->R +=  r2->R;
+			//dmass_result->PL += r2->PL;
+			//dmass_result->HL += r2->HL;
+			//dmass_result->IL += r2->IL;
+			//dmass_result->NL += r2->NL;
+			//tmass_result->R +=  r3->R;
+			//tmass_result->PL += r3->PL;
+			//tmass_result->HL += r3->HL;
+			//tmass_result->IL += r3->IL;
+			//tmass_result->NL += r3->NL;
 			int L = r1->L;
 			long len = L*(traini1->maxId + 1);
 			for (j=0; j<L*(traini1->maxId + 1); ++j) {
 				score_ave += score[r1->topL[j]]/len;
-				score_ave_2 += score[r2->topL[j]]/len;
-				score_ave_3 += score[r3->topL[j]]/len;
+				//score_ave_2 += score[r2->topL[j]]/len;
+				//score_ave_3 += score[r3->topL[j]]/len;
 			}
 			
 			free_Bip3i(traini1);
@@ -122,17 +122,17 @@ int main(int argc, char **argv)
 			free_Bip3i(testi2);
 			free_iidNet(trainSim);
 			free_L_Bip3i(r1);
-			free_L_Bip3i(r2);
-			free_L_Bip3i(r3);
+			//free_L_Bip3i(r2);
+			//free_L_Bip3i(r3);
 		}
 		printf("score_mass\ttheta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, smass_result->R/loopNum, smass_result->PL/loopNum, smass_result->IL/loopNum, smass_result->HL/loopNum, smass_result->NL/loopNum, score_ave/loopNum);
-		printf("degree_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, dmass_result->R/loopNum, dmass_result->PL/loopNum, dmass_result->IL/loopNum, dmass_result->HL/loopNum, dmass_result->NL/loopNum, score_ave_2/loopNum);
-		printf("third_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, tmass_result->R/loopNum, tmass_result->PL/loopNum, tmass_result->IL/loopNum, tmass_result->HL/loopNum, tmass_result->NL/loopNum, score_ave_3/loopNum);
+		//printf("degree_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, dmass_result->R/loopNum, dmass_result->PL/loopNum, dmass_result->IL/loopNum, dmass_result->HL/loopNum, dmass_result->NL/loopNum, score_ave_2/loopNum);
+		//printf("third_mass\teta: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", theta, loopNum, tmass_result->R/loopNum, tmass_result->PL/loopNum, tmass_result->IL/loopNum, tmass_result->HL/loopNum, tmass_result->NL/loopNum, score_ave_3/loopNum);
 	}
 
 	free_L_Bip3i(smass_result);
-	free_L_Bip3i(dmass_result);
-	free_L_Bip3i(tmass_result);
+	//free_L_Bip3i(dmass_result);
+	//free_L_Bip3i(tmass_result);
 	free(score);
 	free_Bip3i(neti1);
 	free_Bip3i(neti2);
