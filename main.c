@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 		stepNum = 100;
 		//topstepLen = 10;
 	}
-	else if (argc == 7) {
+	else if (argc == 6) {
 		netfilename = argv[1];
 		char *pEnd;
 		loopNum = strtol(argv[2], &pEnd, 10);
