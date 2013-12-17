@@ -1,6 +1,7 @@
 #include "../../inc/compact/iidnet.h"
 #include "../../inc/utility/error.h"
 #include "../../inc/utility/random.h"
+#include "../../inc/utility/sort.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -111,4 +112,13 @@ void print_iidNet(struct iidNet *net, char *filename) {
 	}
 	fclose(fp);
 	printf("print_iidNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
+}
+
+void sort_desc_iidNet(struct iidNet *net) {
+	int i;
+	for (i=0; i<net->maxId + 1; ++i) {
+		if (net->count[i]) {
+			qsort_di_desc(net->d3[i], 0, net->count[i] - 1, net->edges[i]);
+		}
+	}
 }

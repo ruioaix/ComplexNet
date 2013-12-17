@@ -863,6 +863,9 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
 }
 //three-step random walk of Probs
 static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, double orate) {
+	if (orate > 1 || orate < 0) {
+		isError("onion_probs_Bip2_core wrong orate");
+	}
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -886,8 +889,12 @@ static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2
 	}
 	//three
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
+	double sim;
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		sim = userSim->d3[i1][k];
+		if (k == 0 || sim > orate) {
 			degree = bipi1->count[i];
 			source = (double)i1source[i]/(double)degree;
 			for (j=0; j<degree; ++j) {
@@ -937,8 +944,10 @@ static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2,
 	}
 	//three
 	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k == 0 || k < topR) {
 			degree = bipi1->count[i];
 			source = (double)i1source[i]/(double)degree;
 			for (j=0; j<degree; ++j) {
