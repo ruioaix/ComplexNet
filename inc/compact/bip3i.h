@@ -31,6 +31,7 @@ struct L_Bip3i {
     double NL;
 	int *topL;
 	int L;
+	double *rankA;
 };
 
 struct L_Bip3i *create_L_Bip3i(void);

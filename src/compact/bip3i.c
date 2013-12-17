@@ -31,6 +31,7 @@ struct L_Bip3i *create_L_Bip3i(void) {
 	lp->NL = 0;
 	lp->L = 0;
 	lp->topL = NULL;
+	lp->rankA = NULL;
 	return lp;
 }
 //free(NULL) is ok.
@@ -43,9 +44,12 @@ void clean_L_Bip3i(struct L_Bip3i *lp) {
 	lp->L = 0;
 	free(lp->topL);
 	lp->topL = NULL;
+	free(lp->rankA);
+	lp->rankA = NULL;
 }
 void free_L_Bip3i(struct L_Bip3i *lp) {
 	free(lp->topL);
+	free(lp->rankA);
 	free(lp);
 }
 
@@ -55,6 +59,7 @@ struct param_recommend_Bip3i {
 	double epsilon;
 	double lambda;
 	int maxscore;
+	double *rankA;
 };
 
 void free_Bip3i(struct Bip3i *Bip) {
@@ -350,7 +355,7 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 //R is rankscore.
 //PL is precision
 //Warning: about unselected_list_length, I use traini2->maxId, not traini2->idNum. this actually is wrong I think, but it's the way linyulv did.
-static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL) {
+static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL, double *rankA) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		//int unselected_list_length = traini2->idNum - traini1->count[i1];
 		int unselected_list_length = traini2->maxId - traini1->count[i1];
@@ -366,6 +371,10 @@ static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, 
 		}
 		*R += (double)rank_i1_j/(double)unselected_list_length;
 		*PL += (double)DiL/(double)L;
+	}
+	int i;
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		rankA[i] += rank[i];
 	}
 }
 //IL is intrasimilarity
@@ -725,6 +734,10 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	int i;
 	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
 	assert(topL != NULL);
+
+	double *rankA = calloc(traini2->maxId + 1, sizeof(double));
+	assert(rankA != NULL);
+
 	switch (type) {
 		case 1:
 			for (i = 0; i<traini1->maxId + 1; ++i) { //each user
@@ -733,7 +746,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i1sourceA, i2sourceA, L, i2id, rank, topL, theta, maxscore);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
 				}
 			}
 			break;
@@ -744,7 +757,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					d_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, eta);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
 				}
 			}
 			break;
@@ -755,7 +768,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
 				}
 			}
 			break;
@@ -766,7 +779,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					hybrid_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL, lambda);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
 				}
 			}
 			break;
@@ -777,6 +790,11 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	HL = metrics_HL_Bip3i(traini1, traini2, testi1, L, topL);
 	IL = metrics_IL_Bip3i(traini1, traini2, testi1, L, topL, trainSim);
 	NL = metrics_NL_Bip3i(traini1, traini2, testi1, L, topL);
+
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		rankA[i] /= traini1->idNum;
+	}
+
 	struct L_Bip3i *retn = create_L_Bip3i();
 	retn->R = R;
 	retn->PL = PL;
@@ -785,6 +803,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	retn->NL = NL;
 	retn->topL = topL;
 	retn->L = L;
+	retn->rankA = rankA;
 
 	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(i1source);
