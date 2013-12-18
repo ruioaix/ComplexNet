@@ -16,24 +16,28 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
-	int loopNum, stepNum, topstepLen;
+	int loopNum, stepNum;
 	double stepbegin, stepLen;
+	int topstepbegin, topstepLen;
 	if (argc == 1) {
 		netfilename = "data/movielen/movielen2";
 		loopNum = 2;
 		stepbegin = 0;
 		stepLen = 0.01;
-		stepNum = 100;
+		topstepbegin = 0;
+		topstepLen = 9;
+		stepNum = 2;
 		//topstepLen = 10;
 	}
-	else if (argc == 7) {
+	else if (argc == 8) {
 		netfilename = argv[1];
 		char *pEnd;
 		loopNum = strtol(argv[2], &pEnd, 10);
 		stepbegin = strtod(argv[3], &pEnd);
 		stepLen = strtod(argv[4], &pEnd);
-		stepNum = strtol(argv[5], &pEnd, 10);
-		//topstepLen = strtol(argv[6], &pEnd, 10);
+		topstepbegin = strtod(argv[5], &pEnd);
+		topstepLen = strtod(argv[6], &pEnd);
+		stepNum = strtol(argv[7], &pEnd, 10);
 	}
 	else {
 		printf("wrong argc\n");
@@ -50,15 +54,13 @@ int main(int argc, char **argv)
 	struct Bip2 *bipi2 = create_Bip2(netfile, 0);
 	free_iiLineFile(netfile);
 
-	topstepLen = (bipi1->maxId + 1)/stepNum;
-
 	struct L_Bip2 *omass_result = create_L_Bip2();
 	struct L_Bip2 *tmass_result = create_L_Bip2();
 
 	int i, j;
 	for (i=0; i<stepNum; ++i) {
 		double orate = i*stepLen + stepbegin;
-		int topR = i*topstepLen;
+		int topR = i*topstepLen + topstepbegin;
 
 		clean_L_Bip2(omass_result);
 		clean_L_Bip2(tmass_result);
