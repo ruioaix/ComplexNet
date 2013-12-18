@@ -1,105 +1,136 @@
+// ./run data/movielens/movielen2 1 -0.8 -0.75 0.2
+// ./run data/netflix/netflix_pnas.txt 1 -0.7 -0.75 0.2 
 //#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
-#include <math.h>
 #include <stdlib.h>
-#include "inc/linefile/i3linefile.h"
-#include "inc/compact/bip3i.h"
-#include "inc/utility/random.h"
+#include "inc/linefile/i5linefile.h"
+#include "inc/linefile/iilinefile.h"
+#include "inc/linefile/iidlinefile.h"
+#include "inc/compact/bip2.h"
+#include "inc/compact/iidnet.h"
 #include "inc/utility/error.h"
+#include "inc/utility/random.h"
+#include "inc/utility/hashtable.h"
 
 int main(int argc, char **argv)
 {
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
-	int maxscore, stepNum;
-	double theta, eta, epsilon, lambda;
-
+	double theta, eta, lambda; 
+	int loopNum;
 	if (argc == 1) {
-		netfilename = "data/movielen/movielens.txt";
-		maxscore = 5;
-		theta = 0.76; //score
-		eta = 0.84; //degree
-		epsilon = 0.78; //third
-		lambda = 0.15; //hybrid
-		stepNum = 25;
+		netfilename = "data/movielens/movielen2";
+		loopNum = 1;
+		theta = -0.8;
+		eta = -0.75;
+		lambda = 0.2;
 	}
-	else if (argc == 8) {
+	if (argc == 6) {
 		netfilename = argv[1];
 		char *pEnd;
-		maxscore = strtol(argv[2], &pEnd, 10);
+		loopNum = strtol(argv[2], &pEnd, 10);
 		theta = strtod(argv[3], &pEnd);
 		eta = strtod(argv[4], &pEnd);
-		epsilon = strtod(argv[5], &pEnd);
-		lambda = strtod(argv[6], &pEnd);
-		stepNum = strtol(argv[7], &pEnd, 10);
-	}
-	else {
-		printf("wrong argc\n");
-		return 0;
+		lambda = strtod(argv[5], &pEnd);
 	}
 
-	//main
-	struct i3LineFile *netfile = create_i3LineFile(netfilename);
-	struct Bip3i *neti1 = create_Bip3i(netfile, 1);
-	struct Bip3i *neti2 = create_Bip3i(netfile, 0);
-	free_i3LineFile(netfile);
+	//printf("%ld\n", t);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
 
-	int i,j;
-	double *score = calloc(neti2->maxId + 1, sizeof(double));
-	assert(score != NULL);
-	for (i=0; i<neti2->maxId + 1; ++i) {
-		if (neti2->count[i]) {
-			for (j=0; j<neti2->count[i]; ++j) {
-				score[i] += neti2->i3[i][j];
-			}
-			score[i] /= neti2->count[i];
-		}
+	//divide file into two part: train and test.
+	//train will contain every user and every item.
+	//but test maybe not.
+	struct iiLineFile *net_file = create_iiLineFile(netfilename);
+	struct Bip2 *seti1 = create_Bip2(net_file, 1);
+	struct Bip2 *seti2 = create_Bip2(net_file, 0);
+	int i;
+
+	struct L_Bip2 *probs_result = create_L_Bip2();
+	struct L_Bip2 *heats_result = create_L_Bip2();
+	struct L_Bip2 *HNBI_result = create_L_Bip2();
+	struct L_Bip2 *RENBI_result = create_L_Bip2();
+	struct L_Bip2 *hybrid_result = create_L_Bip2();
+
+	for (i=0; i<loopNum; ++i) {
+		struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
+
+		struct Bip2 *traini1= create_Bip2(n2file + 1, 1);
+		struct Bip2 *traini2 = create_Bip2(n2file + 1, 0);
+		struct Bip2 *testi1 = create_Bip2(n2file, 1);
+		struct Bip2 *testi2 = create_Bip2(n2file, 0);
+		free_2_iiLineFile(n2file);
+
+		//the similarity is get from traini1
+		struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2, 0);
+		struct iidNet *trainSim = create_iidNet(similarity);
+		free_iidLineFile(similarity);
+
+		//recommendation
+		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
+		struct L_Bip2 *r11= heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
+		struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, theta);
+		struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, eta);
+		struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
+
+		probs_result->R += r1->R;
+		probs_result->PL += r1->PL;
+		probs_result->HL += r1->HL;
+		probs_result->IL += r1->IL;
+		probs_result->NL += r1->NL;
+		heats_result->R += r11->R;
+		heats_result->PL += r11->PL;
+		heats_result->HL += r11->HL;
+		heats_result->IL += r11->IL;
+		heats_result->NL += r11->NL;
+		HNBI_result->R +=  r2->R;
+		HNBI_result->PL += r2->PL;
+		HNBI_result->HL += r2->HL;
+		HNBI_result->IL += r2->IL;
+		HNBI_result->NL += r2->NL;
+		RENBI_result->R +=  r3->R;
+		RENBI_result->PL += r3->PL;
+		RENBI_result->HL += r3->HL;
+		RENBI_result->IL += r3->IL;
+		RENBI_result->NL += r3->NL;
+		hybrid_result->R +=  r4->R;
+		hybrid_result->PL += r4->PL;
+		hybrid_result->HL += r4->HL;
+		hybrid_result->IL += r4->IL;
+		hybrid_result->NL += r4->NL;
+
+		free_iidNet(trainSim);
+		free_Bip2(traini1);
+		free_Bip2(traini2);
+		free_Bip2(testi1);
+		free_Bip2(testi2);
+		free_L_Bip2(r1);
+		free_L_Bip2(r11);
+		free_L_Bip2(r2);
+		free_L_Bip2(r3);
+		free_L_Bip2(r4);
 	}
+	
+	printf("average:\n");
+	printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
+	printf("HNBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
+	printf("RENBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", RENBI_result->R/loopNum, RENBI_result->PL/loopNum, RENBI_result->IL/loopNum, RENBI_result->HL/loopNum, RENBI_result->NL/loopNum);
+	printf("hybrid\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
+	printf("heats\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
 
-	double *rankA_s = s_mass_rank_Bip3i(neti1, neti2, theta, maxscore);
-	double *rankA_d = d_mass_rank_Bip3i(neti1, neti2, eta);
-	double *rankA_t = thirdstepSD_mass_rank_Bip3i(neti1, neti2, epsilon);
-	double *rankA_h = hybrid_rank_Bip3i(neti1, neti2, lambda);
-
-	FILE *fp = fopen("sdth_rank", "w");
-	fileError(fp, "main");
-	for (i=0; i<neti2->maxId + 1; ++i) {
-		if (neti2->count[i])
-		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, score[i], rankA_s[i]/neti1->idNum, rankA_d[i]/neti1->idNum, rankA_t[i]/neti1->idNum, rankA_h[i]/neti1->idNum);
-	}
-	fclose(fp);
-
-	double *s_rankA	= calloc(stepNum, sizeof(double));
-	double *d_rankA	= calloc(stepNum, sizeof(double));
-	double *t_rankA	= calloc(stepNum, sizeof(double));
-	double *h_rankA	= calloc(stepNum, sizeof(double));
-	int *s = calloc(stepNum, sizeof(int));
-	for (i=0; i<neti2->maxId + 1; ++i) {
-		if (neti2->count[i]) {
-			int r = floor(stepNum*score[i]/5);
-			++s[r];
-			s_rankA[r] += rankA_s[i]/neti1->idNum;
-			d_rankA[r] += rankA_d[i]/neti1->idNum;
-			t_rankA[r] += rankA_t[i]/neti1->idNum;
-			h_rankA[r] += rankA_h[i]/neti1->idNum;
-		}
-	}
-	fp = fopen("sdth_rank_m", "w");
-	fileError(fp, "main");
-	for (i=0; i<stepNum; ++i) {
-		if (s[i])
-		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, 5.0*((double)i)/stepNum, s_rankA[i]/s[i], d_rankA[i]/s[i], t_rankA[i]/s[i], h_rankA[i]/s[i]);
-	}
-	fclose(fp);
-
+	free_iiLineFile(net_file);
+	free_Bip2(seti1);
+	free_Bip2(seti2);
+	free_L_Bip2(probs_result);
+	free_L_Bip2(heats_result);
+	free_L_Bip2(HNBI_result);
+	free_L_Bip2(RENBI_result);
+	free_L_Bip2(hybrid_result);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 	return 0;
 }
-
-//./run data/movielen/movielens.txt 5 0.76 0.84 0.78 0.15 25
-//./run data/netflix/netflix_with_rating.txt 5 0.78 0.84 0.78 0.17 25

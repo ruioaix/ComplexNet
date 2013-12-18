@@ -245,6 +245,7 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 					_i1Min = _i1Min<i?_i1Min:i;
 					_i2Min = _i2Min<neigh?_i2Min:neigh;
 					++line2;
+					continue;
 				}
 				twofile[0].lines[line1].i1 = i;	
 				twofile[0].lines[line1].i2 = neigh;	
@@ -980,7 +981,7 @@ static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2,
  * 1 -- probs (NONE arg)
  * 2 -- heats (NONE arg)
  * 3 -- HNBI  (theta)
- * 4 -- RNBI  (eta)
+ * 4 -- RENBI  (eta)
  * 5 -- hybrid (lambda)
  * 6 -- score hybrid (epsilon)
  * 7 -- usersim onion probs (orate, userSim)
