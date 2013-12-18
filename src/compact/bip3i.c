@@ -31,7 +31,6 @@ struct L_Bip3i *create_L_Bip3i(void) {
 	lp->NL = 0;
 	lp->L = 0;
 	lp->topL = NULL;
-	lp->rankA = NULL;
 	return lp;
 }
 //free(NULL) is ok.
@@ -44,12 +43,9 @@ void clean_L_Bip3i(struct L_Bip3i *lp) {
 	lp->L = 0;
 	free(lp->topL);
 	lp->topL = NULL;
-	free(lp->rankA);
-	lp->rankA = NULL;
 }
 void free_L_Bip3i(struct L_Bip3i *lp) {
 	free(lp->topL);
-	free(lp->rankA);
 	free(lp);
 }
 
@@ -59,7 +55,14 @@ struct param_recommend_Bip3i {
 	double epsilon;
 	double lambda;
 	int maxscore;
-	double *rankA;
+};
+
+struct param_rank_Bip3i {
+	double theta;
+	double eta;
+	double epsilon;
+	double lambda;
+	int maxscore;
 };
 
 void free_Bip3i(struct Bip3i *Bip) {
@@ -355,7 +358,7 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 //R is rankscore.
 //PL is precision
 //Warning: about unselected_list_length, I use traini2->maxId, not traini2->idNum. this actually is wrong I think, but it's the way linyulv did.
-static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL, double *rankA) {
+static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		//int unselected_list_length = traini2->idNum - traini1->count[i1];
 		int unselected_list_length = traini2->maxId - traini1->count[i1];
@@ -371,10 +374,6 @@ static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, 
 		}
 		*R += (double)rank_i1_j/(double)unselected_list_length;
 		*PL += (double)DiL/(double)L;
-	}
-	int i;
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		rankA[i] += rank[i];
 	}
 }
 //IL is intrasimilarity
@@ -735,9 +734,6 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
 	assert(topL != NULL);
 
-	double *rankA = calloc(traini2->maxId + 1, sizeof(double));
-	assert(rankA != NULL);
-
 	switch (type) {
 		case 1:
 			for (i = 0; i<traini1->maxId + 1; ++i) { //each user
@@ -746,7 +742,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					s_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i1sourceA, i2sourceA, L, i2id, rank, topL, theta, maxscore);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -757,7 +753,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					d_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, eta);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -768,7 +764,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					thirdstepSD_mass_Bip3i_core(i, traini1, traini2, i1source, i2source, i2sourceA, L, i2id, rank, topL, epsilon);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -779,7 +775,7 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 					//get rank
 					hybrid_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL, lambda);
 					//use rank to get metrics values
-					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL, rankA);
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -791,10 +787,6 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	IL = metrics_IL_Bip3i(traini1, traini2, testi1, L, topL, trainSim);
 	NL = metrics_NL_Bip3i(traini1, traini2, testi1, L, topL);
 
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		rankA[i] /= traini1->idNum;
-	}
-
 	struct L_Bip3i *retn = create_L_Bip3i();
 	retn->R = R;
 	retn->PL = PL;
@@ -803,7 +795,6 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 	retn->NL = NL;
 	retn->topL = topL;
 	retn->L = L;
-	retn->rankA = rankA;
 
 	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(i1source);
@@ -837,7 +828,7 @@ struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *trai
 struct L_Bip3i *hybrid_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double lambda) {
 	struct param_recommend_Bip3i param;
 	param.lambda = lambda;
-	return recommend_Bip3i(3, traini1, traini2, testi1, testi2, trainSim, param);
+	return recommend_Bip3i(4, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
 struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {
@@ -909,4 +900,336 @@ struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i 
 	simfile->lines = lines;
 	printf("calculate similarity done.\n");fflush(stdout);
 	return simfile;
+}
+
+//three-step random walk of Probs
+static void s_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int *i2id, int *rank, double theta, int maxscore) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	double totalsource = 0;
+	memset(i2id, 0, (traini2->maxId +1)*sizeof(int));
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2id[neigh] = traini1->i3[i1][j];
+		i2source[neigh] = pow(traini1->i3[i1][j], theta);
+		totalsource += i2source[neigh];	
+	}
+	for (j=0; j<traini1->count[i1]; ++j) {
+		i2source[neigh] = i2source[neigh]*traini1->count[i1]/totalsource;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	//memset(i1sourceA, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = traini2->count[i];
+			source = i2source[i];
+			totalsource = 0;
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1sourceA[neigh] = pow(maxscore - fabs(traini2->i3[i][j]-i2id[i]), theta); 
+				//i1source[neigh] = source*source2;
+				totalsource += i1sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source*i1sourceA[neigh]/totalsource;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			totalsource = 0;
+			degree = traini1->count[i];
+			source = i1source[i];
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2sourceA[neigh] = pow((double)traini1->i3[i][j]/(double)traini2->count[neigh], theta);
+				totalsource += i2sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2source[neigh] += source*i2sourceA[neigh]/totalsource;
+			}
+		}
+	}
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+
+static void d_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int *i2id, int *rank, double eta) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = traini2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	double totalsource;
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			totalsource = 0;
+			degree = traini1->count[i];
+			source = i1source[i];
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2sourceA[neigh] = pow(1.0/traini2->count[neigh], eta);
+				totalsource += i2sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2source[neigh] += source*i2sourceA[neigh]/totalsource;
+			}
+		}
+	}
+	//set i2id and rank.
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+
+static void thirdstepSD_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int *i2id, int *rank, double epsilon) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = traini2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	double totalsource;
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			totalsource = 0;
+			degree = traini1->count[i];
+			source = i1source[i];
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2sourceA[neigh] = pow((double)traini1->i3[i][j]/(double)traini2->count[neigh], epsilon);
+				totalsource += i2sourceA[neigh];
+			}
+			for (j=0; j<degree; ++j) {
+				neigh = traini1->id[i][j];
+				i2source[neigh] += source*i2sourceA[neigh]/totalsource;
+			}
+		}
+	}
+	//set i2id and rank.
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+//three-step random walk of hybrid
+static void hybrid_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int *i2id, int *rank, double lambda) {
+	int neigh, i;
+	//double source;
+	long j;
+	//one
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			double powl = pow(traini2->count[i], lambda);
+			for (j=0; j<traini2->count[i]; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += i2source[i]/powl;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (traini2->count[i]) {
+			double powl = pow(traini2->count[i], 1-lambda);
+			for (j=0; j<traini2->count[i]; ++j) {
+				neigh = traini2->id[i][j];
+				i2source[i] += i1source[neigh]/traini1->count[neigh];
+			}
+			i2source[i] /= powl;
+		}
+	}
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+	}
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+/** 
+ * core function of rank.
+ * type :
+ * 1 -- score degree mass (theta, maxscore)
+ * 2 -- degree mass (eta)
+ * 3 -- only third step change, similar to 2, but with both score and degree. (epsilon)
+ * 4 -- origin hybrid (lambda)
+ *
+ * all L is from this function. if you want to change, change the L below.
+ */
+static double *rank_Bip3i(int type, struct Bip3i *neti1, struct Bip3i *neti2, struct param_rank_Bip3i param) {
+	double theta = param.theta;
+	double eta = param.eta;
+	double epsilon = param.epsilon;
+	double lambda = param.lambda;
+	int maxscore = param.maxscore;
+
+	double *i1source = malloc((neti1->maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i1sourceA = malloc((neti1->maxId + 1)*sizeof(double));
+	assert(i1sourceA != NULL);
+	double *i2source = malloc((neti2->maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	double *i2sourceA = malloc((neti2->maxId + 1)*sizeof(double));
+	assert(i2sourceA != NULL);
+	int *rank = malloc((neti2->maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((neti2->maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	double *rankA = malloc((neti2->maxId + 1)*sizeof(double));
+	assert(rankA != NULL);
+	int i, j;
+
+	switch (type) {
+		case 1:
+			for (i = 0; i<neti1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (neti1->count[i]) {
+					//get rank
+					s_mass_rank_Bip3i_core(i, neti1, neti2, i1source, i2source, i1sourceA, i2sourceA, i2id, rank, theta, maxscore);
+					for (j=0; j<neti2->maxId + 1; ++j) {
+						rankA[j] += (double)rank[j]/(neti2->maxId + 1);
+					}
+				}
+			}
+			break;
+		case 2:
+			for (i = 0; i<neti1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (neti1->count[i]) {
+					//get rank
+					d_mass_rank_Bip3i_core(i, neti1, neti2, i1source, i2source, i2sourceA, i2id, rank, eta);
+					for (j=0; j<neti2->maxId + 1; ++j) {
+						rankA[j] += (double)rank[j]/(neti2->maxId + 1);
+					}
+				}
+			}
+			break;
+		case 3:
+			for (i = 0; i<neti1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (neti1->count[i]) {
+					//get rank
+					thirdstepSD_mass_rank_Bip3i_core(i, neti1, neti2, i1source, i2source, i2sourceA, i2id, rank, epsilon);
+					for (j=0; j<neti2->maxId + 1; ++j) {
+						rankA[j] += (double)rank[j]/(neti2->maxId + 1);
+					}
+				}
+			}
+			break;
+		case 4:
+			for (i = 0; i<neti1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (neti1->count[i]) {
+					//get rank
+					hybrid_rank_Bip3i_core(i, neti1, neti2, i1source, i2source, i2id, rank, lambda);
+					for (j=0; j<neti2->maxId + 1; ++j) {
+						rankA[j] += (double)rank[j]/(neti2->maxId + 1);
+					}
+				}
+			}
+			break;
+
+	}
+
+
+	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(i1source);
+	free(i2source);
+	free(i1sourceA);
+	free(i2sourceA);
+	free(i2id);
+	free(rank);
+	return rankA;
+}
+
+double *s_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double theta, int maxscore) {
+	struct param_rank_Bip3i param;
+	param.theta = theta;
+	param.maxscore = maxscore;
+	return rank_Bip3i(1, neti1, neti2, param);
+}
+
+double *d_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double eta) {
+	struct param_rank_Bip3i param;
+	param.eta = eta;
+	return rank_Bip3i(2, neti1, neti2, param);
+}
+
+double *thirdstepSD_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double epsilon) {
+	struct param_rank_Bip3i param;
+	param.epsilon = epsilon;
+	return rank_Bip3i(3, neti1, neti2, param);
+}
+
+double *hybrid_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double lambda) {
+	struct param_rank_Bip3i param;
+	param.lambda = lambda;
+	return rank_Bip3i(4, neti1, neti2, param);
 }

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+gnuplot << EOF
+
+set terminal postscript eps
+
+set xrange [0.5:5]
+set xlabel 'rating'
+set ylabel 'rank'
+set output 'movielens_rating_rank_point.eps'
+plot 'sdth_rank' using 2:3 w p pt 1 ps 0.5 lc 3 title 'score', 'sdth_rank' using 2:4 w p pt 2 ps 0.5 lc 1 title 'degree', 'sdth_rank' using 2:5 w p pt 8 ps 0.5 lc 2 title 'third', 'sdth_rank' using 2:6 w p pt 10 ps 0.5 lc 4 title 'hybrid'
+set output
+
+set xlabel 'rating'
+set ylabel 'rank'
+set output 'movielens_rating_rank_line.eps'
+plot 'sdth_rank_m' using 2:3 w lp pt 1 ps 0.5 lc 3 title 'score', 'sdth_rank_m' using 2:4 w lp pt 2 ps 0.5 lc 1 title 'degree', 'sdth_rank_m' using 2:5 w lp pt 8 ps 0.5 lc 2 title 'third', 'sdth_rank_m' using 2:6 w lp pt 10 ps 0.5 lc 4 title 'hybrid'
+set output
+
+EOF

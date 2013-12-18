@@ -4,39 +4,36 @@
 #include <time.h>
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
-#include "inc/linefile/iilinefile.h"
-#include "inc/linefile/iidlinefile.h"
-#include "inc/compact/bip2.h"
-#include "inc/utility/error.h"
+#include "inc/linefile/i3linefile.h"
+#include "inc/compact/bip3i.h"
 #include "inc/utility/random.h"
+#include "inc/utility/error.h"
 
 int main(int argc, char **argv)
 {
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
-	int loopNum, stepNum;
-	double stepbegin, stepLen;
-	int topstepbegin, topstepLen;
+	int maxscore, stepNum;
+	double theta, eta, epsilon, lambda;
+
 	if (argc == 1) {
-		netfilename = "data/movielen/movielen2";
-		loopNum = 2;
-		stepbegin = 0;
-		stepLen = 0.01;
-		topstepbegin = 0;
-		topstepLen = 9;
-		stepNum = 2;
-		//topstepLen = 10;
+		netfilename = "data/movielen/movielens.txt";
+		maxscore = 5;
+		theta = 0.76; //score
+		eta = 0.84; //degree
+		epsilon = 0.78; //third
+		lambda = 0.15; //hybrid
+		stepNum = 25;
 	}
 	else if (argc == 8) {
 		netfilename = argv[1];
 		char *pEnd;
-		loopNum = strtol(argv[2], &pEnd, 10);
-		stepbegin = strtod(argv[3], &pEnd);
-		stepLen = strtod(argv[4], &pEnd);
-		topstepbegin = strtod(argv[5], &pEnd);
-		topstepLen = strtod(argv[6], &pEnd);
+		maxscore = strtol(argv[2], &pEnd, 10);
+		theta = strtod(argv[3], &pEnd);
+		eta = strtod(argv[4], &pEnd);
+		epsilon = strtod(argv[5], &pEnd);
+		lambda = strtod(argv[6], &pEnd);
 		stepNum = strtol(argv[7], &pEnd, 10);
 	}
 	else {
@@ -44,83 +41,65 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	//random number init, make sure that random number generated differently every time program run.
-	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
-	init_by_array(init, length);
+	//main
+	struct i3LineFile *netfile = create_i3LineFile(netfilename);
+	struct Bip3i *neti1 = create_Bip3i(netfile, 1);
+	struct Bip3i *neti2 = create_Bip3i(netfile, 0);
+	free_i3LineFile(netfile);
 
-	//get netfile, build net.
-	struct iiLineFile *netfile = create_iiLineFile(netfilename);
-	struct Bip2 *bipi1 = create_Bip2(netfile, 1);
-	struct Bip2 *bipi2 = create_Bip2(netfile, 0);
-	free_iiLineFile(netfile);
-
-	struct L_Bip2 *omass_result = create_L_Bip2();
-	struct L_Bip2 *tmass_result = create_L_Bip2();
-
-	int i, j;
-	for (i=0; i<stepNum; ++i) {
-		double orate = i*stepLen + stepbegin;
-		int topR = i*topstepLen + topstepbegin;
-
-		clean_L_Bip2(omass_result);
-		clean_L_Bip2(tmass_result);
-
-		for (j=0; j<loopNum; ++j) {
-
-			struct iiLineFile *twofile = divide_Bip2(bipi1, bipi2, 0.1);
-			struct Bip2 *traini1 = create_Bip2(twofile + 1, 1);
-			struct Bip2 *traini2 = create_Bip2(twofile + 1, 0);
-			struct Bip2 *testi1 = create_Bip2(twofile, 1);
-			struct Bip2 *testi2 = create_Bip2(twofile, 0);
-			free_2_iiLineFile(twofile);
-
-			struct iidLineFile *user_similarity_file = similarity_realtime_Bip2(traini1, traini2, 1);
-			struct iidNet *userSim= create_iidNet(user_similarity_file);
-			sort_desc_iidNet(userSim);
-			free_iidLineFile(user_similarity_file);
-
-			struct iidLineFile *item_similarity_file = similarity_realtime_Bip2(traini1, traini2, 0);
-			struct iidNet *itemSim= create_iidNet(item_similarity_file);
-			free_iidLineFile(item_similarity_file);
-
-			struct L_Bip2 *r1 = onion_mass_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, orate);
-			struct L_Bip2 *r2 = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, topR);
-
-			omass_result->R +=  r1->R;
-			omass_result->PL += r1->PL;
-			omass_result->HL += r1->HL;
-			omass_result->IL += r1->IL;
-			omass_result->NL += r1->NL;
-			tmass_result->R +=  r2->R;
-			tmass_result->PL += r2->PL;
-			tmass_result->HL += r2->HL;
-			tmass_result->IL += r2->IL;
-			tmass_result->NL += r2->NL;
-
-			free_Bip2(traini1);
-			free_Bip2(traini2);
-			free_Bip2(testi1);
-			free_Bip2(testi2);
-			free_iidNet(userSim);
-			free_iidNet(itemSim);
-			free_L_Bip2(r1);
-			free_L_Bip2(r2);
+	int i,j;
+	double *score = calloc(neti2->maxId + 1, sizeof(double));
+	assert(score != NULL);
+	for (i=0; i<neti2->maxId + 1; ++i) {
+		if (neti2->count[i]) {
+			for (j=0; j<neti2->count[i]; ++j) {
+				score[i] += neti2->i3[i][j];
+			}
+			score[i] /= neti2->count[i];
 		}
-
-		printf("onion_mass\torate: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", orate, loopNum, omass_result->R/loopNum, omass_result->PL/loopNum, omass_result->IL/loopNum, omass_result->HL/loopNum, omass_result->NL/loopNum);
-		printf("topR_mass\ttopR: %d, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", topR, loopNum, tmass_result->R/loopNum, tmass_result->PL/loopNum, tmass_result->IL/loopNum, tmass_result->HL/loopNum, tmass_result->NL/loopNum);
-
-
 	}
 
+	double *rankA_s = s_mass_rank_Bip3i(neti1, neti2, theta, maxscore);
+	double *rankA_d = d_mass_rank_Bip3i(neti1, neti2, eta);
+	double *rankA_t = thirdstepSD_mass_rank_Bip3i(neti1, neti2, epsilon);
+	double *rankA_h = hybrid_rank_Bip3i(neti1, neti2, lambda);
 
-	free_L_Bip2(omass_result);
-	free_L_Bip2(tmass_result);
-	free_Bip2(bipi1);
-	free_Bip2(bipi2);
+	FILE *fp = fopen("sdth_rank", "w");
+	fileError(fp, "main");
+	for (i=0; i<neti2->maxId + 1; ++i) {
+		if (neti2->count[i])
+		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, score[i], rankA_s[i]/neti1->idNum, rankA_d[i]/neti1->idNum, rankA_t[i]/neti1->idNum, rankA_h[i]/neti1->idNum);
+	}
+	fclose(fp);
+
+	double *s_rankA	= calloc(stepNum, sizeof(double));
+	double *d_rankA	= calloc(stepNum, sizeof(double));
+	double *t_rankA	= calloc(stepNum, sizeof(double));
+	double *h_rankA	= calloc(stepNum, sizeof(double));
+	int *s = calloc(stepNum, sizeof(int));
+	for (i=0; i<neti2->maxId + 1; ++i) {
+		if (neti2->count[i]) {
+			int r = floor(stepNum*score[i]/5);
+			++s[r];
+			s_rankA[r] += rankA_s[i]/neti1->idNum;
+			d_rankA[r] += rankA_d[i]/neti1->idNum;
+			t_rankA[r] += rankA_t[i]/neti1->idNum;
+			h_rankA[r] += rankA_h[i]/neti1->idNum;
+		}
+	}
+	fp = fopen("sdth_rank_m", "w");
+	fileError(fp, "main");
+	for (i=0; i<stepNum; ++i) {
+		if (s[i])
+		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, 5.0*((double)i)/stepNum, s_rankA[i]/s[i], d_rankA[i]/s[i], t_rankA[i]/s[i], h_rankA[i]/s[i]);
+	}
+	fclose(fp);
 
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 	return 0;
 }
+
+//./run data/movielen/movielens.txt 5 0.76 0.84 0.78 0.15 25
+//./run data/netflix/netflix_with_rating.txt 5 0.78 0.84 0.78 0.17 25
