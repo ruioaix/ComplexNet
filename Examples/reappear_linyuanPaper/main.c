@@ -1,5 +1,8 @@
-// ./run data/movielens/movielen2 1 -0.8 -0.75 0.2
-// ./run data/netflix/netflix_pnas.txt 1 -0.7 -0.75 0.2 
+/**
+ * ./run data/movielens/movielen_2c 1 -0.8 -0.75 0.2
+ * ./run data/netflix/netflix_2c 1 -0.7 -0.75 0.2 
+ *
+ */
 //#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
@@ -22,7 +25,7 @@ int main(int argc, char **argv)
 	double theta, eta, lambda; 
 	int loopNum;
 	if (argc == 1) {
-		netfilename = "data/movielens/movielen2";
+		netfilename = "data/movielens/movielens_2c";
 		loopNum = 1;
 		theta = -0.8;
 		eta = -0.75;
@@ -115,11 +118,11 @@ int main(int argc, char **argv)
 	}
 	
 	printf("average:\n");
-	printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
-	printf("HNBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
-	printf("RENBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", RENBI_result->R/loopNum, RENBI_result->PL/loopNum, RENBI_result->IL/loopNum, RENBI_result->HL/loopNum, RENBI_result->NL/loopNum);
-	printf("hybrid\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
-	printf("heats\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
+	printf("probs\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", loopNum, probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
+	printf("HNBI\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", loopNum, HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
+	printf("RENBI\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", loopNum, RENBI_result->R/loopNum, RENBI_result->PL/loopNum, RENBI_result->IL/loopNum, RENBI_result->HL/loopNum, RENBI_result->NL/loopNum);
+	printf("hybrid\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
+	printf("heats\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", loopNum, heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
 
 	free_iiLineFile(net_file);
 	free_Bip2(seti1);
