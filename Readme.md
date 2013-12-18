@@ -1,4 +1,6 @@
 # scope of usage of this program 
+TOO OLD, I will rewrite this doc sometime later. 
+ - rui 20131218.
 
 ## structure
 - main
