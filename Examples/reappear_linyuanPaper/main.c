@@ -1,3 +1,5 @@
+// ./run data/movielens/movielen2 1 -0.8 -0.75 0.2
+// ./run data/netflix/netflix_pnas.txt 1 -0.7 -0.75 0.2 
 //#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
@@ -17,11 +19,22 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
+	double theta, eta, lambda; 
+	int loopNum;
 	if (argc == 1) {
-		netfilename = "data/movielen/movielen2";
+		netfilename = "data/movielens/movielen2";
+		loopNum = 1;
+		theta = -0.8;
+		eta = -0.75;
+		lambda = 0.2;
 	}
-	if (argc == 2) {
+	if (argc == 6) {
 		netfilename = argv[1];
+		char *pEnd;
+		loopNum = strtol(argv[2], &pEnd, 10);
+		theta = strtod(argv[3], &pEnd);
+		eta = strtod(argv[4], &pEnd);
+		lambda = strtod(argv[5], &pEnd);
 	}
 
 	//printf("%ld\n", t);
@@ -42,7 +55,6 @@ int main(int argc, char **argv)
 	struct L_Bip2 *RENBI_result = create_L_Bip2();
 	struct L_Bip2 *hybrid_result = create_L_Bip2();
 
-	int loopNum = 1;
 	for (i=0; i<loopNum; ++i) {
 		struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
 
@@ -53,17 +65,16 @@ int main(int argc, char **argv)
 		free_2_iiLineFile(n2file);
 
 		//the similarity is get from traini1
-		//struct iidLineFile *similarity = create_iidLineFile(simfilename);
-		struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2);
+		struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2, 0);
 		struct iidNet *trainSim = create_iidNet(similarity);
 		free_iidLineFile(similarity);
 
 		//recommendation
 		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
 		struct L_Bip2 *r11= heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
-		struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.8);
-		struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, -0.75);
-		struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, 0.2);
+		struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, theta);
+		struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, eta);
+		struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
 
 		probs_result->R += r1->R;
 		probs_result->PL += r1->PL;
@@ -105,10 +116,10 @@ int main(int argc, char **argv)
 	
 	printf("average:\n");
 	printf("probs\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", probs_result->R/loopNum, probs_result->PL/loopNum, probs_result->IL/loopNum, probs_result->HL/loopNum, probs_result->NL/loopNum);
-	printf("heats\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
 	printf("HNBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", HNBI_result->R/loopNum, HNBI_result->PL/loopNum, HNBI_result->IL/loopNum, HNBI_result->HL/loopNum, HNBI_result->NL/loopNum);
 	printf("RENBI\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", RENBI_result->R/loopNum, RENBI_result->PL/loopNum, RENBI_result->IL/loopNum, RENBI_result->HL/loopNum, RENBI_result->NL/loopNum);
 	printf("hybrid\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum);
+	printf("heats\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", heats_result->R/loopNum, heats_result->PL/loopNum, heats_result->IL/loopNum, heats_result->HL/loopNum, heats_result->NL/loopNum);
 
 	free_iiLineFile(net_file);
 	free_Bip2(seti1);
