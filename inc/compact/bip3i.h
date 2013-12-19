@@ -57,6 +57,7 @@ double *s_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double theta
 double *d_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double eta);
 double *thirdstepSD_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double epsilon);
 double *hybrid_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double lambda);
+double *mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2);
 
 struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2);
 #endif
