@@ -454,15 +454,15 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 //Warning: about unselected_list_length, I use bipi2->maxId, not bipi2->idNum. this actually is wrong I think, but it's the way linyulv did.
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
-		//int unselected_list_length = bipi2->idNum - bipi1->count[i1];
-		int unselected_list_length = bipi2->maxId - bipi1->count[i1];
+		int unselected_list_length = bipi2->idNum - bipi1->count[i1];
+		//int unselected_list_length = bipi2->maxId - bipi1->count[i1];
 		int rank_i1_j = 0;
 		int DiL = 0;
 		int j, id;
 		for (j=0; j<testi1->count[i1]; ++j) {
 			id = testi1->id[i1][j];
 			rank_i1_j += rank[id];
-			if (rank[id] < L) {
+			if (rank[id] <= L) {
 				++DiL;
 			}
 		}
@@ -587,12 +587,15 @@ static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	}
 	//set selected item's source to 0
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 	//set i2id and rank.
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
@@ -631,11 +634,14 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 		}
 	}
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
@@ -677,12 +683,15 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 		}
 	}
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
@@ -759,12 +768,15 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 	}
 
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2sourceA[bipi1->id[i1][i]] = 0;
+		i2sourceA[bipi1->id[i1][i]] = -1;
 	}
 
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	qsort_di_desc(i2sourceA, 0, bipi2->maxId, i2id);
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
@@ -805,12 +817,15 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 		}
 	}
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
@@ -851,12 +866,15 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
 		}
 	}
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
 	memcpy(Hij+i1*L, i2id, L*sizeof(int));
@@ -906,12 +924,15 @@ static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2
 	}
 	//set selected item's source to 0
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 	//set i2id and rank.
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
@@ -959,12 +980,15 @@ static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2,
 	}
 	//set selected item's source to 0
 	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = 0;
+		i2source[bipi1->id[i1][i]] = -1;
 	}
 	//set i2id and rank.
 	for (i=0; i<bipi2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
@@ -1107,6 +1131,7 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 	}
 	R /= testi1->edgesNum;
 	PL /= testi1->idNum;
+	//PL /= testi1->maxId;
 	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, topL);
 	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, topL, trainSim);
 	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, topL);
