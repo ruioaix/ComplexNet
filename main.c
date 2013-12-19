@@ -1,5 +1,5 @@
 /**
- * ./run data/movielens/movielen_2c 1 -0.8 -0.75 0.2
+ * ./run data/movielens/movielens_2c 1 -0.8 -0.75 0.2
  * ./run data/netflix/netflix_2c 1 -0.7 -0.75 0.2 
  *
  */

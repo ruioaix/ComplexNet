@@ -478,10 +478,8 @@ static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	int i, j;
 	long k;
 	double IL = 0;
-	int cou = 0;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (bipi1->count[i]) {
-			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {
 				int id = tmp[j];
@@ -497,7 +495,7 @@ static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 		}
 	}
 	free(sign);
-	IL /= L*(L-1)*cou;
+	IL /= L*(L-1)*bipi1->idNum;
 	return 2*IL;
 }
 //HL is hamming distance.
@@ -516,7 +514,7 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 				sign[Hij[k]] = 1;
 			}
 			for (j=i+1; j<bipi1->maxId + 1; ++j) {
-				if (bipi1->count[j] && testi1->count[j]) {
+				if (bipi1->count[j]) {
 					Cij = 0;
 					for (k=j*L; k<j*L+L; ++k) {
 						if (sign[Hij[k]]) {
@@ -537,17 +535,15 @@ static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
 	int i,j;
 	long NL = 0;
-	int cou = 0;
 	for (i=0; i<bipi1->maxId + 1; ++i) {
 		if (bipi1->count[i]) {
-			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {
 				NL += bipi2->count[tmp[j]];
 			}
 		}
 	}
-	NL /= L*cou;
+	NL /= L*bipi1->idNum;
 	return NL;
 }
 //three-step random walk of Probs
