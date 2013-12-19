@@ -8,14 +8,12 @@
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
-#include "inc/linefile/i5linefile.h"
 #include "inc/linefile/iilinefile.h"
 #include "inc/linefile/iidlinefile.h"
 #include "inc/compact/bip2.h"
 #include "inc/compact/iidnet.h"
 #include "inc/utility/error.h"
 #include "inc/utility/random.h"
-#include "inc/utility/hashtable.h"
 
 int main(int argc, char **argv)
 {

@@ -360,8 +360,8 @@ struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double
 //Warning: about unselected_list_length, I use traini2->maxId, not traini2->idNum. this actually is wrong I think, but it's the way linyulv did.
 static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
-		//int unselected_list_length = traini2->idNum - traini1->count[i1];
-		int unselected_list_length = traini2->maxId - traini1->count[i1];
+		int unselected_list_length = traini2->idNum - traini1->count[i1];
+		//int unselected_list_length = traini2->maxId - traini1->count[i1];
 		int rank_i1_j = 0;
 		int DiL = 0;
 		int j, id;
@@ -384,10 +384,8 @@ static double metrics_IL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 	int i, j;
 	long k;
 	double IL = 0;
-	int cou = 0;
 	for (i=0; i<traini1->maxId + 1; ++i) {
 		if (traini1->count[i]) {
-			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {
 				int id = tmp[j];
@@ -403,7 +401,7 @@ static double metrics_IL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 		}
 	}
 	free(sign);
-	IL /= L*(L-1)*cou;
+	IL /= L*(L-1)*traini1->idNum;
 	return 2*IL;
 }
 //HL is hamming distance.
@@ -422,7 +420,7 @@ static double metrics_HL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 				sign[Hij[k]] = 1;
 			}
 			for (j=i+1; j<traini1->maxId + 1; ++j) {
-				if (traini1->count[j] && testi1->count[j]) {
+				if (traini1->count[j]) {
 					Cij = 0;
 					for (k=j*L; k<j*L+L; ++k) {
 						if (sign[Hij[k]]) {
@@ -443,17 +441,15 @@ static double metrics_HL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, str
 static double metrics_NL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *Hij) {
 	int i,j;
 	long NL = 0;
-	int cou = 0;
 	for (i=0; i<traini1->maxId + 1; ++i) {
 		if (traini1->count[i]) {
-			++cou;
 			int *tmp = Hij + i*L;
 			for (j=0; j<L; ++j) {
 				NL += traini2->count[tmp[j]];
 			}
 		}
 	}
-	NL /= L*cou;
+	NL /= L*traini1->idNum;
 	return NL;
 }
 //three-step random walk of Probs
@@ -519,11 +515,14 @@ static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	//printf("%d, %ld, %f\n", i1, traini1->count[i1], t);
 	//set i2id and rank.
 	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = 0;
+		i2source[traini1->id[i1][i]] = -1;
 	}
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -576,12 +575,15 @@ static void d_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	}
 	//set selected item's source to 0
 	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = 0;
+		i2source[traini1->id[i1][i]] = -1;
 	}
 	//set i2id and rank.
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -634,12 +636,15 @@ static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bi
 	}
 	//set selected item's source to 0
 	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = 0;
+		i2source[traini1->id[i1][i]] = -1;
 	}
 	//set i2id and rank.
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -683,12 +688,15 @@ static void hybrid_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 		}
 	}
 	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = 0;
+		i2source[traini1->id[i1][i]] = -1;
 	}
 
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
 	memcpy(topL+i1*L, i2id, L*sizeof(int));
