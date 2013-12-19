@@ -34,37 +34,38 @@
 
 set terminal postscript eps
 
-set xlabel 'theta'
+set xrange [0:1]
+set xlabel 'lambda'
 set ylabel 'top L=50 score average'
 set output '$outputdir/averagescore_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:17 w lp pt 19 ps 0.2 lc 3 title 'averagescore_hybrid'
 set output
 
-set xlabel 'theta'
+set xlabel 'lambda'
 set ylabel 'RankScore'
 set output '$outputdir/RankScore_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:7 w lp pt 19 ps 0.2 lc 3 title 'RankScore_hybrid'
 set output
 
-set xlabel 'theta'
+set xlabel 'lambda'
 set ylabel 'Precision'
 set output '$outputdir/Precision_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:9 w lp pt 19 ps 0.2 lc 3 title 'Precision_hybrid'
 set output
 
-set xlabel 'theta'
+set xlabel 'lambda'
 set ylabel 'Intrasimilarity'
 set output '$outputdir/Intrasimilarity_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:11 w lp pt 19 ps 0.2 lc 3 title 'Intrasimilarity_hybrid'
 set output
 
-set xlabel 'theta'
+set xlabel 'lambda'
 set ylabel 'HammingD'
 set output '$outputdir/HammingD_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:13 w lp pt 19 ps 0.2 lc 3 title 'HammingD_hybrid'
 set output
 
-set xlabel 'theta'
+set xlabel 'lambda'
 set ylabel 'Popularity'
 set output '$outputdir/Popularity_hybrid_$filenamePre.eps'
 plot '$outputdir/$datafile' using 3:15 w lp pt 19 ps 0.2 lc 3 title 'Popularity_hybrid'
@@ -75,9 +76,9 @@ EOF
 
   fclose($dataprocessfp);
 
-  //php generateScripts.php movielens 0.01 5 1.01 data/movielens/movielens_3c 100 scripts_movielens
-  //php generateScripts.php netflix 0.01 5 1.01 data/netflix/netflix_3c 20 scripts_netflix
-  //php generateScripts.php rym 0.01 5 1.01 data/rym/rym_3c 10 scripts_rym
+  //php generateScripts.php movielens 0.01 5 1.01 data/movielens/movielens_3c 1000 scripts_movielens
+  //php generateScripts.php netflix 0.01 5 1.01 data/netflix/netflix_3c 200 scripts_netflix
+  //php generateScripts.php rym 0.01 5 1.01 data/rym/rym_3c 50 scripts_rym
   
 
 ?>

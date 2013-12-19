@@ -24,11 +24,11 @@ int main(int argc, char **argv)
 	int stepNum;
 	double stepbegin;
 	if (argc == 1) {
-		netfilename = "data/movielen/movielens.txt";
-		loopNum = 1;
+		netfilename = "data/movielens/movielens_3c";
+		loopNum = 2;
 		stepbegin = 0;
 		stepLen = 0.01;
-		stepNum = 10;
+		stepNum = 2;
 	}
 	else if (argc == 6) {
 		netfilename = argv[1];
@@ -70,35 +70,35 @@ int main(int argc, char **argv)
 	//divide file into two part: train and test.
 	//train will contain every user and every item.
 	//but test maybe not.
-	struct iiLineFile *net_file = create_iiLineFile(netfilename);
-	struct Bip2 *seti1 = create_Bip2(net_file, 1);
-	struct Bip2 *seti2 = create_Bip2(net_file, 0);
-	free_iiLineFile(net_file);
+	struct i3LineFile *net_file = create_i3LineFile(netfilename);
+	struct Bip3i *seti1 = create_Bip3i(net_file, 1);
+	struct Bip3i *seti2 = create_Bip3i(net_file, 0);
+	free_i3LineFile(net_file);
 
-	struct L_Bip2 *hybrid_result = create_L_Bip2(); 
+	struct L_Bip3i *hybrid_result = create_L_Bip3i(); 
 
 	int k;
 	double lambda;
 	for (k=0; k<stepNum; ++k) {
 		lambda = k*stepLen + stepbegin;
-		clean_L_Bip2(hybrid_result);
+		clean_L_Bip3i(hybrid_result);
 		double score_ave = 0;
 		for (i=0; i<loopNum; ++i) {
-			struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
+			struct i3LineFile *n2file = divide_Bip3i(seti1, seti2, 0.1);
 
-			struct Bip2 *traini1= create_Bip2(n2file + 1, 1);
-			struct Bip2 *traini2 = create_Bip2(n2file + 1, 0);
-			struct Bip2 *testi1 = create_Bip2(n2file, 1);
-			struct Bip2 *testi2 = create_Bip2(n2file, 0);
-			free_2_iiLineFile(n2file);
+			struct Bip3i *traini1= create_Bip3i(n2file + 1, 1);
+			struct Bip3i *traini2 = create_Bip3i(n2file + 1, 0);
+			struct Bip3i *testi1 = create_Bip3i(n2file, 1);
+			struct Bip3i *testi2 = create_Bip3i(n2file, 0);
+			free_2_i3LineFile(n2file);
 
 			//the similarity is get from traini1
 			//struct iidLineFile *similarity = create_iidLineFile(simfilename);
-			struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2);
+			struct iidLineFile *similarity = similarity_realtime_Bip3i(traini1, traini2);
 			struct iidNet *trainSim = create_iidNet(similarity);
 			free_iidLineFile(similarity);
 
-			struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
+			struct L_Bip3i *r4 = hybrid_Bip3i(traini1, traini2, testi1, testi2, trainSim, lambda);
 
 			hybrid_result->R +=  r4->R;
 			hybrid_result->PL += r4->PL;
@@ -113,18 +113,18 @@ int main(int argc, char **argv)
 			}
 
 			free_iidNet(trainSim);
-			free_Bip2(traini1);
-			free_Bip2(traini2);
-			free_Bip2(testi1);
-			free_Bip2(testi2);
-			free_L_Bip2(r4);
+			free_Bip3i(traini1);
+			free_Bip3i(traini2);
+			free_Bip3i(testi1);
+			free_Bip3i(testi2);
+			free_L_Bip3i(r4);
 		}
 		printf("      hybrid\tlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", lambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
 	}
 
-	free_L_Bip2(hybrid_result);
-	free_Bip2(seti1);
-	free_Bip2(seti2);
+	free_L_Bip3i(hybrid_result);
+	free_Bip3i(seti1);
+	free_Bip3i(seti2);
 	free(score);
 
 	//printf end time;
