@@ -75,9 +75,9 @@ EOF
 
   fclose($dataprocessfp);
 
-  //php generateScripts.php movielens 0.01 5 1.01 data/movielen/movielens.txt 100 scripts_movielens
-  //php generateScripts.php netflix 0.01 5 1.01 data/netflix/netflix_with_rating.txt 100 scripts_netflix
-  //php generateScripts.php rym 0.01 5 1.01 data/rym/rym_clean 100 scripts_rym
+  //php generateScripts.php movielens 0.01 5 1.01 data/movielens/movielens_3c 100 scripts_movielens
+  //php generateScripts.php netflix 0.01 5 1.01 data/netflix/netflix_3c 20 scripts_netflix
+  //php generateScripts.php rym 0.01 5 1.01 data/rym/rym_3c 10 scripts_rym
   
 
 ?>
