@@ -14,17 +14,18 @@ int main(int argc, char **argv)
 	char *netfilename;
 	int loopNum;
 	int maxscore;
-	double stepbegin, stepLen;
+	double stepbegin, stepLen, bestlambda;
 	int stepNum;
 	if (argc == 1) {
-		netfilename = "data/movielen/movielens.txt";
+		netfilename = "data/movielens/movielens_3c";
 		loopNum = 2;
 		maxscore = 5;
 		stepbegin = 0;
 		stepLen = 0.02;
-		stepNum = 10;
+		stepNum = 2;
+		bestlambda = 0.15;
 	}
-	else if (argc == 7) {
+	else if (argc == 8) {
 		netfilename = argv[1];
 		char *pEnd;
 		maxscore = strtol(argv[2], &pEnd, 10);
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
 		stepbegin = strtod(argv[4], &pEnd);
 		stepLen = strtod(argv[5], &pEnd);
 		stepNum = strtol(argv[6], &pEnd, 10);
+		bestlambda = strtod(argv[7], &pEnd);
 	}
 	else {
 		printf("wrong argc\n");
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
 
 			struct L_Bip3i *r1 = s_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
 			struct L_Bip3i *r2 = d_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
-			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta, maxscore);
+			struct L_Bip3i *r3 = thirdstepSD_mass_Bip3i(traini1, traini2, testi1, testi2, trainSim, theta);
 
 			smass_result->R +=  r1->R;
 			smass_result->PL += r1->PL;
@@ -133,6 +135,62 @@ int main(int argc, char **argv)
 	free_L_Bip3i(smass_result);
 	free_L_Bip3i(dmass_result);
 	free_L_Bip3i(tmass_result);
+
+
+	struct L_Bip3i *hybrid_result = create_L_Bip3i();
+	struct L_Bip3i *mass_result = create_L_Bip3i();
+	double score_ave, score_ave_2;
+	score_ave = score_ave_2 = 0;
+
+	for (i=0; i<loopNum; ++i) {
+
+		struct i3LineFile *twofile = divide_Bip3i(neti1, neti2, 0.1);
+
+		struct Bip3i *traini1 = create_Bip3i(twofile + 1, 1);
+		struct Bip3i *traini2 = create_Bip3i(twofile + 1, 0);
+		struct Bip3i *testi1 = create_Bip3i(twofile, 1);
+		struct Bip3i *testi2 = create_Bip3i(twofile, 0);
+		free_2_i3LineFile(twofile);
+
+		struct iidLineFile *simfile = similarity_realtime_Bip3i(traini1, traini2);
+		struct iidNet *trainSim = create_iidNet(simfile);
+		free_iidLineFile(simfile);
+
+		struct L_Bip3i *r1 = hybrid_Bip3i(traini1, traini2, testi1, testi2, trainSim, bestlambda);
+		struct L_Bip3i *r2 = mass_Bip3i(traini1, traini2, testi1, testi2, trainSim);
+
+		hybrid_result->R +=  r1->R;
+		hybrid_result->PL += r1->PL;
+		hybrid_result->HL += r1->HL;
+		hybrid_result->IL += r1->IL;
+		hybrid_result->NL += r1->NL;
+		mass_result->R +=  r2->R;
+		mass_result->PL += r2->PL;
+		mass_result->HL += r2->HL;
+		mass_result->IL += r2->IL;
+		mass_result->NL += r2->NL;
+		int L = r1->L;
+		long len = L*(traini1->maxId + 1);
+		for (j=0; j<L*(traini1->maxId + 1); ++j) {
+			score_ave += score[r1->topL[j]]/len;
+			score_ave_2 += score[r2->topL[j]]/len;
+		}
+		
+		free_Bip3i(traini1);
+		free_Bip3i(traini2);
+		free_Bip3i(testi1);
+		free_Bip3i(testi2);
+		free_iidNet(trainSim);
+		free_L_Bip3i(r1);
+		free_L_Bip3i(r2);
+	}
+	printf("hybrid\tbestlambda: %f, loopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", bestlambda, loopNum, hybrid_result->R/loopNum, hybrid_result->PL/loopNum, hybrid_result->IL/loopNum, hybrid_result->HL/loopNum, hybrid_result->NL/loopNum, score_ave/loopNum);
+	printf("mass\tloopNum: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, Score: %f\n", loopNum, mass_result->R/loopNum, mass_result->PL/loopNum, mass_result->IL/loopNum, mass_result->HL/loopNum, mass_result->NL/loopNum, score_ave_2/loopNum);
+
+
+	free_L_Bip3i(hybrid_result);
+	free_L_Bip3i(mass_result);
+
 	free(score);
 	free_Bip3i(neti1);
 	free_Bip3i(neti2);

@@ -702,6 +702,60 @@ static void hybrid_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
 	memcpy(topL+i1*L, i2id, L*sizeof(int));
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
 }
+//three-step random walk of Probs
+static void mass_Bip3i_core(int i1, struct Bip3i *bipi1, struct Bip3i *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (j=0; j<bipi1->count[i1]; ++j) {
+		neigh = bipi1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = bipi2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+	for (i=0; i<bipi1->maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = bipi1->count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = bipi1->id[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<bipi1->count[i1]; ++i) {
+		i2source[bipi1->id[i1][i]] = -1;
+	}
+	//set i2id and rank.
+	for (i=0; i<bipi2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+		if (!bipi2->count[i]) {
+			i2source[i] = -1;
+		}
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL+i1*L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
+}
 
 /** 
  * core function of recommendation.
@@ -710,6 +764,7 @@ static void hybrid_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *train
  * 2 -- degree mass (eta)
  * 3 -- only third step change, similar to 2, but with both score and degree. (epsilon)
  * 4 -- origin hybrid (lambda)
+ * 5 -- origin mass (no arg)
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -787,6 +842,17 @@ static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct B
 				}
 			}
 			break;
+		case 5:
+			for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				if (traini1->count[i]) {
+					//get rank
+					mass_Bip3i_core(i, traini1, traini2, i1source, i2source, L, i2id, rank, topL);
+					//use rank to get metrics values
+					metrics_Bip3i(i, traini1, traini2, testi1, L, rank, &R, &PL);
+				}
+			}
+			break;
 
 	}
 	R /= testi1->edgesNum;
@@ -837,6 +903,11 @@ struct L_Bip3i *hybrid_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struc
 	struct param_recommend_Bip3i param;
 	param.lambda = lambda;
 	return recommend_Bip3i(4, traini1, traini2, testi1, testi2, trainSim, param);
+}
+
+struct L_Bip3i *mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim) {
+	struct param_recommend_Bip3i param;
+	return recommend_Bip3i(5, traini1, traini2, testi1, testi2, trainSim, param);
 }
 
 struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {
