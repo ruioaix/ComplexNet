@@ -1,3 +1,8 @@
+/**
+ * ./run data/movielens/movielens_3c 5 0.76 0.84 0.78 0.15 25
+ * ./run data/netflix/netflix_3c 5 0.78 0.84 0.78 0.17 25
+ */
+
 //#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
@@ -18,7 +23,7 @@ int main(int argc, char **argv)
 	double theta, eta, epsilon, lambda;
 
 	if (argc == 1) {
-		netfilename = "data/movielen/movielens.txt";
+		netfilename = "data/movielens/movielens_3c";
 		maxscore = 5;
 		theta = 0.76; //score
 		eta = 0.84; //degree
@@ -63,12 +68,14 @@ int main(int argc, char **argv)
 	double *rankA_d = d_mass_rank_Bip3i(neti1, neti2, eta);
 	double *rankA_t = thirdstepSD_mass_rank_Bip3i(neti1, neti2, epsilon);
 	double *rankA_h = hybrid_rank_Bip3i(neti1, neti2, lambda);
+	double *rankA_m = mass_rank_Bip3i(neti1, neti2);
 
 	FILE *fp = fopen("sdth_rank", "w");
 	fileError(fp, "main");
 	for (i=0; i<neti2->maxId + 1; ++i) {
-		if (neti2->count[i])
-		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, score[i], rankA_s[i]/neti1->idNum, rankA_d[i]/neti1->idNum, rankA_t[i]/neti1->idNum, rankA_h[i]/neti1->idNum);
+		if (neti2->count[i]) {
+			fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, score[i], rankA_s[i], rankA_d[i], rankA_t[i], rankA_h[i], rankA_m[i]);
+		}
 	}
 	fclose(fp);
 
@@ -76,30 +83,50 @@ int main(int argc, char **argv)
 	double *d_rankA	= calloc(stepNum, sizeof(double));
 	double *t_rankA	= calloc(stepNum, sizeof(double));
 	double *h_rankA	= calloc(stepNum, sizeof(double));
+	double *m_rankA	= calloc(stepNum, sizeof(double));
+	assert(s_rankA != NULL && d_rankA != NULL && t_rankA != NULL && h_rankA != NULL && m_rankA != NULL);
+
 	int *s = calloc(stepNum, sizeof(int));
 	for (i=0; i<neti2->maxId + 1; ++i) {
 		if (neti2->count[i]) {
-			int r = floor(stepNum*score[i]/5);
+			//int r = 1;
+			int r = floor((stepNum-1)*score[i]/5);
 			++s[r];
-			s_rankA[r] += rankA_s[i]/neti1->idNum;
-			d_rankA[r] += rankA_d[i]/neti1->idNum;
-			t_rankA[r] += rankA_t[i]/neti1->idNum;
-			h_rankA[r] += rankA_h[i]/neti1->idNum;
+			s_rankA[r] += rankA_s[i];
+			d_rankA[r] += rankA_d[i];
+			t_rankA[r] += rankA_t[i];
+			h_rankA[r] += rankA_h[i];
+			m_rankA[r] += rankA_m[i];
 		}
 	}
+	free_Bip3i(neti1);
+	free_Bip3i(neti2);
+
+
+
 	fp = fopen("sdth_rank_m", "w");
 	fileError(fp, "main");
 	for (i=0; i<stepNum; ++i) {
-		if (s[i])
-		fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, 5.0*((double)i)/stepNum, s_rankA[i]/s[i], d_rankA[i]/s[i], t_rankA[i]/s[i], h_rankA[i]/s[i]);
+		if (s[i]) {
+			fprintf(fp, "%d, %.17f, %.17f, %.17f, %.17f, %.17f, %.17f\n", i, 5.0*((double)i)/stepNum, s_rankA[i]/s[i], d_rankA[i]/s[i], t_rankA[i]/s[i], h_rankA[i]/s[i], m_rankA[i]/s[i]);
+		}
 	}
 	fclose(fp);
 
+	free(rankA_s);
+	free(rankA_d);
+	free(rankA_t);
+	free(rankA_h);
+	free(rankA_m);
+	free(s_rankA);
+	free(d_rankA);
+	free(t_rankA);
+	free(h_rankA);
+	free(m_rankA);
+	free(score);
+	free(s);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 	return 0;
 }
-
-//./run data/movielen/movielens.txt 5 0.76 0.84 0.78 0.15 25
-//./run data/netflix/netflix_with_rating.txt 5 0.78 0.84 0.78 0.17 25
