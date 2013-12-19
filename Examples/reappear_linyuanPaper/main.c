@@ -3,6 +3,7 @@
  * ./run data/netflix/netflix_2c 1 -0.7 -0.75 0.2 
  *
  */
+
 //#define NDEBUG  //for assert
 #include <stdio.h>
 #include <assert.h>
