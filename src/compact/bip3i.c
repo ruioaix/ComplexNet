@@ -969,6 +969,9 @@ static void s_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -1021,6 +1024,9 @@ static void d_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -1073,6 +1079,9 @@ static void thirdstepSD_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, stru
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
@@ -1116,6 +1125,9 @@ static void hybrid_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *
 	for (i=0; i<traini2->maxId + 1; ++i) {
 		i2id[i] = i;
 		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
 	}
 	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
 	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
