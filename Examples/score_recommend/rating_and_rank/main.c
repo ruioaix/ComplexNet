@@ -1,6 +1,8 @@
 /**
- * ./run data/movielens/movielens_3c 5 0.76 0.84 0.78 0.15 25
- * ./run data/netflix/netflix_3c 5 0.78 0.84 0.78 0.17 25
+ * following params coming from score_degree_third_3kinds
+ *
+ * ./run data/movielens/movielens_3c 5 0.76 0.84 0.80 0.14 25
+ * ./run data/netflix/netflix_3c 5 0.78 0.84 0.80 0.17 25
  */
 
 //#define NDEBUG  //for assert
@@ -27,8 +29,8 @@ int main(int argc, char **argv)
 		maxscore = 5;
 		theta = 0.76; //score
 		eta = 0.84; //degree
-		epsilon = 0.78; //third
-		lambda = 0.15; //hybrid
+		epsilon = 0.80; //third
+		lambda = 0.14; //hybrid
 		stepNum = 25;
 	}
 	else if (argc == 8) {
