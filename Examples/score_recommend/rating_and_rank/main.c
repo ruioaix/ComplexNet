@@ -1,4 +1,6 @@
 /**
+ * ScoreProject: rating and rank
+ *
  * following params coming from score_degree_third_3kinds
  *
  * ./run data/movielens/movielens_3c 5 0.76 0.84 0.80 0.14 25
