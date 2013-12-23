@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 	double stepbegin, stepLen;
 	int topstepbegin, topstepLen;
 	if (argc == 1) {
-		netfilename = "data/movielen/movielen2";
+		netfilename = "data/movielens/movielens_2c";
 		loopNum = 2;
 		stepbegin = 0;
 		stepLen = 0.01;
