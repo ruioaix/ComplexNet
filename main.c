@@ -20,14 +20,14 @@
 
 //#define NDEBUG  //for assert
 #include <stdio.h>
-//#include <assert.h>
+#include <assert.h>
 #include <time.h>
 //#include <math.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 //#include <string.h>
-//#include "inc/linefile/iilinefile.h"
-//#include "inc/linefile/iidlinefile.h"
-//#include "inc/compact/bip2.h"
+#include "inc/linefile/iilinefile.h"
+#include "inc/linefile/iidlinefile.h"
+#include "inc/compact/bip2.h"
 //#include "inc/utility/error.h"
 //#include "inc/utility/random.h"
 
@@ -45,15 +45,29 @@ int main(int argc, char **argv)
 
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
 	struct Bip2 *neti1 = create_Bip2(netfile, 1);
-	struct Bip2 *neti1 = create_Bip2(netfile, 0);
+	struct Bip2 *neti2 = create_Bip2(netfile, 0);
+	free_iiLineFile(netfile);
 	struct iiLineFile *twofile = divide_Bip2(neti1, neti2, 0.1);
 	struct Bip2 *traini1 = create_Bip2(twofile + 1, 1);
 	struct Bip2 *traini2 = create_Bip2(twofile + 1, 0);
 	struct Bip2 *testi1 = create_Bip2(twofile, 1);
 	struct Bip2 *testi2 = create_Bip2(twofile, 0);
+	free_2_iiLineFile(twofile);
 
 	struct iidLineFile *userSimilarityfile = similarity_realtime_Bip2(traini1, traini2, 1);
+	struct iidNet *userSim = create_iidNet(userSimilarityfile);
+	free_iidLineFile(userSimilarityfile);
 
+	int *bestK_R = malloc((traini1->maxId + 1)*sizeof(int));
+	assert(bestK_R != NULL);
+	int *bestK_PL = malloc((traini1->maxId + 1)*sizeof(int));
+	assert(bestK_PL != NULL);
+	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL);
+
+	int i;
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		printf("%d, %d, %d, %ld\n", i, bestK_R[i], bestK_PL[i], userSim->count[i]);
+	}
 	
 
 	//printf end time;

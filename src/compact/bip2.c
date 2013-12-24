@@ -1370,5 +1370,106 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 	return simfile;
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestNum, int *totalNum) {
+static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	for (j=0; j<traini1->count[i1]; ++j) {
+		neigh = traini1->id[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = traini2->count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = traini2->id[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<tryK; ++k) {
+		i = userSim->edges[i1][k];
+		degree = traini1->count[i];
+		source = (double)i1source[i]/(double)degree;
+		for (j=0; j<degree; ++j) {
+			neigh = traini1->id[i][j];
+			i2source[neigh] += source;
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<traini1->count[i1]; ++i) {
+		i2source[traini1->id[i1][i]] = -1;
+	}
+	//set i2id and rank.
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
+	printf("begin to calculat best knn....");fflush(stdout);
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	double R, PL;
+
+	int i;
+    long j;
+	int L = 50;
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+		if (traini1->count[i]) {
+			double bestR, bestPL;
+			bestR = LONG_MAX;
+			bestPL = -1;
+			int bestRK, bestPLK;
+			bestRK = bestPLK = -1;
+			for (j=0; j<userSim->count[i]; ++j) {
+				knn_getbest_Bip2_core(i, traini1, traini2, userSim, i1source, i2source, i2id, rank, j);
+				R=PL=0;
+				metrics_Bip2(i, traini1, traini2, testi1, L, rank, &R, &PL);
+				if (bestR >= R) {
+					bestR = R;
+					bestRK = j;
+				}
+				//else {
+				//	printf("%f\n", R);fflush(stdout);exit(0);
+				//}
+				if (bestPL <= PL) {
+					bestPL = PL;
+					bestPLK = j;
+				}
+			}
+			bestK_R[i] = bestRK;
+			bestK_PL[i] = bestPLK;
+		}
+		printf("%d,", i);fflush(stdout);
+	}
+
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("calculat best knn done.\n");fflush(stdout);
 }
