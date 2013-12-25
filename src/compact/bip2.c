@@ -1457,7 +1457,7 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 }
 
 static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
-	int i, j, neigh, neigh_neigh;
+	int i, j, neigh, neigh_neigh, uid;
 	long degree;
 	double source;
 	//one 
@@ -1478,7 +1478,10 @@ static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *tra
 	//		}
 	//	}
 	//}
-	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<userSim->count[i1]; ++i) {
+		i1source[userSim->edges[i1][i]] = 0;
+	}
 	for (i=0; i<traini1->count[i1]; ++i) {
 		neigh = traini1->id[i1][i];
 		degree = traini2->count[neigh];
