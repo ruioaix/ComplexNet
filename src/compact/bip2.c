@@ -452,6 +452,7 @@ void cutcount_Bip2(struct Bip2 *bip, long count) {
 //R is rankscore.
 //PL is precision
 //Warning: about unselected_list_length, I use bipi2->maxId, not bipi2->idNum. this actually is wrong I think, but it's the way linyulv did.
+//if R == 0, there is only one possible way: i1 does not exist in testi1.
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		int unselected_list_length = bipi2->idNum - bipi1->count[i1];
@@ -1439,30 +1440,35 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
     long j;
 	int L = 50;
 	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
-		if (traini1->count[i]) {
+	//for (i = 0; i<10; ++i) { //each user
+		if (testi1->count[i]) {
 			double bestR, bestPL;
 			bestR = LONG_MAX;
 			bestPL = -1;
 			int bestRK, bestPLK;
 			bestRK = bestPLK = -1;
 			for (j=0; j<userSim->count[i]; ++j) {
+				//j=0, means: rank is random. so R is random.
+				//random is always bad, so it will aways be overwrite.
 				knn_getbest_Bip2_core(i, traini1, traini2, userSim, i1source, i2source, i2id, rank, j);
 				R=PL=0;
 				metrics_Bip2(i, traini1, traini2, testi1, L, rank, &R, &PL);
-				if (bestR >= R) {
+				//R will never be 0, because i is in testi1.
+				if (bestR > R) {
 					bestR = R;
 					bestRK = j;
 				}
-				//else {
-				//	printf("%f\n", R);fflush(stdout);exit(0);
-				//}
-				if (bestPL <= PL) {
+				if (bestPL < PL) {
 					bestPL = PL;
 					bestPLK = j;
 				}
 			}
 			bestK_R[i] = bestRK;
 			bestK_PL[i] = bestPLK;
+		}
+		else {
+			bestK_R[i] = -1;
+			bestK_PL[i] = -1;
 		}
 		printf("%d,", i);fflush(stdout);
 	}

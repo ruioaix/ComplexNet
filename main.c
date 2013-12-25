@@ -68,6 +68,16 @@ int main(int argc, char **argv)
 	for (i=0; i<traini1->maxId + 1; ++i) {
 		printf("%d, %d, %d, %ld\n", i, bestK_R[i], bestK_PL[i], userSim->count[i]);
 	}
+
+	free(bestK_R);
+	free(bestK_PL);
+	free_iidNet(userSim);
+	free_Bip2(traini1);
+	free_Bip2(traini2);
+	free_Bip2(testi1);
+	free_Bip2(testi2);
+	free_Bip2(neti1);
+	free_Bip2(neti2);
 	
 
 	//printf end time;
