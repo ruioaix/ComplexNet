@@ -57,34 +57,18 @@ int main(int argc, char **argv)
 	struct Bip2 *testi2 = create_Bip2(twofile, 0);
 	free_2_iiLineFile(twofile);
 
-	struct iidLineFile *userSimilarityfile = similarity_realtime_Bip2(traini1, traini2, 1);
-	struct iidNet *userSim = create_iidNet(userSimilarityfile);
-	free_iidLineFile(userSimilarityfile);
-	print_iidNet(userSim, "1");
+	struct iidLineFile *simfile = similarity_realtime_Bip2(traini1, traini2, 0);
+	struct iidNet *itemSim = create_iidNet(simfile);
+	free_iidLineFile(simfile);
 
-	struct iidLineFile *itemSimilarityfile = similarity_realtime_Bip2(traini1, traini2, 0);
-	struct iidNet *itemSim = create_iidNet(itemSimilarityfile);
-	free_iidLineFile(itemSimilarityfile);
+	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
+	int i;
+	for (i=0; i<60; ++i) {
+		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
+		free_L_Bip2(r1);
+	}
+	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 
-	int *bestK_R = malloc((traini1->maxId + 1)*sizeof(int));
-	assert(bestK_R != NULL);
-	int *bestK_PL = malloc((traini1->maxId + 1)*sizeof(int));
-	assert(bestK_PL != NULL);
-	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL);
-
-	//int i;
-	//for (i=0; i<traini1->maxId + 1; ++i) {
-	//	printf("%d, %d, %d, %ld\n", i, bestK_R[i], bestK_PL[i], userSim->count[i]);
-	//}
-
-	struct L_Bip2 *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	struct L_Bip2 *knn_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_R);
-	struct L_Bip2 *knn_result_2 = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_PL);
-	printf("mass: %f, knn: %f, knnpl: %f\n", mass_result->R, knn_result->R, knn_result_2->R);
-
-	free(bestK_R);
-	free(bestK_PL);
-	free_iidNet(userSim);
 	free_iidNet(itemSim);
 	free_Bip2(traini1);
 	free_Bip2(traini2);
@@ -92,8 +76,6 @@ int main(int argc, char **argv)
 	free_Bip2(testi2);
 	free_Bip2(neti1);
 	free_Bip2(neti2);
-	free_L_Bip2(mass_result);
-	free_L_Bip2(knn_result);
 	
 
 	//printf end time;
