@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	struct Bip2 *testi2 = create_Bip2(twofile, 0);
 	free_2_iiLineFile(twofile);
 
-	struct iidLineFile *simfile = similarity_realtime_Bip2(traini1, traini2, 0);
+	struct iidLineFile *simfile = similarity_Bip2(traini1, traini2, 0);
 	struct iidNet *itemSim = create_iidNet(simfile);
 	free_iidLineFile(simfile);
 

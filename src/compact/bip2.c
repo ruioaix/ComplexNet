@@ -1,6 +1,6 @@
 /**
- *
  * struct L_Bip2 contains the result fo all kinds of recommendation algorithm.
+ *
  */
 #include "../../inc/compact/bip2.h"
 #include "../../inc/utility/error.h"
@@ -295,165 +295,14 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 	return twofile;
 }
 
-//Bip2 contains eight members. this function will correct six wrong members according to two right ones.
-//renew maxId/minId/countMax/countMin/idNum/edgesNum from count 
-//!!!count and id is always good&right.
-static void renew_Bip2(struct Bip2 *bip) {
-	int i;
-	long countMax = -1;
-	long countMin = LONG_MAX;
-	for (i=bip->minId; i< bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0) {
-			bip->minId = i;
-			break;
-		}
-	}
-	for (i=bip->maxId; i > bip->maxId - 1; --i) {
-		if (bip->count[i] > 0) {
-			bip->maxId = i;
-			break;
-		}
-	}
-	int idNum = 0;
-	long edgesNum = 0;
-	for (i=bip->minId; i< bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0) {
-			edgesNum += bip->count[i];
-			++idNum;
-			countMax = countMax>bip->count[i]?countMax:bip->count[i];
-			countMin = countMin<bip->count[i]?countMin:bip->count[i];
-		}
-	}
-	bip->countMax = countMax;
-	bip->countMin = countMin;
-	bip->idNum = idNum;
-	bip->edgesNum = edgesNum;
-}
-
-//have to remeber: after being abstract, the bip changed.
-//and bip can be used as normal.
-//but its idNum/maxId/minId/edgesNum/countMax/countMin may be different from the origin one.
-//e.g. you get 5000 lines from the first calling of abstract_Bip2, but maybe you can only get
-//4990 lines from the second calling. that means in the origin bip, there are 10 id whose count is 1.
-//get it?
-struct iiLineFile *abstract_Bip2(struct Bip2 *bip) {
-
-	int i1Max=bip->maxId;
-	int i1Min=bip->minId;
-	int i2Max=-1;
-	int i2Min=INT_MAX;
-	
-	int linesNum = bip->idNum;
-	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
-	assert(lines != NULL);
-
-	int i;
-	int j=0;
-	int k=0;
-	for(i=0; i<i1Max+1; ++i) {
-		int degree = bip->count[i];
-		if (degree > 0) {
-			int random = genrand_int31() % degree;
-			lines[j].i1 = i;
-			lines[j].i2 = bip->id[i][random];
-			i2Max = i2Max>lines[j].i2?i2Max:lines[j].i2;
-			i2Min = i2Min<lines[j].i2?i2Max:lines[j].i2;
-			++j;
-			if (random == (degree - 1)) {
-				--bip->count[i];
-				if (bip->count[i] == 0) {
-					//printf("%d, ", i);
-					free(bip->id[i]);
-					++k;
-				}
-			}
-			else {
-				bip->id[i][random] = bip->id[i][degree-1];
-				--bip->count[i];
-			}
-		}
-	}
-
-	int origin = bip->idNum;
-	renew_Bip2(bip);
-
-	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
-	assert(file != NULL);
-	file->i1Max = i1Max;
-	file->i1Min = i1Min;
-	file->i2Max = i2Max;
-	file->i2Min = i2Min;
-	file->linesNum = j;
-	file->lines = lines;
-	printf("abstract_Bip2 done:\n\tBip2 originally has %d ids.\n\tabstract %d edges from %d.\n", origin, j, linesNum);
-	printf("\tthere are %d ids whose degree has become 0 after abstract.\n", k);
-	printf("\tNow Bip2 has %d ids.\n", bip->idNum);
-	return file;
-}
-
-//create perfect iiLineFile
-struct iiLineFile *backtofile_Bip2(struct Bip2 *bip) {
-	int i1Max=bip->maxId;
-	int i1Min=bip->minId;
-	int i2Max=-1;
-	int i2Min=INT_MAX;
-
-	int linesNum = bip->edgesNum;
-	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
-	assert(lines != NULL);
-
-	int i;
-	int j=0;
-	int k=0;
-	for(i=0; i<i1Max+1; ++i) {
-		if (bip->count[i] > 0) {
-			for (j=0; j< bip->count[i]; ++j) {
-				lines[k].i1 = i;
-				lines[k].i2 = bip->id[i][j];
-				i2Max = i2Max>lines[k].i2?i2Max:lines[k].i2;
-				i2Min = i2Min<lines[k].i2?i2Max:lines[k].i2;
-				++k;
-			}
-		}
-	}
-
-	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
-	assert(file != NULL);
-	file->i1Max = i1Max;
-	file->i1Min = i1Min;
-	file->i2Max = i2Max;
-	file->i2Min = i2Min;
-	file->linesNum = k;
-	file->lines = lines;
-	printf("backtofile_Bip2 done. %d lines generated.\n", k);
-	return file;
-}
-
-// if count is 20, then the id whose count is 0-19 will be deleted.
-void cutcount_Bip2(struct Bip2 *bip, long count) {
-	if (count > bip->countMax || count < 0) {
-		printf("cutcount_Bip2 error: wrong count.\n");
-		return;
-	}
-	int i, j=0;
-	for (i=0; i<bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0 && bip->count[i] < count) {
-			bip->count[i] = 0;
-			free(bip->id[i]);
-			++j;
-		}
-	}
-	int origin = bip->idNum;
-	renew_Bip2(bip);
-	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
-}
 
 //following is for recommendation.
 //Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
 //R is rankscore.
 //PL is precision
-//Warning: about unselected_list_length, I use bipi2->maxId, not bipi2->idNum. this actually is wrong I think, but it's the way linyulv did.
-//if R == 0, there is only one possible way: i1 does not exist in testi1.
+//Warning: about unselected_list_length, I use bipi2->idNum, not bipi2->maxId. 
+//	but I believe in linyuan's paper, she use the bipi2->maxId. 
+//	I think bipi2->idNum make more sence.
 static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
 	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
 		int unselected_list_length = bipi2->idNum - bipi1->count[i1];
@@ -1471,47 +1320,9 @@ void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 	return (void *)0;
 }
 
-
-void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {
-	int i,j;
-	int *sign = calloc((bipi1->maxId + 1),sizeof(int));
-	assert(sign != NULL);
-
-	FILE *fp = fopen(filename, "w");
-	fileError(fp, "similarity_Bip2");
-
-	long k;
-	int Sij;
-	double soij;
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (bipi2->count[i]) {
-			memset(sign, 0, (bipi1->maxId + 1)*sizeof(int));
-			for (k=0; k<bipi2->count[i]; ++k) {
-				sign[bipi2->id[i][k]] = 1;
-			}
-			for (j = i+1; j<bipi2->maxId + 1; ++j) {
-				if (bipi2->count[j]) {
-					Sij = 0;
-					for (k=0; k<bipi2->count[j]; ++k) {
-						if (sign[bipi2->id[j][k]]) {
-							++Sij;
-						}
-					}
-					if (Sij) {
-						soij = (double)Sij/pow(bipi2->count[i] * bipi2->count[j], 0.5);
-						fprintf(fp, "%d, %d, %.17f\n", i, j, soij);
-					}
-				}
-			}
-		}
-	}
-	fclose(fp);
-	printf("similarity_Bip2 done. generate similarity file %s\n", filename);fflush(stdout);
-}
-
 //if i1ori2 == 1, then calculate i1(user)'s similarity.
 //if i1ori2 == 0, then calculate i2(item)'s similarity.
-struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {
+struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {
 	int idmax, idmax2;
 	long *count;
 	int **id;
@@ -1528,7 +1339,7 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 		id = bipi2->id;
 	}
 	else {
-		isError("similarity_realtime_Bip2");
+		isError("similarity_Bip2");
 	}
 	int *sign = calloc((idmax2 + 1),sizeof(int));
 	assert(sign != NULL);
@@ -1717,4 +1528,162 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	free(rank);
 	free(i2id);
 	printf("calculat best knn done.\n");fflush(stdout);
+}
+
+
+/************************************************************************************************************/
+/****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
+/************************************************************************************************************/
+
+//Bip2 contains eight members. this function will correct six wrong members according to two right ones.
+//renew maxId/minId/countMax/countMin/idNum/edgesNum from count 
+//!!!count and id is always good&right.
+static void renew_Bip2(struct Bip2 *bip) {
+	int i;
+	long countMax = -1;
+	long countMin = LONG_MAX;
+	for (i=bip->minId; i< bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			bip->minId = i;
+			break;
+		}
+	}
+	for (i=bip->maxId; i > bip->maxId - 1; --i) {
+		if (bip->count[i] > 0) {
+			bip->maxId = i;
+			break;
+		}
+	}
+	int idNum = 0;
+	long edgesNum = 0;
+	for (i=bip->minId; i< bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0) {
+			edgesNum += bip->count[i];
+			++idNum;
+			countMax = countMax>bip->count[i]?countMax:bip->count[i];
+			countMin = countMin<bip->count[i]?countMin:bip->count[i];
+		}
+	}
+	bip->countMax = countMax;
+	bip->countMin = countMin;
+	bip->idNum = idNum;
+	bip->edgesNum = edgesNum;
+}
+
+//have to remeber: after being abstract, the bip changed.
+//and bip can be used as normal.
+//but its idNum/maxId/minId/edgesNum/countMax/countMin may be different from the origin one.
+//e.g. you get 5000 lines from the first calling of abstract_Bip2, but maybe you can only get
+//4990 lines from the second calling. that means in the origin bip, there are 10 id whose count is 1.
+//get it?
+struct iiLineFile *abstract_Bip2(struct Bip2 *bip) {
+
+	int i1Max=bip->maxId;
+	int i1Min=bip->minId;
+	int i2Max=-1;
+	int i2Min=INT_MAX;
+	
+	int linesNum = bip->idNum;
+	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
+	assert(lines != NULL);
+
+	int i;
+	int j=0;
+	int k=0;
+	for(i=0; i<i1Max+1; ++i) {
+		int degree = bip->count[i];
+		if (degree > 0) {
+			int random = genrand_int31() % degree;
+			lines[j].i1 = i;
+			lines[j].i2 = bip->id[i][random];
+			i2Max = i2Max>lines[j].i2?i2Max:lines[j].i2;
+			i2Min = i2Min<lines[j].i2?i2Max:lines[j].i2;
+			++j;
+			if (random == (degree - 1)) {
+				--bip->count[i];
+				if (bip->count[i] == 0) {
+					//printf("%d, ", i);
+					free(bip->id[i]);
+					++k;
+				}
+			}
+			else {
+				bip->id[i][random] = bip->id[i][degree-1];
+				--bip->count[i];
+			}
+		}
+	}
+
+	int origin = bip->idNum;
+	renew_Bip2(bip);
+
+	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
+	assert(file != NULL);
+	file->i1Max = i1Max;
+	file->i1Min = i1Min;
+	file->i2Max = i2Max;
+	file->i2Min = i2Min;
+	file->linesNum = j;
+	file->lines = lines;
+	printf("abstract_Bip2 done:\n\tBip2 originally has %d ids.\n\tabstract %d edges from %d.\n", origin, j, linesNum);
+	printf("\tthere are %d ids whose degree has become 0 after abstract.\n", k);
+	printf("\tNow Bip2 has %d ids.\n", bip->idNum);
+	return file;
+}
+
+//create perfect iiLineFile
+struct iiLineFile *backtofile_Bip2(struct Bip2 *bip) {
+	int i1Max=bip->maxId;
+	int i1Min=bip->minId;
+	int i2Max=-1;
+	int i2Min=INT_MAX;
+
+	int linesNum = bip->edgesNum;
+	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
+	assert(lines != NULL);
+
+	int i;
+	int j=0;
+	int k=0;
+	for(i=0; i<i1Max+1; ++i) {
+		if (bip->count[i] > 0) {
+			for (j=0; j< bip->count[i]; ++j) {
+				lines[k].i1 = i;
+				lines[k].i2 = bip->id[i][j];
+				i2Max = i2Max>lines[k].i2?i2Max:lines[k].i2;
+				i2Min = i2Min<lines[k].i2?i2Max:lines[k].i2;
+				++k;
+			}
+		}
+	}
+
+	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
+	assert(file != NULL);
+	file->i1Max = i1Max;
+	file->i1Min = i1Min;
+	file->i2Max = i2Max;
+	file->i2Min = i2Min;
+	file->linesNum = k;
+	file->lines = lines;
+	printf("backtofile_Bip2 done. %d lines generated.\n", k);
+	return file;
+}
+
+// if count is 20, then the id whose count is 0-19 will be deleted.
+void cutcount_Bip2(struct Bip2 *bip, long count) {
+	if (count > bip->countMax || count < 0) {
+		printf("cutcount_Bip2 error: wrong count.\n");
+		return;
+	}
+	int i, j=0;
+	for (i=0; i<bip->maxId + 1; ++i) {
+		if (bip->count[i] > 0 && bip->count[i] < count) {
+			bip->count[i] = 0;
+			free(bip->id[i]);
+			++j;
+		}
+	}
+	int origin = bip->idNum;
+	renew_Bip2(bip);
+	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }

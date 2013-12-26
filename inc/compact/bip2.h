@@ -4,9 +4,9 @@
  *
  * the origin bipartite is coming from a struct iiLineFile with using create_Bip2(struct iiLineFile) function.
  * (BTW, the origin iiLineFile is getting from a file which contain two int integer in an line, 
- * using create_iiLineFile(char *filename) function)
+ * to a line containing three or more integers, only fetch two.  using create_iiLineFile(char *filename) function)
  *
- * struct Bip2 contains only half of detail information of the bipartite. 
+ * struct Bip2 contains only half information of the bipartite. 
  * (I mean one struct Bip2 can store a iiLineFile completely, but it doesn't store detail information.)
  * you need two struct Bip2 to store all detail information of a Bipartite.
  * one is indexed by i1.(user)
@@ -49,23 +49,26 @@ struct L_Bip2 {
 	int L;
 };
 
-
-
 //if i1toi2 is not zero, means the  column 1 is the index, and column 2 is the data saved into (int **id).
 //column 1 and column 2 is the data in origin file.
 //if i1toi2 is zero, means column 2 is the index.
 struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2);
 void free_Bip2(struct Bip2 *bip);
+//what divide_Bip2 function returns is a iiLineFile point, but the length of the memory which the point points is two struct iiLineFile.
+//so, you need to use free_2_iiLineFile function instead of free_iiLineFile.
+//divide Bip2 into two parts.
+//return two struct iiLineFile. the first one is always the small one. the second is always the large one.
+//the dividation will guarantee that: 
+//	for each user which has at least one link, at least there will be a link in large divided part.
+//	for each item which has at least one link, at least there will be a link in large divided part.
+struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate);
+//if i1ori2 == 1, then calculate i1(user)'s similarity.
+//if i1ori2 == 0, then calculate i2(item)'s similarity.
+struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2);
 
 struct L_Bip2 *create_L_Bip2(void);
 void clean_L_Bip2(struct L_Bip2 *lp);
 void free_L_Bip2(struct L_Bip2 *bip);
-
-//abstract_Bip2 will abstract one edge from each user or item and return.
-//the arg bip which has been abstracted will be changed, all abstracted edges will be deleted in the arg bip.
-struct iiLineFile *abstract_Bip2(struct Bip2 *bip);
-struct iiLineFile *backtofile_Bip2(struct Bip2 *bip);
-void cutcount_Bip2(struct Bip2 *bip, long count);
 
 //recommend methods
 struct L_Bip2 *test_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim);
@@ -79,13 +82,20 @@ struct L_Bip2 *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bi
 struct L_Bip2 *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR);
 struct L_Bip2 *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int *bestK_R);
 
-void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
-
-struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate);
-
-void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename);
-struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2);
 
 void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL);
+
+
+/************************************************************************************************************/
+/****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
+/************************************************************************************************************/
+
+//abstract_Bip2 will abstract one edge from each user or item and return.
+//the arg bip which has been abstracted will be changed, all abstracted edges will be deleted in the arg bip.
+struct iiLineFile *abstract_Bip2(struct Bip2 *bip);
+struct iiLineFile *backtofile_Bip2(struct Bip2 *bip);
+void cutcount_Bip2(struct Bip2 *bip, long count);
+void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2);
+
 
 #endif
