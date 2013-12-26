@@ -63,9 +63,14 @@ int main(int argc, char **argv)
 
 	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	int i;
-	for (i=0; i<60; ++i) {
+	for (i=0; i<1; ++i) {
 		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
+	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
+		struct L_Bip2 *r2 = test_Bip2(traini1, traini2, testi1, testi2, itemSim);
+	t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
+		printf("%f, %f\n", r1->R, r2->R);
 		free_L_Bip2(r1);
+		free_L_Bip2(r2);
 	}
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);
 
