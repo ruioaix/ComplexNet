@@ -1457,7 +1457,7 @@ struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bi
 }
 
 static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
-	int i, j, neigh, neigh_neigh, uid;
+	int i, j, neigh, neigh_neigh;
 	long degree;
 	double source;
 	//one 
