@@ -397,6 +397,39 @@ static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	NL /= L*bipi1->idNum;
 	return NL;
 }
+
+static inline void Bip2_core_common_part(long uidCount, int *uidId, int i2maxId, long *i2count, double *i2source, int *i2id, int *rank, int *topL_i1L, int L) {
+	long i;
+	//set selected item's source to -1
+	for (i=0; i<uidCount; ++i) {
+		i2source[uidId[i]] = -1;
+	}
+	//set i2id and rank.
+	for (i=0; i<i2maxId + 1; ++i) {
+		rank[i] = i + 1;
+		i2id[i] = i;
+		//set unexisted item's source to -2.
+		if (!i2count[i]) {
+			i2source[i] = -2;
+		}
+	}
+	//to this step, i2source contains four parts: 
+	//1, nomral i2source[x] , which <0, 1].
+	//2, i2source[x] = 0, which x isn't selected by anyone has similarity.
+	//3, i2source[x] = -1, which x has been selected by i1.
+	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
+	//
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, i2maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL_i1L, i2id, L*sizeof(int));
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	//qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+	for (i=0; i<i2maxId + 1; ++i) {
+		rank[i2id[i]] = i+1;
+	}
+}
+
 //three-step random walk of Probs
 static void probs_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
 	int i, j, neigh;
@@ -432,58 +465,14 @@ static void probs_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, 
 			}
 		}
 	}
-	//set selected item's source to -1
-	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		rank[i] = i + 1;
-		i2id[i] = i;
-		//set unexisted item's source to -2.
-		if (!traini2->count[i]) {
-			i2source[i] = -2;
-		}
-	}
-	//to this step, i2source contains four parts: 
-	//1, nomral i2source[x] , which <0, 1].
-	//2, i2source[x] = 0, which x isn't selected by anyone has similarity.
-	//3, i2source[x] = -1, which x has been selected by i1.
-	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
-	//
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(traini1->count[i1], traini1->id[i1], traini2->maxId, traini2->count, i2source, i2id, rank, topL+L*i1, L);
 }
+
 //three-step random walk of Probs
 static void probs0_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
 	int i, j, neigh, neigh_neigh;
 	long degree;
 	double source;
-	////one 
-	//memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	//for (j=0; j<traini1->count[i1]; ++j) {
-	//	neigh = traini1->id[i1][j];
-	//	i2source[neigh] = 1.0;
-	//}
-	////two
-	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	//for (i=0; i<traini2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		degree = traini2->count[i];
-	//		source = i2source[i]/(double)degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = traini2->id[i][j];
-	//			i1source[neigh] += source;
-	//		}
-	//	}
-	//}
 	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
 	for (i=0; i<traini1->count[i1]; ++i) {
 		neigh = traini1->id[i1][i];
@@ -510,15 +499,6 @@ static void probs0_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2,
 	for (i=0; i<traini1->count[i1]; ++i) {
 		i2source[traini1->id[i1][i]] = -1;
 	}
-	////set i2id and rank.
-	//for (i=0; i<traini2->maxId + 1; ++i) {
-	//	i2id[i] = i;
-	//	//set unexisted item's source to -2.
-	//	if (!traini2->count[i]) {
-	//		i2source[i] = -2;
-	//	}
-	//	//if (i2source[i] != -1 && i2source[i] != -2) tmp++;
-	//}
 	int k = 0;
 	int _k = 0;
 	for (i=0; i<traini2->maxId + 1; ++i) {
@@ -578,25 +558,7 @@ static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 			i2source[i] /= bipi2->count[i];
 		}
 	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
 }
 //three-step random walk of HNBI
 static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {
@@ -630,26 +592,7 @@ static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doubl
 			}
 		}
 	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
 }
 //five-step random walk of RENBI
 static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
@@ -718,23 +661,7 @@ static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, doub
 		i2sourceA[i] += eta*i2source[i];
 	}
 
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2sourceA[bipi1->id[i1][i]] = -1;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	qsort_di_desc(i2sourceA, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2sourceA);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
 }
 //three-step random walk of hybrid
 static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
@@ -770,23 +697,7 @@ static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, dou
 			i2source[i] /= powl;
 		}
 	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
 }
 //three-step random walk of hybrid
 static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda, double *score, double epsilon) {
@@ -822,23 +733,7 @@ static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi
 			i2source[i] /= powl;
 		}
 	}
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	memcpy(Hij+i1*L, i2id, L*sizeof(int));
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
 }
 //three-step random walk of Probs
 static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, double orate) {
@@ -882,27 +777,7 @@ static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2
 			}
 		}
 	}
-	//set selected item's source to 0
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
 }
 //three-step random walk of Probs
 static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int topR) {
@@ -941,27 +816,7 @@ static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2,
 			}
 		}
 	}
-	//set selected item's source to 0
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
 }
 //three-step random walk of Probs
 static void probs_knn_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int bestR) {
@@ -1009,26 +864,7 @@ static void probs_knn_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, 
 	//	}
 	//}
 	//set selected item's source to 0
-	for (i=0; i<bipi1->count[i1]; ++i) {
-		i2source[bipi1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!bipi2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, bipi2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, bipi2->maxId, rank, i2source);
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
+	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
 }
 
 

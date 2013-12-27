@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 		free_2_iiLineFile(n2file);
 
 		//the similarity is get from traini1
-		struct iidLineFile *similarity = similarity_realtime_Bip2(traini1, traini2, 0);
+		struct iidLineFile *similarity = similarity_Bip2(traini1, traini2, 0);
 		struct iidNet *trainSim = create_iidNet(similarity);
 		free_iidLineFile(similarity);
 
