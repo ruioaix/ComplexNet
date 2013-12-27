@@ -51,11 +51,11 @@ int main(int argc, char **argv)
 	struct Bip2 *seti2 = create_Bip2(net_file, 0);
 	int i;
 
-	struct L_Bip2 *probs_result = create_L_Bip2();
-	struct L_Bip2 *heats_result = create_L_Bip2();
-	struct L_Bip2 *HNBI_result = create_L_Bip2();
-	struct L_Bip2 *RENBI_result = create_L_Bip2();
-	struct L_Bip2 *hybrid_result = create_L_Bip2();
+	struct L_Bip *probs_result = create_L_Bip();
+	struct L_Bip *heats_result = create_L_Bip();
+	struct L_Bip *HNBI_result = create_L_Bip();
+	struct L_Bip *RENBI_result = create_L_Bip();
+	struct L_Bip *hybrid_result = create_L_Bip();
 
 	for (i=0; i<loopNum; ++i) {
 		struct iiLineFile *n2file = divide_Bip2(seti1, seti2, 0.1);
@@ -72,11 +72,11 @@ int main(int argc, char **argv)
 		free_iidLineFile(similarity);
 
 		//recommendation
-		struct L_Bip2 *r1 = probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
-		struct L_Bip2 *r11= heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
-		struct L_Bip2 *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, theta);
-		struct L_Bip2 *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, eta);
-		struct L_Bip2 *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
+		struct L_Bip *r1 = probs_Bip2(traini1, traini2, testi1, testi2, trainSim);
+		struct L_Bip *r11= heats_Bip2(traini1, traini2, testi1, testi2, trainSim);
+		struct L_Bip *r2 = HNBI_Bip2(traini1, traini2, testi1, testi2, trainSim, theta);
+		struct L_Bip *r3 = RENBI_Bip2(traini1, traini2, testi1, testi2, trainSim, eta);
+		struct L_Bip *r4 = hybrid_Bip2(traini1, traini2, testi1, testi2, trainSim, lambda);
 
 		probs_result->R += r1->R;
 		probs_result->PL += r1->PL;
@@ -109,11 +109,11 @@ int main(int argc, char **argv)
 		free_Bip2(traini2);
 		free_Bip2(testi1);
 		free_Bip2(testi2);
-		free_L_Bip2(r1);
-		free_L_Bip2(r11);
-		free_L_Bip2(r2);
-		free_L_Bip2(r3);
-		free_L_Bip2(r4);
+		free_L_Bip(r1);
+		free_L_Bip(r11);
+		free_L_Bip(r2);
+		free_L_Bip(r3);
+		free_L_Bip(r4);
 	}
 	
 	printf("average:\n");
@@ -126,11 +126,11 @@ int main(int argc, char **argv)
 	free_iiLineFile(net_file);
 	free_Bip2(seti1);
 	free_Bip2(seti2);
-	free_L_Bip2(probs_result);
-	free_L_Bip2(heats_result);
-	free_L_Bip2(HNBI_result);
-	free_L_Bip2(RENBI_result);
-	free_L_Bip2(hybrid_result);
+	free_L_Bip(probs_result);
+	free_L_Bip(heats_result);
+	free_L_Bip(HNBI_result);
+	free_L_Bip(RENBI_result);
+	free_L_Bip(hybrid_result);
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

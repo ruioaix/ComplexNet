@@ -1,5 +1,5 @@
 /**
- * struct L_Bip2 contains the result fo all kinds of recommendation algorithm.
+ * struct L_Bip contains the result fo all kinds of recommendation algorithm.
  *
  */
 #include "../../inc/compact/bip2.h"
@@ -13,31 +13,49 @@
 #include <stdio.h>
 #include <limits.h>
 
-//struct Bip2 {
-//	int maxId;
-//	int minId;
-//	int idNum;
-//	long countMax;
-//	long countMin;
-//	long *count;
-//	int **id;
-//	long edgesNum;
-//};
 
-struct param_recommend_Bip2 {
+/************************************************************************************************************/
+/************************* biparte network recommendation core functions. ***********************************/
+/*** they can be used by bip2 or bip3. **********************************************************************/
+/************************************************************************************************************/
+/************************************************************************************************************/
+
+struct Bip_core_param {
 	double theta;
 	double eta;
 	double lambda;
 	double *score;
 	double epsilon;
-	struct iidNet *userSim;
 	double orate;
 	int topR;
 	int *bestK_R;
+	struct iidNet *userSim;
+	struct iidNet *itemSim;
 };
 
-struct L_Bip2 *create_L_Bip2(void) {
-	struct L_Bip2 *lp = malloc(sizeof(struct L_Bip2));
+struct Bip_core_base {
+	double *i1source;
+	double *i2source;
+	int **i1ids;
+	int **i2ids;
+	int i1maxId;
+	int i2maxId;
+	long *i1count;
+	long *i2count;
+	int i1idNum;
+	int i2idNum;
+};
+
+struct Bip_core_test {
+	int **id;
+	int maxId;
+	long *count;
+	int idNum;
+	long edgesNum;
+};
+
+struct L_Bip *create_L_Bip(void) {
+	struct L_Bip *lp = malloc(sizeof(struct L_Bip));
 	assert(lp != NULL);
 	lp->R = 0;
 	lp->PL = 0;
@@ -49,7 +67,7 @@ struct L_Bip2 *create_L_Bip2(void) {
 	return lp;
 }
 //free(NULL) is ok.
-void clean_L_Bip2(struct L_Bip2 *lp) {
+void clean_L_Bip(struct L_Bip *lp) {
 	lp->R = 0;
 	lp->PL = 0;
 	lp->HL = 0;
@@ -59,10 +77,925 @@ void clean_L_Bip2(struct L_Bip2 *lp) {
 	free(lp->topL);
 	lp->topL = NULL;
 }
-void free_L_Bip2(struct L_Bip2 *lp) {
+void free_L_Bip(struct L_Bip *lp) {
 	free(lp->topL);
 	free(lp);
 }
+
+
+//following is for recommendation.
+//Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
+//R is rankscore.
+//PL is precision
+//Warning: about unselected_list_length, I use bipi2->idNum, not bipi2->maxId. 
+//	but I believe in linyuan's paper, she use the bipi2->maxId. 
+//	I think bipi2->idNum make more sence.
+static void metrics_Bip(int i1, long *i1count, int i2idNum, struct Bip_core_test *testi1, int L, int *rank, double *R, double *PL) {
+	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
+		int unselected_list_length = i2idNum - i1count[i1];
+		int rank_i1_j = 0;
+		int DiL = 0;
+		int j, id;
+		for (j=0; j<testi1->count[i1]; ++j) {
+			id = testi1->id[i1][j];
+			rank_i1_j += rank[id];
+			if (rank[id] <= L) {
+				++DiL;
+			}
+		}
+		*R += (double)rank_i1_j/(double)unselected_list_length;
+		*PL += (double)DiL/(double)L;
+	}
+}
+//IL is intrasimilarity
+static double metrics_IL_Bip(int i1maxId, long *i1count, int i1idNum, int i2maxId, int L, int *Hij, struct iidNet *sim) {
+	if (!sim) return -1;
+	double *sign = calloc((i2maxId + 1), sizeof(double));
+	assert(sign != NULL);
+	int i, j;
+	long k;
+	double IL = 0;
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1count[i]) {
+			int *tmp = Hij + i*L;
+			for (j=0; j<L; ++j) {
+				int id = tmp[j];
+				memset(sign, 0, (i2maxId + 1)*sizeof(double));
+				for (k=0; k<sim->count[id]; ++k) {
+					sign[sim->edges[id][k]] = sim->d3[id][k];
+				}
+				for (k=j+1; k<L; ++k) {
+					id = tmp[k];
+					IL += sign[id];
+				}
+			}
+		}
+	}
+	free(sign);
+	IL /= L*(L-1)*i1idNum;
+	return 2*IL;
+}
+//HL is hamming distance.
+static double metrics_HL_Bip(int i1maxId, long *i1count, int i2maxId, int L, int *Hij) {
+	int *sign = calloc((i2maxId + 1), sizeof(int));
+	assert(sign != NULL);
+	int i, j;
+	long k;
+	int cou = 0;
+	int Cij = 0;
+	double HL = 0;
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1count[i]) {
+			memset(sign, 0, (i2maxId + 1)*sizeof(int));
+			for (k=i*L; k<i*L+L; ++k) {
+				sign[Hij[k]] = 1;
+			}
+			for (j=i+1; j<i1maxId + 1; ++j) {
+				if (i1count[j]) {
+					Cij = 0;
+					for (k=j*L; k<j*L+L; ++k) {
+						if (sign[Hij[k]]) {
+							++Cij;
+						}
+					}
+					HL += 1 - ((double)Cij)/(double)L;
+					//printf("%d %d %d\n", i, j, Cij);
+					++cou;
+				}
+			}
+		}
+	}
+	free(sign);
+	return HL/cou;
+}
+//NL is popularity.
+static double metrics_NL_Bip(int i1maxId, long *i1count, int i1idNum, long *i2count, int L, int *Hij) {
+	int i,j;
+	long NL = 0;
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1count[i]) {
+			int *tmp = Hij + i*L;
+			for (j=0; j<L; ++j) {
+				NL += i2count[tmp[j]];
+			}
+		}
+	}
+	NL /= L*i1idNum;
+	return NL;
+}
+
+static inline void Bip_core_common_part(int uid, struct Bip_core_base *args, int *i2id, int *rank, int *topL_i1L, int L) {
+	long uidCount = args->i1count[uid];
+	int *uidId = args->i1ids[uid];
+	int i2maxId = args->i2maxId;
+	long *i2count = args->i2count;
+	double *i2source = args->i2source;
+
+	long i;
+	//set selected item's source to -1
+	for (i=0; i<uidCount; ++i) {
+		i2source[uidId[i]] = -1;
+	}
+	//set i2id and rank.
+	for (i=0; i<i2maxId + 1; ++i) {
+		rank[i] = i + 1;
+		i2id[i] = i;
+		//set unexisted item's source to -2.
+		if (!i2count[i]) {
+			i2source[i] = -2;
+		}
+	}
+	//to this step, i2source contains four parts: 
+	//1, nomral i2source[x] , which <0, 1].
+	//2, i2source[x] = 0, which x isn't selected by anyone has similarity.
+	//3, i2source[x] = -1, which x has been selected by i1.
+	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
+	//
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, i2maxId, i2id);
+	//copy the top L itemid into topL.
+	memcpy(topL_i1L, i2id, L*sizeof(int));
+	//get rank;
+	for (i=0; i<i2maxId + 1; ++i) {
+		rank[i2id[i]] = i+1;
+	}
+}
+
+//three-step random walk of Probs
+static void probs_Bip_core(int i1, struct Bip_core_base *args) {
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
+
+////three-step random walk of Probs
+//static void probs0_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+//   int i, j, neigh, neigh_neigh;
+//   long degree;
+//   double source;
+//   memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+//   for (i=0; i<traini1->count[i1]; ++i) {
+//   	neigh = traini1->id[i1][i];
+//   	degree = traini2->count[neigh];
+//   	source = 1.0/(degree*traini1->count[i1]);
+//   	for (j=0; j<degree; ++j) {
+//   		neigh_neigh = traini2->id[neigh][j];
+//   		i1source[neigh_neigh] += source;
+//   	}
+//   }
+//   //three
+//   memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+//   for (i=0; i<traini1->maxId + 1; ++i) {
+//   	if (i1source[i]) {
+//   		degree = traini1->count[i];
+//   		source = (double)i1source[i]/(double)degree;
+//   		for (j=0; j<degree; ++j) {
+//   			neigh = traini1->id[i][j];
+//   			i2source[neigh] += source;
+//   		}
+//   	}
+//   }
+//   //set selected item's source to -1
+//   for (i=0; i<traini1->count[i1]; ++i) {
+//   	i2source[traini1->id[i1][i]] = -1;
+//   }
+//   int k = 0;
+//   int _k = 0;
+//   for (i=0; i<traini2->maxId + 1; ++i) {
+//   	if (traini2->count[i] && i2source[i] > 0) {
+//   		i2source[k] = i2source[i];
+//   		i2id[k] = i;
+//   		++k;
+//   	}
+//   	else {
+//   		i2id[traini2->maxId - _k] = i;
+//   		++_k;
+//   	}
+//   }
+//   //to this step, i2source contains four parts: 
+//   //1, nomral i2source[x] , which <0, 1].
+//   //2, i2source[x] = 0, which x isn't selected by anyone has similarity.
+//   //3, i2source[x] = -1, which x has been selected by i1.
+//   //4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
+//   //
+//   //after qsort_di_desc, the id of the item with most source will be in i2id[0];
+//   qsort_di_desc(i2source, 0, k-1, i2id);
+//   //qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+//   //copy the top L itemid into topL.
+//   memcpy(topL+i1*L, i2id, L*sizeof(int));
+//   //after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+//   //qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+//   for (i=0; i<traini2->maxId + 1; ++i) {
+//   	rank[i2id[i]] = i+1;
+//   }
+//}
+
+//three-step random walk of heats
+static void heats_Bip_core(int i1, struct Bip_core_base *args) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+	
+	int neigh, i;
+	long j;
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1;
+	}
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1count[i]) {
+			for (j=0; j<i1count[i]; ++j) {
+				neigh = i1ids[i][j];
+				i1source[i] += i2source[neigh];
+			}
+			i1source[i] /= i1count[i];
+		}
+	}
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2count[i]) {
+			for (j=0; j<i2count[i]; ++j) {
+				neigh = i2ids[i][j];
+				i2source[i] += i1source[neigh];
+			}
+			i2source[i] /= i2count[i];
+		}
+	}
+}
+
+//three-step random walk of HNBI
+static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0*pow(i2count[neigh], theta);
+	}
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+
+}
+
+//five-step random walk of RENBI
+static void RENBI_Bip_core(int i1, struct Bip_core_base *args, double *i2sourceA, double eta) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	//one
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	//save three steps result	
+	memcpy(i2sourceA, i2source, (i2maxId + 1)*sizeof(double));
+	//four
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//five
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+	//now, i2source save w*w result.
+	//add: w+eta*w*w.
+	for (i=0; i<i2maxId + 1; ++i) {
+		i2sourceA[i] += eta*i2source[i];
+	}
+
+	memcpy(i2source, i2sourceA, (i2maxId + 1)*sizeof(double));
+}
+//three-step random walk of hybrid
+static void hybrid_Bip_core(int i1, struct Bip_core_base *args, double lambda) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int neigh, i;
+	//double source;
+	long j;
+	//one
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			double powl = pow(i2count[i], lambda);
+			for (j=0; j<i2count[i]; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += i2source[i]/powl;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2count[i]) {
+			double powl = pow(i2count[i], 1-lambda);
+			for (j=0; j<i2count[i]; ++j) {
+				neigh = i2ids[i][j];
+				i2source[i] += i1source[neigh]/i1count[neigh];
+			}
+			i2source[i] /= powl;
+		}
+	}
+}
+//three-step random walk of Probs
+static void onion_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, double orate) {
+	if (orate > 1 || orate < 0) {
+		isError("onion_probs_Bip_core wrong orate");
+	}
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	double sim;
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		sim = userSim->d3[i1][k];
+		if (k == 0 || sim > orate) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
+//three-step random walk of Probs
+static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int topR) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k == 0 || k < topR) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
+//three-step random walk of Probs
+static void probs_knn_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int bestR) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<bestR; ++k) {
+		i = userSim->edges[i1][k];
+		degree = i1count[i];
+		source = (double)i1source[i]/(double)degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i1ids[i][j];
+			i2source[neigh] += source;
+		}
+	}
+}
+
+
+/** 
+ * core function of recommendation.
+ * type :
+ * 0 -- for test TODO deleted
+ * 1 -- probs (NONE arg)
+ * 2 -- heats (NONE arg)
+ * 3 -- HNBI  (theta)
+ * 4 -- RENBI  (eta)
+ * 5 -- hybrid (lambda)
+ * 6 -- score hybrid (epsilon) TODO deleted
+ * 7 -- usersim onion probs (orate, userSim)
+ * 8 -- usersim degree probs (orate, userSim)
+ *
+ * all L is from this function. if you want to change, change the L below.
+ */
+static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct Bip_core_param *param, struct Bip_core_test *test) {
+	double theta  = param->theta;
+	double eta    = param->eta;
+	double lambda = param->lambda;
+	double orate  = param->orate;
+	int topR      = param->topR;
+	int *bestK_R  = param->bestK_R;
+	struct iidNet *userSim = param->userSim;
+	struct iidNet *itemSim = param->itemSim;
+
+	//int **i1ids      = args->i1ids;
+	//int **i2ids      = args->i2ids; 
+	int i1maxId      = args->i1maxId;
+	int i2maxId      = args->i2maxId;
+	int i1idNum      = args->i1idNum;
+	int i2idNum      = args->i2idNum;
+	long *i1count    = args->i1count;
+	long *i2count    = args->i2count;
+
+	int L = 50;
+
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = malloc((i1maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((i2maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	args->i1source = i1source;
+	args->i2source = i2source;
+
+	int *rank = malloc((i2maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((i2maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	int i1, i;
+	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
+	assert(topL != NULL);
+	switch (type) {
+		case 1:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				if (i1count[i]) {
+					//get rank
+					probs_Bip_core(i, args);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 2:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				if (i1count[i1]) {
+					heats_Bip_core(i1, args);
+					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
+					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 3:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (i1count[i1]) {
+					HNBI_Bip_core(i1, args, theta);
+					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
+					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 4:
+			assert(i2source != NULL);
+			double *i2sourceA = calloc((i2maxId + 1),sizeof(double));
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					RENBI_Bip_core(i, args, i2sourceA, eta);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			free(i2sourceA);
+			break;
+		case 5:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (i1count[i1]) {
+					hybrid_Bip_core(i1, args, lambda);
+					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
+					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 7:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					onion_probs_Bip_core(i, args, userSim, orate);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 8:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					topR_probs_Bip_core(i, args, userSim, topR);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 9:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_knn_Bip_core(i, args, userSim, bestK_R[i]);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+	}
+	R /= test->edgesNum;
+	PL /= test->idNum;
+	HL = metrics_HL_Bip(i1maxId, i1count, i2maxId, L, topL);
+	IL = metrics_IL_Bip(i1maxId, i1count, i1idNum, i2maxId, L, topL, itemSim);
+	NL = metrics_NL_Bip(i1maxId, i1count, i1idNum, i2count, L, topL);
+	struct L_Bip *retn = create_L_Bip();
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
+	retn->topL = topL;
+	retn->L = L;
+
+	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return retn;
+}
+
+static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
+	int i, j, neigh, neigh_neigh;
+	long degree;
+	double source;
+	//one 
+	//memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	//for (j=0; j<traini1->count[i1]; ++j) {
+	//	neigh = traini1->id[i1][j];
+	//	i2source[neigh] = 1.0;
+	//}
+	////two
+	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	//for (i=0; i<traini2->maxId + 1; ++i) {
+	//	if (i2source[i]) {
+	//		degree = traini2->count[i];
+	//		source = i2source[i]/(double)degree;
+	//		for (j=0; j<degree; ++j) {
+	//			neigh = traini2->id[i][j];
+	//			i1source[neigh] += source;
+	//		}
+	//	}
+	//}
+	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
+	for (i=0; i<userSim->count[i1]; ++i) {
+		i1source[userSim->edges[i1][i]] = 0;
+	}
+	for (i=0; i<traini1->count[i1]; ++i) {
+		neigh = traini1->id[i1][i];
+		degree = traini2->count[neigh];
+		source = 1.0/degree;
+		for (j=0; j<degree; ++j) {
+			neigh_neigh = traini2->id[neigh][j];
+			i1source[neigh_neigh] += source;
+		}
+	}
+	//three
+	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<tryK; ++k) {
+		i = userSim->edges[i1][k];
+		degree = traini1->count[i];
+		source = (double)i1source[i]/(double)degree;
+		for (j=0; j<degree; ++j) {
+			neigh = traini1->id[i][j];
+			i2source[neigh] += source;
+		}
+	}
+	//set selected item's source to 0
+	for (i=0; i<traini1->count[i1]; ++i) {
+		i2source[traini1->id[i1][i]] = -1;
+	}
+	//set i2id and rank.
+	for (i=0; i<traini2->maxId + 1; ++i) {
+		i2id[i] = i;
+		rank[i] = i+1;
+		if (!traini2->count[i]) {
+			i2source[i] = -1;
+		}
+	}
+	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
+	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
+	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
+	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+}
+
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
+	printf("begin to calculat best knn....");fflush(stdout);
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	double R, PL;
+
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+
+	int i;
+    long j;
+	int L = 50;
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+	//for (i = 0; i<10; ++i) { //each user
+		if (testi1->count[i]) {
+			double bestR, bestPL;
+			bestR = LONG_MAX;
+			bestPL = -1;
+			int bestRK, bestPLK;
+			bestRK = bestPLK = -1;
+			for (j=0; j<userSim->count[i]; ++j) {
+				//j=0, means: rank is random. so R is random.
+				//random is always bad, so it will aways be overwrite.
+				knn_getbest_Bip2_core(i, traini1, traini2, userSim, i1source, i2source, i2id, rank, j);
+				R=PL=0;
+				metrics_Bip(i, traini1->count, traini2->idNum, &test, L, rank, &R, &PL);
+				//R will never be 0, because i is in testi1.
+				if (bestR > R) {
+					bestR = R;
+					bestRK = j;
+				}
+				if (bestPL < PL) {
+					bestPL = PL;
+					bestPLK = j;
+				}
+			}
+			bestK_R[i] = bestRK;
+			bestK_PL[i] = bestPLK;
+		}
+		else {
+			bestK_R[i] = -1;
+			bestK_PL[i] = -1;
+		}
+		printf("%d,", i);fflush(stdout);
+	}
+
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("calculat best knn done.\n");fflush(stdout);
+}
+
+/************************************************************************************************************/
+/************************* the following functions are related with BIP2. ***********************************/
+/** include free, create, divide, verify, similarity. *******************************************************/
+/** include 8 recommend algorithm. **************************************************************************/
+/************************************************************************************************************/
+/************************************************************************************************************/
 
 void free_Bip2(struct Bip2 *Bip) {
 	int i=0;
@@ -295,822 +1228,6 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 	return twofile;
 }
 
-
-//following is for recommendation.
-//Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
-//R is rankscore.
-//PL is precision
-//Warning: about unselected_list_length, I use bipi2->idNum, not bipi2->maxId. 
-//	but I believe in linyuan's paper, she use the bipi2->maxId. 
-//	I think bipi2->idNum make more sence.
-static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {
-	if (i1<testi1->maxId + 1 &&  testi1->count[i1]) {
-		int unselected_list_length = bipi2->idNum - bipi1->count[i1];
-		//int unselected_list_length = bipi2->maxId - bipi1->count[i1];
-		int rank_i1_j = 0;
-		int DiL = 0;
-		int j, id;
-		for (j=0; j<testi1->count[i1]; ++j) {
-			id = testi1->id[i1][j];
-			rank_i1_j += rank[id];
-			if (rank[id] <= L) {
-				++DiL;
-			}
-		}
-		*R += (double)rank_i1_j/(double)unselected_list_length;
-		*PL += (double)DiL/(double)L;
-	}
-}
-//IL is intrasimilarity
-static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {
-	if (!sim) return -1;
-	double *sign = calloc((bipi2->maxId + 1), sizeof(double));
-	assert(sign != NULL);
-	int i, j;
-	long k;
-	double IL = 0;
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i]) {
-			int *tmp = Hij + i*L;
-			for (j=0; j<L; ++j) {
-				int id = tmp[j];
-				memset(sign, 0, (bipi2->maxId + 1)*sizeof(double));
-				for (k=0; k<sim->count[id]; ++k) {
-					sign[sim->edges[id][k]] = sim->d3[id][k];
-				}
-				for (k=j+1; k<L; ++k) {
-					id = tmp[k];
-					IL += sign[id];
-				}
-			}
-		}
-	}
-	free(sign);
-	IL /= L*(L-1)*bipi1->idNum;
-	return 2*IL;
-}
-//HL is hamming distance.
-static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
-	int *sign = calloc((bipi2->maxId + 1), sizeof(int));
-	assert(sign != NULL);
-	int i, j;
-	long k;
-	int cou = 0;
-	int Cij = 0;
-	double HL = 0;
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i]) {
-			memset(sign, 0, (bipi2->maxId + 1)*sizeof(int));
-			for (k=i*L; k<i*L+L; ++k) {
-				sign[Hij[k]] = 1;
-			}
-			for (j=i+1; j<bipi1->maxId + 1; ++j) {
-				if (bipi1->count[j]) {
-					Cij = 0;
-					for (k=j*L; k<j*L+L; ++k) {
-						if (sign[Hij[k]]) {
-							++Cij;
-						}
-					}
-					HL += 1 - ((double)Cij)/(double)L;
-					//printf("%d %d %d\n", i, j, Cij);
-					++cou;
-				}
-			}
-		}
-	}
-	free(sign);
-	return HL/cou;
-}
-//NL is popularity.
-static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {
-	int i,j;
-	long NL = 0;
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i]) {
-			int *tmp = Hij + i*L;
-			for (j=0; j<L; ++j) {
-				NL += bipi2->count[tmp[j]];
-			}
-		}
-	}
-	NL /= L*bipi1->idNum;
-	return NL;
-}
-
-static inline void Bip2_core_common_part(long uidCount, int *uidId, int i2maxId, long *i2count, double *i2source, int *i2id, int *rank, int *topL_i1L, int L) {
-	long i;
-	//set selected item's source to -1
-	for (i=0; i<uidCount; ++i) {
-		i2source[uidId[i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<i2maxId + 1; ++i) {
-		rank[i] = i + 1;
-		i2id[i] = i;
-		//set unexisted item's source to -2.
-		if (!i2count[i]) {
-			i2source[i] = -2;
-		}
-	}
-	//to this step, i2source contains four parts: 
-	//1, nomral i2source[x] , which <0, 1].
-	//2, i2source[x] = 0, which x isn't selected by anyone has similarity.
-	//3, i2source[x] = -1, which x has been selected by i1.
-	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
-	//
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, i2maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL_i1L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
-	for (i=0; i<i2maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
-}
-
-//three-step random walk of Probs
-static void probs_Bip2_core(int i1, double *i1source, double *i2source, int **i1ids, int **i2ids, int i1maxId, int i2maxId, long *i1count, long *i2count) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	//one 
-	memset(i2source, 0, (i2maxId+1)*sizeof(double));
-	for (j=0; j<i1count[i1]; ++j) {
-		neigh = i1ids[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (i1maxId+1)*sizeof(double));
-	for (i=0; i<i2maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = i2count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = i2ids[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (i2maxId+1)*sizeof(double));
-	for (i=0; i<i1maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = i1count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = i1ids[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-}
-
-//three-step random walk of Probs
-static void probs0_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
-	int i, j, neigh, neigh_neigh;
-	long degree;
-	double source;
-	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	for (i=0; i<traini1->count[i1]; ++i) {
-		neigh = traini1->id[i1][i];
-		degree = traini2->count[neigh];
-		source = 1.0/(degree*traini1->count[i1]);
-		for (j=0; j<degree; ++j) {
-			neigh_neigh = traini2->id[neigh][j];
-			i1source[neigh_neigh] += source;
-		}
-	}
-	//three
-	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	for (i=0; i<traini1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = traini1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = traini1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	//set selected item's source to -1
-	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = -1;
-	}
-	int k = 0;
-	int _k = 0;
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		if (traini2->count[i] && i2source[i] > 0) {
-			i2source[k] = i2source[i];
-			i2id[k] = i;
-			++k;
-		}
-		else {
-			i2id[traini2->maxId - _k] = i;
-			++_k;
-		}
-	}
-	//to this step, i2source contains four parts: 
-	//1, nomral i2source[x] , which <0, 1].
-	//2, i2source[x] = 0, which x isn't selected by anyone has similarity.
-	//3, i2source[x] = -1, which x has been selected by i1.
-	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
-	//
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, k-1, i2id);
-	//qsort_di_desc(i2source, 0, traini2->maxId, i2id);
-	//copy the top L itemid into topL.
-	memcpy(topL+i1*L, i2id, L*sizeof(int));
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	//qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		rank[i2id[i]] = i+1;
-	}
-}
-//three-step random walk of heats
-static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
-	int neigh, i;
-	long j;
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1;
-	}
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (bipi1->count[i]) {
-			for (j=0; j<bipi1->count[i]; ++j) {
-				neigh = bipi1->id[i][j];
-				i1source[i] += i2source[neigh];
-			}
-			i1source[i] /= bipi1->count[i];
-		}
-	}
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (bipi2->count[i]) {
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i2source[i] += i1source[neigh];
-			}
-			i2source[i] /= bipi2->count[i];
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
-}
-//three-step random walk of HNBI
-static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0*pow(bipi2->count[neigh], theta);
-	}
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
-}
-//five-step random walk of RENBI
-static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	//one
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	//save three steps result	
-	memcpy(i2sourceA, i2source, (bipi2->maxId + 1)*sizeof(double));
-	//four
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//five
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi1->maxId + 1; ++i) {
-		if (i1source[i]) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	//now, i2source save w*w result.
-	//add: w+eta*w*w.
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		i2sourceA[i] += eta*i2source[i];
-	}
-
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
-}
-//three-step random walk of hybrid
-static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {
-	int neigh, i;
-	//double source;
-	long j;
-	//one
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			double powl = pow(bipi2->count[i], lambda);
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += i2source[i]/powl;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (bipi2->count[i]) {
-			double powl = pow(bipi2->count[i], 1-lambda);
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i2source[i] += i1source[neigh]/bipi1->count[neigh];
-			}
-			i2source[i] /= powl;
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
-}
-//three-step random walk of hybrid
-static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda, double *score, double epsilon) {
-	int neigh, i;
-	//double source;
-	long j;
-	//one
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			double powl = pow(score[i], epsilon)/pow(bipi2->count[i], lambda);
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += i2source[i]*powl;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (bipi2->count[i]) {
-			double powl = pow(bipi2->count[i], 1-lambda);
-			for (j=0; j<bipi2->count[i]; ++j) {
-				neigh = bipi2->id[i][j];
-				i2source[i] += i1source[neigh]/bipi1->count[neigh];
-			}
-			i2source[i] /= powl;
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + Hij, L);
-}
-//three-step random walk of Probs
-static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, double orate) {
-	if (orate > 1 || orate < 0) {
-		isError("onion_probs_Bip2_core wrong orate");
-	}
-	int i, j, neigh;
-	long degree;
-	double source;
-	//one 
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	double sim;
-	long k;
-	for (k=0; k<userSim->count[i1]; ++k) {
-		i = userSim->edges[i1][k];
-		sim = userSim->d3[i1][k];
-		if (k == 0 || sim > orate) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
-}
-//three-step random walk of Probs
-static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int topR) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	//one 
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	long k;
-	for (k=0; k<userSim->count[i1]; ++k) {
-		i = userSim->edges[i1][k];
-		if (k == 0 || k < topR) {
-			degree = bipi1->count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi1->id[i][j];
-				i2source[neigh] += source;
-			}
-		}
-	}
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
-}
-//three-step random walk of Probs
-static void probs_knn_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int bestR) {
-	int i, j, neigh;
-	long degree;
-	double source;
-	//one 
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	for (j=0; j<bipi1->count[i1]; ++j) {
-		neigh = bipi1->id[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
-	for (i=0; i<bipi2->maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = bipi2->count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = bipi2->id[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
-	long k;
-	for (k=0; k<bestR; ++k) {
-		i = userSim->edges[i1][k];
-		degree = bipi1->count[i];
-		source = (double)i1source[i]/(double)degree;
-		for (j=0; j<degree; ++j) {
-			neigh = bipi1->id[i][j];
-			i2source[neigh] += source;
-		}
-	}
-	//for (i=0; i<bipi1->maxId + 1; ++i) {
-	//	if (i1source[i]) {
-	//		degree = bipi1->count[i];
-	//		source = (double)i1source[i]/(double)degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = bipi1->id[i][j];
-	//			i2source[neigh] += source;
-	//		}
-	//	}
-	//}
-	//set selected item's source to 0
-	Bip2_core_common_part(bipi1->count[i1], bipi1->id[i1], bipi2->maxId, bipi2->count, i2source, i2id, rank, L*i1 + topL, L);
-}
-
-
-/** 
- * core function of recommendation.
- * type :
- * 0 -- for test
- * 1 -- probs (NONE arg)
- * 2 -- heats (NONE arg)
- * 3 -- HNBI  (theta)
- * 4 -- RENBI  (eta)
- * 5 -- hybrid (lambda)
- * 6 -- score hybrid (epsilon)
- * 7 -- usersim onion probs (orate, userSim)
- * 8 -- usersim degree probs (orate, userSim)
- *
- * all L is from this function. if you want to change, change the L below.
- */
-static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct param_recommend_Bip2 param) {
-	double theta = param.theta;
-	double eta = param.eta;
-	double lambda = param.lambda;
-	double epsilon = param.epsilon;
-	double *score = param.score;
-	struct iidNet *userSim = param.userSim;
-	double orate = param.orate;
-	int topR = param.topR;
-	int *bestK_R = param.bestK_R;
-
-	int L = 50;
-
-	double R, PL, HL, IL, NL;
-	R=PL=HL=IL=NL=0;
-
-	double *i1source = malloc((bipi1->maxId + 1)*sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = malloc((bipi2->maxId + 1)*sizeof(double));
-	assert(i2source != NULL);
-	int *rank = malloc((bipi2->maxId + 1)*sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  malloc((bipi2->maxId + 1)*sizeof(int));
-	assert(i2id != NULL);
-
-	int i1, i;
-	int *topL = calloc(L*(bipi1->maxId + 1), sizeof(int));
-	assert(topL != NULL);
-	switch (type) {
-		case 0:
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					probs0_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 1:
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					probs_Bip2_core(i, i1source, i2source, bipi1->id, bipi2->id, bipi1->maxId, bipi2->maxId, bipi1->count, bipi2->count);
-					Bip2_core_common_part(bipi1->count[i], bipi1->id[i], bipi2->maxId, bipi2->count, i2source, i2id, rank, topL+L*i, L);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 2:
-			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1]) {
-					heats_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
-					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 3:
-			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1]) {
-					HNBI_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, theta);
-					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 4:
-			assert(i2source != NULL);
-			double *i2sourceA = calloc((bipi2->maxId + 1),sizeof(double));
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					RENBI_Bip2_core(i, bipi1, bipi2, i1source, i2source, i2sourceA, L, i2id, rank, topL, eta);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			free(i2sourceA);
-			break;
-		case 5:
-			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1]) {
-					hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda);
-					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 6:
-			for (i1 = 0; i1<bipi1->maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (bipi1->count[i1]) {
-					score_hybrid_Bip2_core(i1, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, lambda, score, epsilon);
-					metrics_Bip2(i1, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 7:
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					onion_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, userSim, orate);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 8:
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					topR_probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, userSim, topR);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 9:
-			for (i = 0; i<bipi1->maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both bipi1 and testi1.
-				if (bipi1->count[i]) {
-					//get rank
-					probs_knn_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL, userSim, bestK_R[i]);
-					//use rank to get metrics values
-					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
-				}
-			}
-			break;
-	}
-	R /= testi1->edgesNum;
-	PL /= testi1->idNum;
-	//PL /= testi1->maxId;
-	HL = metrics_HL_Bip2(bipi1, bipi2, testi1, L, topL);
-	IL = metrics_IL_Bip2(bipi1, bipi2, testi1, L, topL, trainSim);
-	NL = metrics_NL_Bip2(bipi1, bipi2, testi1, L, topL);
-	struct L_Bip2 *retn = create_L_Bip2();
-	retn->R = R;
-	retn->PL = PL;
-	retn->HL = HL;
-	retn->IL = IL;
-	retn->NL = NL;
-	retn->topL = topL;
-	retn->L = L;
-
-	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
-	free(i1source);
-	free(i2source);
-	free(i2id);
-	free(rank);
-	return retn;
-}
-
-//calculate deleted links.
-struct L_Bip2 *test_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	struct param_recommend_Bip2 param;
-	return recommend_Bip2(0, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-//calculate deleted links.
-struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	struct param_recommend_Bip2 param;
-	return recommend_Bip2(1, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {
-	struct param_recommend_Bip2 param;
-	return recommend_Bip2(2, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {
-	struct param_recommend_Bip2 param;
-	param.theta = theta;
-	return recommend_Bip2(3, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {
-	struct param_recommend_Bip2 param;
-	param.eta = eta;
-	return recommend_Bip2(4, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {
-	struct param_recommend_Bip2 param;
-	param.lambda = lambda;
-	return recommend_Bip2(5, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *score_hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda, double *score, double epsilon) {
-	struct param_recommend_Bip2 param;
-	param.lambda = lambda;
-	param.epsilon = epsilon;
-	param.score = score;
-	return recommend_Bip2(6, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, double orate) {
-	struct param_recommend_Bip2 param;
-	param.userSim = userSim;
-	param.orate = orate;
-	return recommend_Bip2(7, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR) {
-	struct param_recommend_Bip2 param;
-	param.userSim = userSim;
-	param.topR = topR;
-	return recommend_Bip2(8, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
-struct L_Bip2 *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int *bestK_R) {
-	struct param_recommend_Bip2 param;
-	param.bestK_R = bestK_R;
-	param.userSim = userSim;
-	return recommend_Bip2(9, bipi1, bipi2, testi1, testi2, trainSim, param);
-}
-
 void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 	long i;
 	int j,k;
@@ -1244,128 +1361,182 @@ struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int 
 	return simfile;
 }
 
-static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
-	int i, j, neigh, neigh_neigh;
-	long degree;
-	double source;
-	//one 
-	//memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	//for (j=0; j<traini1->count[i1]; ++j) {
-	//	neigh = traini1->id[i1][j];
-	//	i2source[neigh] = 1.0;
-	//}
-	////two
-	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	//for (i=0; i<traini2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		degree = traini2->count[i];
-	//		source = i2source[i]/(double)degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = traini2->id[i][j];
-	//			i1source[neigh] += source;
-	//		}
-	//	}
-	//}
-	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	for (i=0; i<userSim->count[i1]; ++i) {
-		i1source[userSim->edges[i1][i]] = 0;
-	}
-	for (i=0; i<traini1->count[i1]; ++i) {
-		neigh = traini1->id[i1][i];
-		degree = traini2->count[neigh];
-		source = 1.0/degree;
-		for (j=0; j<degree; ++j) {
-			neigh_neigh = traini2->id[neigh][j];
-			i1source[neigh_neigh] += source;
-		}
-	}
-	//three
-	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	long k;
-	for (k=0; k<tryK; ++k) {
-		i = userSim->edges[i1][k];
-		degree = traini1->count[i];
-		source = (double)i1source[i]/(double)degree;
-		for (j=0; j<degree; ++j) {
-			neigh = traini1->id[i][j];
-			i2source[neigh] += source;
-		}
-	}
-	//set selected item's source to 0
-	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!traini2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
+struct L_Bip *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {
+	struct Bip_core_param param;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(1, &args, &param, &test);
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
-	printf("begin to calculat best knn....");fflush(stdout);
-	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
-	assert(i2source != NULL);
-	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
-	assert(i2id != NULL);
-
-	double R, PL;
-
-	int i;
-    long j;
-	int L = 50;
-	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
-	//for (i = 0; i<10; ++i) { //each user
-		if (testi1->count[i]) {
-			double bestR, bestPL;
-			bestR = LONG_MAX;
-			bestPL = -1;
-			int bestRK, bestPLK;
-			bestRK = bestPLK = -1;
-			for (j=0; j<userSim->count[i]; ++j) {
-				//j=0, means: rank is random. so R is random.
-				//random is always bad, so it will aways be overwrite.
-				knn_getbest_Bip2_core(i, traini1, traini2, userSim, i1source, i2source, i2id, rank, j);
-				R=PL=0;
-				metrics_Bip2(i, traini1, traini2, testi1, L, rank, &R, &PL);
-				//R will never be 0, because i is in testi1.
-				if (bestR > R) {
-					bestR = R;
-					bestRK = j;
-				}
-				if (bestPL < PL) {
-					bestPL = PL;
-					bestPLK = j;
-				}
-			}
-			bestK_R[i] = bestRK;
-			bestK_PL[i] = bestPLK;
-		}
-		else {
-			bestK_R[i] = -1;
-			bestK_PL[i] = -1;
-		}
-		printf("%d,", i);fflush(stdout);
-	}
-
-	free(i1source);
-	free(i2source);
-	free(rank);
-	free(i2id);
-	printf("calculat best knn done.\n");fflush(stdout);
+struct L_Bip *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {
+	struct Bip_core_param param;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(2, &args, &param, &test);
 }
 
+struct L_Bip *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double theta) {
+	struct Bip_core_param param;
+	param.theta = theta;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(3, &args, &param, &test);
+}
+
+struct L_Bip *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double eta) {
+	struct Bip_core_param param;
+	param.eta = eta;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(4, &args, &param, &test);
+}
+
+struct L_Bip *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double lambda) {
+	struct Bip_core_param param;
+	param.lambda = lambda;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(5, &args, &param, &test);
+}
+
+struct L_Bip *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double orate) {
+	struct Bip_core_param param;
+	param.userSim = userSim;
+	param.orate = orate;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(7, &args, &param, &test);
+}
+
+struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int topR) {
+	struct Bip_core_param param;
+	param.userSim = userSim;
+	param.topR = topR;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(8, &args, &param, &test);
+}
+
+struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *bestK_R) {
+	struct Bip_core_param param;
+	param.bestK_R = bestK_R;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(9, &args, &param, &test);
+}
 
 /************************************************************************************************************/
 /****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
