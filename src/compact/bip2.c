@@ -431,41 +431,40 @@ static inline void Bip2_core_common_part(long uidCount, int *uidId, int i2maxId,
 }
 
 //three-step random walk of Probs
-static void probs_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
+static void probs_Bip2_core(int i1, double *i1source, double *i2source, int **i1ids, int **i2ids, int i1maxId, int i2maxId, long *i1count, long *i2count) {
 	int i, j, neigh;
 	long degree;
 	double source;
 	//one 
-	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	for (j=0; j<traini1->count[i1]; ++j) {
-		neigh = traini1->id[i1][j];
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
 		i2source[neigh] = 1.0;
 	}
 	//two
-	memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	for (i=0; i<traini2->maxId + 1; ++i) {
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
 		if (i2source[i]) {
-			degree = traini2->count[i];
+			degree = i2count[i];
 			source = i2source[i]/(double)degree;
 			for (j=0; j<degree; ++j) {
-				neigh = traini2->id[i][j];
+				neigh = i2ids[i][j];
 				i1source[neigh] += source;
 			}
 		}
 	}
 	//three
-	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	for (i=0; i<traini1->maxId + 1; ++i) {
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1; ++i) {
 		if (i1source[i]) {
-			degree = traini1->count[i];
+			degree = i1count[i];
 			source = (double)i1source[i]/(double)degree;
 			for (j=0; j<degree; ++j) {
-				neigh = traini1->id[i][j];
+				neigh = i1ids[i][j];
 				i2source[neigh] += source;
 			}
 		}
 	}
-	Bip2_core_common_part(traini1->count[i1], traini1->id[i1], traini2->maxId, traini2->count, i2source, i2id, rank, topL+L*i1, L);
 }
 
 //three-step random walk of Probs
@@ -930,7 +929,8 @@ static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *
 				//only compute the i in both bipi1 and testi1.
 				if (bipi1->count[i]) {
 					//get rank
-					probs_Bip2_core(i, bipi1, bipi2, i1source, i2source, L, i2id, rank, topL);
+					probs_Bip2_core(i, i1source, i2source, bipi1->id, bipi2->id, bipi1->maxId, bipi2->maxId, bipi1->count, bipi2->count);
+					Bip2_core_common_part(bipi1->count[i], bipi1->id[i], bipi2->maxId, bipi2->count, i2source, i2id, rank, topL+L*i, L);
 					//use rank to get metrics values
 					metrics_Bip2(i, bipi1, bipi2, testi1, L, rank, &R, &PL);
 				}
