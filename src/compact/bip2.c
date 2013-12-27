@@ -267,68 +267,6 @@ static void probs_Bip_core(int i1, struct Bip_core_base *args) {
 	}
 }
 
-////three-step random walk of Probs
-//static void probs0_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {
-//   int i, j, neigh, neigh_neigh;
-//   long degree;
-//   double source;
-//   memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-//   for (i=0; i<traini1->count[i1]; ++i) {
-//   	neigh = traini1->id[i1][i];
-//   	degree = traini2->count[neigh];
-//   	source = 1.0/(degree*traini1->count[i1]);
-//   	for (j=0; j<degree; ++j) {
-//   		neigh_neigh = traini2->id[neigh][j];
-//   		i1source[neigh_neigh] += source;
-//   	}
-//   }
-//   //three
-//   memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-//   for (i=0; i<traini1->maxId + 1; ++i) {
-//   	if (i1source[i]) {
-//   		degree = traini1->count[i];
-//   		source = (double)i1source[i]/(double)degree;
-//   		for (j=0; j<degree; ++j) {
-//   			neigh = traini1->id[i][j];
-//   			i2source[neigh] += source;
-//   		}
-//   	}
-//   }
-//   //set selected item's source to -1
-//   for (i=0; i<traini1->count[i1]; ++i) {
-//   	i2source[traini1->id[i1][i]] = -1;
-//   }
-//   int k = 0;
-//   int _k = 0;
-//   for (i=0; i<traini2->maxId + 1; ++i) {
-//   	if (traini2->count[i] && i2source[i] > 0) {
-//   		i2source[k] = i2source[i];
-//   		i2id[k] = i;
-//   		++k;
-//   	}
-//   	else {
-//   		i2id[traini2->maxId - _k] = i;
-//   		++_k;
-//   	}
-//   }
-//   //to this step, i2source contains four parts: 
-//   //1, nomral i2source[x] , which <0, 1].
-//   //2, i2source[x] = 0, which x isn't selected by anyone has similarity.
-//   //3, i2source[x] = -1, which x has been selected by i1.
-//   //4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
-//   //
-//   //after qsort_di_desc, the id of the item with most source will be in i2id[0];
-//   qsort_di_desc(i2source, 0, k-1, i2id);
-//   //qsort_di_desc(i2source, 0, traini2->maxId, i2id);
-//   //copy the top L itemid into topL.
-//   memcpy(topL+i1*L, i2id, L*sizeof(int));
-//   //after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-//   //qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
-//   for (i=0; i<traini2->maxId + 1; ++i) {
-//   	rank[i2id[i]] = i+1;
-//   }
-//}
-
 //three-step random walk of heats
 static void heats_Bip_core(int i1, struct Bip_core_base *args) {
 
@@ -369,10 +307,8 @@ static void heats_Bip_core(int i1, struct Bip_core_base *args) {
 		}
 	}
 }
-
 //three-step random walk of HNBI
 static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {
-
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
 	int **i1ids = args->i1ids;
@@ -381,7 +317,6 @@ static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {
 	int i2maxId = args->i2maxId;
 	long *i1count = args->i1count;
 	long *i2count = args->i2count;
-
 	int i, j, neigh;
 	long degree;
 	double source;
@@ -412,7 +347,6 @@ static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {
 			}
 		}
 	}
-
 }
 
 //five-step random walk of RENBI
@@ -1539,7 +1473,9 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 }
 
 /************************************************************************************************************/
+/************************************************************************************************************/
 /****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
+/************************************************************************************************************/
 /************************************************************************************************************/
 
 //Bip2 contains eight members. this function will correct six wrong members according to two right ones.
