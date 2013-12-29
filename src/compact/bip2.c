@@ -28,7 +28,7 @@ struct Bip_core_param {
 	double epsilon;
 	double orate;
 	int topR;
-	int *bestK_R;
+	int *knn;
 	struct iidNet *userSim;
 	struct iidNet *itemSim;
 };
@@ -634,6 +634,7 @@ static void probs_knn_Bip_core(int i1, struct Bip_core_base *args, struct iidNet
  * 6 -- score hybrid (epsilon) TODO deleted
  * 7 -- usersim onion probs (orate, userSim)
  * 8 -- usersim degree probs (orate, userSim)
+ * 9 -- knn 
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -643,7 +644,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	double lambda = param->lambda;
 	double orate  = param->orate;
 	int topR      = param->topR;
-	int *bestK_R  = param->bestK_R;
+	int *knn      = param->knn;
 	struct iidNet *userSim = param->userSim;
 	struct iidNet *itemSim = param->itemSim;
 
@@ -765,7 +766,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					probs_knn_Bip_core(i, args, userSim, bestK_R[i]);
+					probs_knn_Bip_core(i, args, userSim, knn[i]);
 					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
 					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
@@ -793,135 +794,6 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	free(i2id);
 	free(rank);
 	return retn;
-}
-
-static void knn_getbest_Bip2_core(int i1, struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet *userSim, double *i1source, double *i2source, int *i2id, int *rank, int tryK) {
-	int i, j, neigh, neigh_neigh;
-	long degree;
-	double source;
-	//one 
-	//memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	//for (j=0; j<traini1->count[i1]; ++j) {
-	//	neigh = traini1->id[i1][j];
-	//	i2source[neigh] = 1.0;
-	//}
-	////two
-	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	//for (i=0; i<traini2->maxId + 1; ++i) {
-	//	if (i2source[i]) {
-	//		degree = traini2->count[i];
-	//		source = i2source[i]/(double)degree;
-	//		for (j=0; j<degree; ++j) {
-	//			neigh = traini2->id[i][j];
-	//			i1source[neigh] += source;
-	//		}
-	//	}
-	//}
-	//memset(i1source, 0, (traini1->maxId+1)*sizeof(double));
-	for (i=0; i<userSim->count[i1]; ++i) {
-		i1source[userSim->edges[i1][i]] = 0;
-	}
-	for (i=0; i<traini1->count[i1]; ++i) {
-		neigh = traini1->id[i1][i];
-		degree = traini2->count[neigh];
-		source = 1.0/degree;
-		for (j=0; j<degree; ++j) {
-			neigh_neigh = traini2->id[neigh][j];
-			i1source[neigh_neigh] += source;
-		}
-	}
-	//three
-	memset(i2source, 0, (traini2->maxId+1)*sizeof(double));
-	long k;
-	for (k=0; k<tryK; ++k) {
-		i = userSim->edges[i1][k];
-		degree = traini1->count[i];
-		source = (double)i1source[i]/(double)degree;
-		for (j=0; j<degree; ++j) {
-			neigh = traini1->id[i][j];
-			i2source[neigh] += source;
-		}
-	}
-	//set selected item's source to 0
-	for (i=0; i<traini1->count[i1]; ++i) {
-		i2source[traini1->id[i1][i]] = -1;
-	}
-	//set i2id and rank.
-	for (i=0; i<traini2->maxId + 1; ++i) {
-		i2id[i] = i;
-		rank[i] = i+1;
-		if (!traini2->count[i]) {
-			i2source[i] = -1;
-		}
-	}
-	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, traini2->maxId, i2id);
-	//after qsort_iid_asc, the rank of the item whose id is x will be in rank[x];
-	qsort_iid_asc(i2id, 0, traini2->maxId, rank, i2source);
-}
-
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
-	printf("begin to calculat best knn....");fflush(stdout);
-	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
-	assert(i1source != NULL);
-	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
-	assert(i2source != NULL);
-	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
-	assert(rank != NULL);
-	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
-	assert(i2id != NULL);
-
-	double R, PL;
-
-	struct Bip_core_test test;
-	test.id = testi1->id;
-	test.maxId = testi1->maxId;
-	test.count = testi1->count;
-	test.idNum = testi1->idNum;
-	test.edgesNum = testi1->edgesNum;
-
-	int i;
-    long j;
-	int L = 50;
-	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
-	//for (i = 0; i<10; ++i) { //each user
-		if (testi1->count[i]) {
-			double bestR, bestPL;
-			bestR = LONG_MAX;
-			bestPL = -1;
-			int bestRK, bestPLK;
-			bestRK = bestPLK = -1;
-			for (j=0; j<userSim->count[i]; ++j) {
-				//j=0, means: rank is random. so R is random.
-				//random is always bad, so it will aways be overwrite.
-				knn_getbest_Bip2_core(i, traini1, traini2, userSim, i1source, i2source, i2id, rank, j);
-				R=PL=0;
-				metrics_Bip(i, traini1->count, traini2->idNum, &test, L, rank, &R, &PL);
-				//R will never be 0, because i is in testi1.
-				if (bestR > R) {
-					bestR = R;
-					bestRK = j;
-				}
-				if (bestPL < PL) {
-					bestPL = PL;
-					bestPLK = j;
-				}
-			}
-			bestK_R[i] = bestRK;
-			bestK_PL[i] = bestPLK;
-		}
-		else {
-			bestK_R[i] = -1;
-			bestK_PL[i] = -1;
-		}
-		printf("%d,", i);fflush(stdout);
-	}
-
-	free(i1source);
-	free(i2source);
-	free(rank);
-	free(i2id);
-	printf("calculat best knn done.\n");fflush(stdout);
 }
 
 /************************************************************************************************************/
@@ -1449,9 +1321,9 @@ struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 	return recommend_Bip(8, &args, &param, &test);
 }
 
-struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *bestK_R) {
+struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *knn) {
 	struct Bip_core_param param;
-	param.bestK_R = bestK_R;
+	param.knn = knn;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
 	struct Bip_core_base args;
@@ -1470,6 +1342,108 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	test.idNum = testi1->idNum;
 	test.edgesNum = testi1->edgesNum;
 	return recommend_Bip(9, &args, &param, &test);
+}
+
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
+	printf("begin to calculat best knn....\n");fflush(stdout);
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	double R, PL;
+
+	struct Bip_core_base args;
+	args.i1source = i1source;
+	args.i2source = i2source;
+	args.i1maxId = traini1->maxId;
+	args.i2maxId = traini2->maxId;
+	args.i1ids = traini1->id;
+	args.i2ids = traini2->id;
+	args.i1idNum = traini1->idNum;
+	args.i2idNum = traini2->idNum;
+	args.i1count = traini1->count;
+	args.i2count = traini2->count;
+
+
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+
+	int i;
+    int j;
+	int L = 50;
+	double bestR, bestPL;
+	int bestRK, bestPLK;
+	double realR = 0;
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+	//for (i = 0; i<10; ++i) { //each user
+		if (i<testi1->maxId + 1 && testi1->count[i]) {
+			bestR = LONG_MAX;
+			bestPL = -1;
+			bestRK = bestPLK = -1;
+			for (j=0; j<userSim->count[i]; ++j) {
+
+				probs_knn_Bip_core(i, &args, userSim, j);
+
+				long uidCount = args.i1count[i];
+				int *uidId = args.i1ids[i];
+				int i2maxId = args.i2maxId;
+				long *i2count = args.i2count;
+				long ii;
+				for (ii=0; ii<uidCount; ++ii) {
+					i2source[uidId[ii]] = -1;
+				}
+				for (ii=0; ii<i2maxId + 1; ++ii) {
+					rank[ii] = ii + 1;
+					i2id[ii] = ii;
+					if (!i2count[ii]) {
+						i2source[ii] = -2;
+					}
+				}
+				qsort_di_desc(i2source, 0, i2maxId, i2id);
+				for (ii=0; ii<i2maxId + 1; ++ii) {
+					rank[i2id[ii]] = ii+1;
+				}
+
+				R=PL=0;
+				metrics_Bip(i, traini1->count, traini2->idNum, &test, L, rank, &R, &PL);
+				//printf("%d, %d, %f\n", i, j, R);
+				//R will never be 0, because i is in testi1.
+				if (bestR > R) {
+					bestR = R;
+					bestRK = j;
+				}
+				if (bestPL < PL) {
+					bestPL = PL;
+					bestPLK = j;
+				}
+			}
+			bestK_R[i] = bestRK;
+			bestK_PL[i] = bestPLK;
+			realR += bestR;
+			printf("%d, %f, %f\n", i, bestK_R[i]/(double)userSim->count[i], bestR);fflush(stdout);
+		}
+		else {
+			bestK_R[i] = -1;
+			bestK_PL[i] = -1;
+		}
+		//exit(0);
+	}
+	printf("%f\n", realR/testi1->edgesNum);fflush(stdout);
+
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("calculat best knn done.\n");fflush(stdout);
 }
 
 /************************************************************************************************************/
