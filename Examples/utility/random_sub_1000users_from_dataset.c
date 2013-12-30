@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	long i;
 	while(num<=1000 && num <= neti1->idNum) {
 		randomuser =  genrand_int31()%(neti1->maxId + 1);
-		if (!selectedusers[randomuser]) {
+		if (neti1->count[randomuser] && !selectedusers[randomuser]) {
 			for (i=0; i<neti1->count[randomuser]; ++i) {
 				fprintf(fp, "%d, %d\n", randomuser, neti1->id[randomuser][i]);
 			}

@@ -1,12 +1,14 @@
 
 #include "../../inc/utility/statistics.h"
+#include "../../inc/utility/error.h"
+
 #include "stdlib.h"
 #include "assert.h"
 #include "string.h"
 #include "math.h"
 #include "stdio.h"
 
-double *distrib_01(double *data, int length) {
+double *distrib_01(double *data, int length, char *filename) {
 
 	double *retn = malloc(100*sizeof(double));
 	assert(retn != NULL);
@@ -21,10 +23,13 @@ double *distrib_01(double *data, int length) {
 			++dist[index];
 		}
 	}
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "distrib_01");
 	for (i=0; i<100; ++i) {
 		retn[i] = dist[i]/(double)length;
-		printf("%f, %f\n", i/100.0, retn[i]);
+		fprintf(fp, "%f, %f\n", i/100.0, retn[i]);
 	}
+	fclose(fp);
 	
 	return retn;
 
