@@ -12,7 +12,6 @@
  *    	...
  *    	the 100 time: I use all 100 users.
  *    and this is only one user.
- *    even more: I will record this information. use to drop some lines. but it's tmp, just need to check the line.
  *    the result is that: one user to one simliar users' number.
  * 3, use the new data to diffusion, get rankscore and all other things. and use mass diffusion too, get compared.
  *
@@ -31,21 +30,18 @@
 //#include "inc/utility/error.h"
 #include "inc/utility/random.h"
 #include "inc/utility/statistics.h"
+#include "inc/utility/hashtable.h"
 
 int main(int argc, char **argv)
 {
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
-	int userstep;
 	if (argc == 1) {
 		netfilename = "data/movielens/movielens_2c";
-		userstep = 1;
 	}
-	else if (argc == 3) {
+	else if (argc == 2) {
 		netfilename = argv[1];
-		char *pEnd;
-		userstep = strtol(argv[2], &pEnd, 10);
 	}
 
 	//unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
@@ -53,68 +49,32 @@ int main(int argc, char **argv)
 
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
 	struct Bip2 *neti1 = create_Bip2(netfile, 1);
-	struct Bip2 *neti2 = create_Bip2(netfile, 0);
-	free_iiLineFile(netfile);
-	struct iiLineFile *twofile = divide_Bip2(neti1, neti2, 0.1);
-	struct Bip2 *traini1 = create_Bip2(twofile + 1, 1);
-	struct Bip2 *traini2 = create_Bip2(twofile + 1, 0);
-	struct Bip2 *testi1 = create_Bip2(twofile, 1);
-	struct Bip2 *testi2 = create_Bip2(twofile, 0);
-	free_2_iiLineFile(twofile);
+	//struct Bip2 *neti2 = create_Bip2(netfile, 0);
+	//free_iiLineFile(netfile);
 
-	struct iidLineFile *userSimilarityfile = similarity_Bip2(traini1, traini2, 1);
-	struct iidNet *userSim = create_iidNet(userSimilarityfile);
-	free_iidLineFile(userSimilarityfile);
+	int *selectedusers = calloc(neti1->maxId + 1, sizeof(int));	
+	assert(selectedusers != NULL);
 
-	struct iidLineFile *itemSimilarityfile = similarity_Bip2(traini1, traini2, 0);
-	struct iidNet *itemSim = create_iidNet(itemSimilarityfile);
-	free_iidLineFile(itemSimilarityfile);
-
-	int *bestK_R = calloc((traini1->maxId + 1),sizeof(int));
-	assert(bestK_R != NULL);
-	int *bestK_PL = calloc((traini1->maxId + 1),sizeof(int));
-	assert(bestK_PL != NULL);
-	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL, userstep);
-
-	printf("xx");fflush(stdout);
-
-	double *tmp = malloc((traini1->maxId + 1)*sizeof(double));
-	int i;
-	for (i=0; i<traini1->maxId + 1; ++i) {
-		if (traini1->count[i] && userSim->count[i])
-		tmp[i] = bestK_R[i]/(double)userSim->count[i];
-	}
-
-	printf("xx");fflush(stdout);
-	distrib_01(tmp, traini1->maxId + 1);
-	printf("xx");fflush(stdout);
-	//int i;
-	//for (i=0; i<traini1->maxId + 1; ++i) {
-	//	printf("%d, %d, %d, %ld\n", i, bestK_R[i], bestK_PL[i], userSim->count[i]);
-	//}
-
-	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	struct L_Bip *knnR_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_R);
-	struct L_Bip *knnPL_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_PL);
-
-	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
-	printf("knnR_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnR_result->R, knnR_result->PL, knnR_result->IL, knnR_result->HL, knnR_result->NL);
-	printf("knnPL_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnPL_result->R, knnPL_result->PL, knnPL_result->IL, knnPL_result->HL, knnPL_result->NL);
-
-	free(bestK_R);
-	free(bestK_PL);
-	free_iidNet(userSim);
-	free_iidNet(itemSim);
-	free_Bip2(traini1);
-	free_Bip2(traini2);
-	free_Bip2(testi1);
-	free_Bip2(testi2);
-	free_Bip2(neti1);
-	free_Bip2(neti2);
-	free_L_Bip(mass_result);
-	free_L_Bip(knnR_result);
-	free_L_Bip(knnPL_result);
+	FILE *fp = fopen("subdata", "w");
 	
+	int randomuser =  genrand_int31()%(neti1->maxId + 1);
+	int num = 0;
+	long i;
+	while(num<=1000 && num <= neti1->idNum) {
+		randomuser =  genrand_int31()%(neti1->maxId + 1);
+		if (!selectedusers[randomuser]) {
+			for (i=0; i<neti1->count[randomuser]; ++i) {
+				fprintf(fp, "%d, %d\n", randomuser, neti1->id[randomuser][i]);
+			}
+			++num;
+			selectedusers[randomuser] = 1;
+		}
+	}
+	fclose(fp);
+
+
+	struct iiLineFile *file = create_iiLineFile("subdata");
+	wc_bip2_ii_HT(file, "subdataCon");
 
 	//printf end time;
 	t=time(NULL); printf("%s\n", ctime(&t)); fflush(stdout);

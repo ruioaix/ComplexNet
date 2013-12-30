@@ -23,7 +23,7 @@ double *distrib_01(double *data, int length) {
 	}
 	for (i=0; i<100; ++i) {
 		retn[i] = dist[i]/(double)length;
-		printf("%d, %f\n", i, retn[i]);
+		printf("%f, %f\n", i/100.0, retn[i]);
 	}
 	
 	return retn;

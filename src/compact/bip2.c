@@ -1344,7 +1344,7 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	return recommend_Bip(9, &args, &param, &test);
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL, int userstep) {
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
 	printf("begin to calculat best knn....\n");fflush(stdout);
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
@@ -1383,9 +1383,11 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	double bestR, bestPL;
 	int bestRK, bestPLK;
 	double realR = 0;
-	for (i = 0; i<traini1->maxId + 1; i += userstep) { //each user
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
 	//for (i = 0; i<10; ++i) { //each user
+		//only compute user in testset.
 		if (i<testi1->maxId + 1 && testi1->count[i]) {
+			//just to make sure bestR is enough big.
 			bestR = LONG_MAX;
 			bestPL = -1;
 			bestRK = bestPLK = -1;
@@ -1397,6 +1399,7 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 				int *uidId = args.i1ids[i];
 				int i2maxId = args.i2maxId;
 				long *i2count = args.i2count;
+
 				long ii;
 				for (ii=0; ii<uidCount; ++ii) {
 					i2source[uidId[ii]] = -1;
@@ -1429,13 +1432,13 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 			bestK_R[i] = bestRK;
 			bestK_PL[i] = bestPLK;
 			realR += bestR;
-			printf("%d, %f, %f\n", i, bestK_R[i]/(double)userSim->count[i], bestR);fflush(stdout);
+			//only print useful bestK_R
+			printf("%d, %d, %ld, %f, %f\n", i, bestK_R[i], userSim->count[i], bestK_R[i]/(double)userSim->count[i], bestR);fflush(stdout);
 		}
 		else {
-			bestK_R[i] = -1;
-			bestK_PL[i] = -1;
+			//this doesn't affect RankScore and Precision, but it does affect the other metrics.
+			bestK_PL[i] = bestK_R[i] = userSim->count[i];
 		}
-		//exit(0);
 	}
 	printf("%f\n", realR/testi1->edgesNum);fflush(stdout);
 

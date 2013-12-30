@@ -12,7 +12,6 @@
  *    	...
  *    	the 100 time: I use all 100 users.
  *    and this is only one user.
- *    even more: I will record this information. use to drop some lines. but it's tmp, just need to check the line.
  *    the result is that: one user to one simliar users' number.
  * 3, use the new data to diffusion, get rankscore and all other things. and use mass diffusion too, get compared.
  *
@@ -30,6 +29,7 @@
 #include "inc/compact/bip2.h"
 //#include "inc/utility/error.h"
 #include "inc/utility/random.h"
+#include "inc/utility/statistics.h"
 
 int main(int argc, char **argv)
 {
@@ -57,30 +57,46 @@ int main(int argc, char **argv)
 	struct Bip2 *testi2 = create_Bip2(twofile, 0);
 	free_2_iiLineFile(twofile);
 
-	struct iidLineFile *userSimilarityfile = similarity_realtime_Bip2(traini1, traini2, 1);
+	struct iidLineFile *userSimilarityfile = similarity_Bip2(traini1, traini2, 1);
 	struct iidNet *userSim = create_iidNet(userSimilarityfile);
 	free_iidLineFile(userSimilarityfile);
-	print_iidNet(userSim, "1");
 
-	struct iidLineFile *itemSimilarityfile = similarity_realtime_Bip2(traini1, traini2, 0);
+	struct iidLineFile *itemSimilarityfile = similarity_Bip2(traini1, traini2, 0);
 	struct iidNet *itemSim = create_iidNet(itemSimilarityfile);
 	free_iidLineFile(itemSimilarityfile);
 
-	int *bestK_R = malloc((traini1->maxId + 1)*sizeof(int));
+	int *bestK_R = calloc((traini1->maxId + 1),sizeof(int));
 	assert(bestK_R != NULL);
-	int *bestK_PL = malloc((traini1->maxId + 1)*sizeof(int));
+	int *bestK_PL = calloc((traini1->maxId + 1),sizeof(int));
 	assert(bestK_PL != NULL);
+	//
 	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL);
 
-	//int i;
-	//for (i=0; i<traini1->maxId + 1; ++i) {
-	//	printf("%d, %d, %d, %ld\n", i, bestK_R[i], bestK_PL[i], userSim->count[i]);
-	//}
+	double *tmp = malloc((traini1->maxId + 1)*sizeof(double));
+	int i;
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (traini1->count[i] && userSim->count[i])
+		tmp[i] = bestK_R[i]/(double)userSim->count[i];
+	}
 
-	struct L_Bip2 *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	struct L_Bip2 *knn_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_R);
-	struct L_Bip2 *knn_result_2 = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_PL);
-	printf("mass: %f, knn: %f, knnpl: %f\n", mass_result->R, knn_result->R, knn_result_2->R);
+	printf("x/userSim->count[i]:\n");
+	distrib_01(tmp, traini1->maxId + 1);
+
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (traini1->count[i] && userSim->count[i])
+		tmp[i] = (double)bestK_R[i]/userSim->countMax;
+	}
+
+	printf("x/userSim->countMax:\n");
+	distrib_01(tmp, traini1->maxId + 1);
+
+	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
+	struct L_Bip *knnR_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_R);
+	struct L_Bip *knnPL_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_PL);
+
+	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
+	printf("knnR_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnR_result->R, knnR_result->PL, knnR_result->IL, knnR_result->HL, knnR_result->NL);
+	printf("knnPL_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnPL_result->R, knnPL_result->PL, knnPL_result->IL, knnPL_result->HL, knnPL_result->NL);
 
 	free(bestK_R);
 	free(bestK_PL);
@@ -92,8 +108,9 @@ int main(int argc, char **argv)
 	free_Bip2(testi2);
 	free_Bip2(neti1);
 	free_Bip2(neti2);
-	free_L_Bip2(mass_result);
-	free_L_Bip2(knn_result);
+	free_L_Bip(mass_result);
+	free_L_Bip(knnR_result);
+	free_L_Bip(knnPL_result);
 	
 
 	//printf end time;

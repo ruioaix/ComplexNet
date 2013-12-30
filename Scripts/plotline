@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gnuplot << EOF
+
+set terminal postscript eps
+
+set xlabel 'x'
+set ylabel 'y'
+set output 'xy.eps'
+plot '$1' using $2:$3 w lp pt 1 ps 0.5 lc 3 title 'score'
+set output
+
+EOF
