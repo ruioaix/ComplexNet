@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gnuplot << EOF
+
+set terminal postscript eps
+
+set xlabel 'knn k'
+set ylabel 'rank'
+set output 'knn_r.eps'
+plot '1' using 2:3 w p pt 1 ps 0.5 lc 3 title 'score'
+set output
+
+EOF

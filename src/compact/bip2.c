@@ -1344,7 +1344,7 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	return recommend_Bip(9, &args, &param, &test);
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL, int userstep) {
 	printf("begin to calculat best knn....\n");fflush(stdout);
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
@@ -1383,7 +1383,7 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	double bestR, bestPL;
 	int bestRK, bestPLK;
 	double realR = 0;
-	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+	for (i = 0; i<traini1->maxId + 1; i += userstep) { //each user
 	//for (i = 0; i<10; ++i) { //each user
 		if (i<testi1->maxId + 1 && testi1->count[i]) {
 			bestR = LONG_MAX;

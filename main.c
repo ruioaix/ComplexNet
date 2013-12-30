@@ -37,11 +37,15 @@ int main(int argc, char **argv)
 	//printf begin time;
 	time_t t=time(NULL); printf("%s", ctime(&t)); fflush(stdout);
 	char *netfilename;
+	int userstep;
 	if (argc == 1) {
 		netfilename = "data/movielens/movielens_2c";
+		userstep = 1;
 	}
-	else if (argc == 2) {
+	else if (argc == 3) {
 		netfilename = argv[1];
+		char *pEnd;
+		userstep = strtol(argv[2], &pEnd, 10);
 	}
 
 	//unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
@@ -70,7 +74,7 @@ int main(int argc, char **argv)
 	assert(bestK_R != NULL);
 	int *bestK_PL = calloc((traini1->maxId + 1),sizeof(int));
 	assert(bestK_PL != NULL);
-	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL);
+	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL, userstep);
 
 	printf("xx");fflush(stdout);
 
