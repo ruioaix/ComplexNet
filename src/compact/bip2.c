@@ -1344,7 +1344,12 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	return recommend_Bip(9, &args, &param, &test);
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
+void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL, double *tmp1, double *tmp2) {
+
+	//at beginning, bestK_R & bestK_PL is all zero.
+	//at the end:
+	//if user i has links in testset and has similary users, then k will be in [1, userSim->count[i]].
+	//else k = userSim->count[i]. (if userSim->count[i] == 0, k = 0.)
 	printf("\nbegin to calculat best knn....\n");fflush(stdout);
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
@@ -1382,16 +1387,16 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	int L = 50;
 	double bestR, bestPL;
 	int bestRK, bestPLK;
-	double realR = 0;
+	double realR = 0, realR2 = 0;
+	int kk=0;
 	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
-	//for (i = 0; i<10; ++i) { //each user
 		//only compute user in testset.
-		if (i<testi1->maxId + 1 && testi1->count[i]) {
+		if (userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
 			bestR = LONG_MAX;
 			bestPL = -1;
 			bestRK = bestPLK = -1;
-			for (j=0; j<userSim->count[i]; ++j) {
+			for (j=1; j<= userSim->count[i]; ++j) {
 
 				probs_knn_Bip_core(i, &args, userSim, j);
 
@@ -1429,18 +1434,22 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 					bestPLK = j;
 				}
 			}
+			//only print useful bestK_R
 			bestK_R[i] = bestRK;
 			bestK_PL[i] = bestPLK;
 			realR += bestR;
-			//only print useful bestK_R
-			printf("%d, %d, %ld, %f, %f\n", i, bestK_R[i], userSim->count[i], bestK_R[i]/(double)userSim->count[i], bestR);fflush(stdout);
+			realR2 += R;
+			tmp1[i] = bestR/R;
+
+			printf("%d, %d, %d, %ld, %f, %f, %f, %f, %ld\n", ++kk, i, bestK_R[i], userSim->count[i], bestK_R[i]/(double)userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, traini1->count[i]);fflush(stdout);
 		}
 		else {
 			//this doesn't affect RankScore and Precision, but it does affect the other metrics.
 			bestK_PL[i] = bestK_R[i] = userSim->count[i];
+			tmp1[i] = -1;
 		}
 	}
-	//printf("%f\n", realR/testi1->edgesNum);fflush(stdout);
+	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);
 
 	free(i1source);
 	free(i2source);

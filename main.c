@@ -69,8 +69,11 @@ int main(int argc, char **argv)
 	assert(bestK_R != NULL);
 	int *bestK_PL = calloc((traini1->maxId + 1),sizeof(int));
 	assert(bestK_PL != NULL);
+
+	double *tmp1 = calloc((traini1->maxId + 1), sizeof(double));
+	double *tmp2 = calloc((traini1->maxId + 1), sizeof(double));
 	//
-	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL);
+	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL, tmp1, tmp2);
 
 	double *tmp = malloc((traini1->maxId + 1)*sizeof(double));
 	int i;
@@ -80,6 +83,8 @@ int main(int argc, char **argv)
 	}
 
 	distrib_01(tmp, traini1->maxId + 1, "uScount");
+
+	distrib_01(tmp1, traini1->maxId + 1, "xxx");
 
 	for (i=0; i<traini1->maxId + 1; ++i) {
 		if (traini1->count[i] && userSim->count[i])
