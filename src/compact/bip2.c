@@ -1345,7 +1345,7 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 }
 
 void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL) {
-	printf("begin to calculat best knn....\n");fflush(stdout);
+	printf("\nbegin to calculat best knn....\n");fflush(stdout);
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
 	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
@@ -1440,13 +1440,13 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 			bestK_PL[i] = bestK_R[i] = userSim->count[i];
 		}
 	}
-	printf("%f\n", realR/testi1->edgesNum);fflush(stdout);
+	//printf("%f\n", realR/testi1->edgesNum);fflush(stdout);
 
 	free(i1source);
 	free(i2source);
 	free(rank);
 	free(i2id);
-	printf("calculat best knn done.\n");fflush(stdout);
+	printf("calculat best knn done.\n\n");fflush(stdout);
 }
 
 /************************************************************************************************************/

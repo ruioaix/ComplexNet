@@ -79,7 +79,6 @@ int main(int argc, char **argv)
 		tmp[i] = bestK_R[i]/(double)userSim->count[i];
 	}
 
-	printf("x/userSim->count[i]:\n");
 	distrib_01(tmp, traini1->maxId + 1, "uScount");
 
 	for (i=0; i<traini1->maxId + 1; ++i) {
@@ -87,7 +86,6 @@ int main(int argc, char **argv)
 		tmp[i] = (double)bestK_R[i]/userSim->countMax;
 	}
 
-	printf("x/userSim->countMax:\n");
 	distrib_01(tmp, traini1->maxId + 1, "uScountMax");
 
 	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
