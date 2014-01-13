@@ -253,6 +253,14 @@ static void probs_Bip_core(int i1, struct Bip_core_base *args) {
 			}
 		}
 	}
+	
+	for (i=0; i<i1maxId + 1; i+=10) {
+		if (i1source[i]) {
+			printf("%d, %d, %f\n", i1, i, i1source[i]);
+		}
+	}
+	exit(0);
+
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	for (i=0; i<i1maxId + 1; ++i) {

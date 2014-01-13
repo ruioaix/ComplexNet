@@ -7,7 +7,7 @@ set terminal postscript eps
 set xlabel 'x'
 set ylabel 'y'
 set output 'xy.eps'
-plot '$1' using $3:$4 w $2 pt 1 ps 0.5 lc 3 title 'score'
+plot '$1' using $3:$4 w lp pt 1 ps 0.5 lc 1 title 'score', '$2' using $3:$4 w lp pt 1 ps 0.5 lc 3 title 'score'
 set output
 
 EOF

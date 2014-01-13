@@ -61,48 +61,19 @@ int main(int argc, char **argv)
 	struct iidNet *userSim = create_iidNet(userSimilarityfile);
 	free_iidLineFile(userSimilarityfile);
 
+	int i;
+	for (i=0; i<userSim->count[1]; i+=10) {
+		printf("1, %d, %f\n", userSim->edges[1][i], userSim->d3[1][i]);
+	}
+
 	struct iidLineFile *itemSimilarityfile = similarity_Bip2(traini1, traini2, 0);
 	struct iidNet *itemSim = create_iidNet(itemSimilarityfile);
 	free_iidLineFile(itemSimilarityfile);
 
-	int *bestK_R = calloc((traini1->maxId + 1),sizeof(int));
-	assert(bestK_R != NULL);
-	int *bestK_PL = calloc((traini1->maxId + 1),sizeof(int));
-	assert(bestK_PL != NULL);
-
-	double *tmp1 = calloc((traini1->maxId + 1), sizeof(double));
-	double *tmp2 = calloc((traini1->maxId + 1), sizeof(double));
-	//
-	knn_getbest_Bip2(traini1, traini2, testi1, testi2, userSim, bestK_R, bestK_PL, tmp1, tmp2);
-
-	double *tmp = malloc((traini1->maxId + 1)*sizeof(double));
-	int i;
-	for (i=0; i<traini1->maxId + 1; ++i) {
-		if (traini1->count[i] && userSim->count[i])
-		tmp[i] = bestK_R[i]/(double)userSim->count[i];
-	}
-
-	distrib_01(tmp, traini1->maxId + 1, "uScount");
-
-	distrib_01(tmp1, traini1->maxId + 1, "xxx");
-
-	for (i=0; i<traini1->maxId + 1; ++i) {
-		if (traini1->count[i] && userSim->count[i])
-		tmp[i] = (double)bestK_R[i]/userSim->countMax;
-	}
-
-	distrib_01(tmp, traini1->maxId + 1, "uScountMax");
-
 	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	struct L_Bip *knnR_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_R);
-	struct L_Bip *knnPL_result = probs_knn_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestK_PL);
 
 	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
-	printf("knnR_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnR_result->R, knnR_result->PL, knnR_result->IL, knnR_result->HL, knnR_result->NL);
-	printf("knnPL_mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", knnPL_result->R, knnPL_result->PL, knnPL_result->IL, knnPL_result->HL, knnPL_result->NL);
 
-	free(bestK_R);
-	free(bestK_PL);
 	free_iidNet(userSim);
 	free_iidNet(itemSim);
 	free_Bip2(traini1);
@@ -112,8 +83,6 @@ int main(int argc, char **argv)
 	free_Bip2(neti1);
 	free_Bip2(neti2);
 	free_L_Bip(mass_result);
-	free_L_Bip(knnR_result);
-	free_L_Bip(knnPL_result);
 	
 
 	//printf end time;
