@@ -31,6 +31,7 @@ struct Bip_core_param {
 	int *knn;
 	struct iidNet *userSim;
 	struct iidNet *itemSim;
+	double simcut;
 };
 
 struct Bip_core_base {
@@ -621,21 +622,86 @@ static void probs_knn_Bip_core(int uid, struct Bip_core_base *args, struct iidNe
 		}
 	}
 }
+//three-step random walk of Probs, similarity cut.
+static void probs_simcut_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, double simcut) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[uid]; ++j) {
+		neigh = i1ids[uid][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	char sign = 0;
+	for (k=0; k<userSim->count[uid]; ++k) {
+		if (userSim->d3[uid][k] > simcut*userSim->d3[uid][0]) {
+			i = userSim->edges[uid][k];
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+			sign = 1;
+		}
+		else {
+			break;
+		}
+	}
+	if (!sign) {
+		for (k=0; k<userSim->count[uid]; ++k) {
+			i = userSim->edges[uid][k];
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
 
 
 /** 
  * core function of recommendation.
  * type :
- * 0 -- for test TODO deleted
- * 1 -- probs (NONE arg)
- * 2 -- heats (NONE arg)
- * 3 -- HNBI  (theta)
- * 4 -- RENBI  (eta)
- * 5 -- hybrid (lambda)
- * 6 -- score hybrid (epsilon) TODO deleted
- * 7 -- usersim onion probs (orate, userSim)
- * 8 -- usersim degree probs (orate, userSim)
- * 9 -- knn 
+ * 0  -- for test TODO deleted
+ * 1  -- probs (NONE arg)
+ * 2  -- heats (NONE arg)
+ * 3  -- HNBI  (theta)
+ * 4  -- RENBI  (eta)
+ * 5  -- hybrid (lambda)
+ * 6  -- score hybrid (epsilon) TODO deleted
+ * 7  -- usersim onion probs (orate, userSim)
+ * 8  -- usersim degree probs (orate, userSim)
+ * 9  -- knn 
+ * 10 -- similarity cut
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -648,6 +714,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	int *knn      = param->knn;
 	struct iidNet *userSim = param->userSim;
 	struct iidNet *itemSim = param->itemSim;
+	double simcut = param->simcut;
 
 	//int **i1ids      = args->i1ids;
 	//int **i2ids      = args->i2ids; 
@@ -768,6 +835,19 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				if (i1count[i]) {
 					//get rank
 					probs_knn_Bip_core(i, args, userSim, knn[i]);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 10:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_simcut_Bip_core(i, args, userSim, simcut);
 					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
 					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
@@ -1345,8 +1425,31 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	return recommend_Bip(9, &args, &param, &test);
 }
 
+struct L_Bip *probs_simcut_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double simcut) {
+	struct Bip_core_param param;
+	param.simcut = simcut;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(10, &args, &param, &test);
+}
+
 void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim) {
-	printf("\n experiment_knn_Bip2 begin....\n");fflush(stdout);
+	printf("\nexperiment_knn_Bip2 begin....\n");fflush(stdout);
 
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
@@ -1426,7 +1529,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 			realR2 += R;
 
 			if (userSim->count[i]) {
-				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
+				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0], bestR, R);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");
@@ -1444,7 +1547,6 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 	free(i2id);
 	printf("calculat best knn done.\n\n");fflush(stdout);
 }
-
 /************************************************************************************************************/
 /************************************************************************************************************/
 /****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/

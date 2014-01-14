@@ -81,6 +81,7 @@ struct L_Bip *score_hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct B
 struct L_Bip *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, double orate);
 struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR);
 struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int *bestK_R);
+struct L_Bip *probs_simcut_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double simcut);
 
 void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim);
 
