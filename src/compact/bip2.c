@@ -254,13 +254,6 @@ static void probs_Bip_core(int i1, struct Bip_core_base *args) {
 		}
 	}
 	
-	for (i=0; i<i1maxId + 1; i+=10) {
-		if (i1source[i]) {
-			printf("%d, %d, %f\n", i1, i, i1source[i]);
-		}
-	}
-	exit(0);
-
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	for (i=0; i<i1maxId + 1; ++i) {
@@ -583,7 +576,7 @@ static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNe
 	}
 }
 //three-step random walk of Probs
-static void probs_knn_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int bestR) {
+static void probs_knn_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, int NK) {
 
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
@@ -599,8 +592,8 @@ static void probs_knn_Bip_core(int i1, struct Bip_core_base *args, struct iidNet
 	double source;
 	//one 
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
-	for (j=0; j<i1count[i1]; ++j) {
-		neigh = i1ids[i1][j];
+	for (j=0; j<i1count[uid]; ++j) {
+		neigh = i1ids[uid][j];
 		i2source[neigh] = 1.0;
 	}
 	//two
@@ -618,8 +611,8 @@ static void probs_knn_Bip_core(int i1, struct Bip_core_base *args, struct iidNet
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	long k;
-	for (k=0; k<bestR; ++k) {
-		i = userSim->edges[i1][k];
+	for (k=0; k<NK; ++k) {
+		i = userSim->edges[uid][k];
 		degree = i1count[i];
 		source = (double)i1source[i]/(double)degree;
 		for (j=0; j<degree; ++j) {
@@ -1352,13 +1345,9 @@ struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2
 	return recommend_Bip(9, &args, &param, &test);
 }
 
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL, double *tmp1, double *tmp2) {
+void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim) {
+	printf("\n experiment_knn_Bip2 begin....\n");fflush(stdout);
 
-	//at beginning, bestK_R & bestK_PL is all zero.
-	//at the end:
-	//if user i has links in testset and has similary users, then k will be in [1, userSim->count[i]].
-	//else k = userSim->count[i]. (if userSim->count[i] == 0, k = 0.)
-	printf("\nbegin to calculat best knn....\n");fflush(stdout);
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
 	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
@@ -1382,7 +1371,6 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	args.i1count = traini1->count;
 	args.i2count = traini2->count;
 
-
 	struct Bip_core_test test;
 	test.id = testi1->id;
 	test.maxId = testi1->maxId;
@@ -1393,29 +1381,25 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 	int i;
     int j;
 	int L = 50;
-	double bestR, bestPL;
-	int bestRK, bestPLK;
+	double bestR;
+	int bestRK;
 	double realR = 0, realR2 = 0;
-	int kk=0;
 	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
 		//only compute user in testset.
 		if (userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
 			bestR = LONG_MAX;
-			bestPL = -1;
-			bestRK = bestPLK = -1;
+			bestRK = -1;
 			for (j=1; j<= userSim->count[i]; ++j) {
 
 				probs_knn_Bip_core(i, &args, userSim, j);
 
-				long uidCount = args.i1count[i];
-				int *uidId = args.i1ids[i];
 				int i2maxId = args.i2maxId;
 				long *i2count = args.i2count;
 
 				long ii;
-				for (ii=0; ii<uidCount; ++ii) {
-					i2source[uidId[ii]] = -1;
+				for (ii=0; ii<traini1->count[i]; ++ii) {
+					i2source[traini1->id[i][ii]] = -1;
 				}
 				for (ii=0; ii<i2maxId + 1; ++ii) {
 					rank[ii] = ii + 1;
@@ -1437,24 +1421,19 @@ void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *t
 					bestR = R;
 					bestRK = j;
 				}
-				if (bestPL < PL) {
-					bestPL = PL;
-					bestPLK = j;
-				}
 			}
-			//only print useful bestK_R
-			bestK_R[i] = bestRK;
-			bestK_PL[i] = bestPLK;
 			realR += bestR;
 			realR2 += R;
-			tmp1[i] = bestR/R;
 
-			printf("%d, %d, %d, %ld, %f, %f, %f, %f, %ld\n", ++kk, i, bestK_R[i], userSim->count[i], bestK_R[i]/(double)userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, traini1->count[i]);fflush(stdout);
+			if (userSim->count[i]) {
+				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
+			}
+			else {
+				printf("xxxxxxxxxxxxx\n");
+			}
 		}
 		else {
 			//this doesn't affect RankScore and Precision, but it does affect the other metrics.
-			bestK_PL[i] = bestK_R[i] = userSim->count[i];
-			tmp1[i] = -1;
 		}
 	}
 	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);

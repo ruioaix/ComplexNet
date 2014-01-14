@@ -43,36 +43,36 @@ int main(int argc, char **argv)
 		netfilename = argv[1];
 	}
 
-	//unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
-	//init_by_array(init, length);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
 
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
 	struct Bip2 *neti1 = create_Bip2(netfile, 1);
 	struct Bip2 *neti2 = create_Bip2(netfile, 0);
 	free_iiLineFile(netfile);
 	struct iiLineFile *twofile = divide_Bip2(neti1, neti2, 0.1);
+	free_Bip2(neti1);
+	free_Bip2(neti2);
 	struct Bip2 *traini1 = create_Bip2(twofile + 1, 1);
 	struct Bip2 *traini2 = create_Bip2(twofile + 1, 0);
 	struct Bip2 *testi1 = create_Bip2(twofile, 1);
 	struct Bip2 *testi2 = create_Bip2(twofile, 0);
 	free_2_iiLineFile(twofile);
+	
+	//to this, only traini1/2, testi1/2 available.
 
 	struct iidLineFile *userSimilarityfile = similarity_Bip2(traini1, traini2, 1);
 	struct iidNet *userSim = create_iidNet(userSimilarityfile);
+	sort_desc_iidNet(userSim);
 	free_iidLineFile(userSimilarityfile);
-
-	int i;
-	for (i=0; i<userSim->count[1]; i+=10) {
-		printf("1, %d, %f\n", userSim->edges[1][i], userSim->d3[1][i]);
-	}
 
 	struct iidLineFile *itemSimilarityfile = similarity_Bip2(traini1, traini2, 0);
 	struct iidNet *itemSim = create_iidNet(itemSimilarityfile);
 	free_iidLineFile(itemSimilarityfile);
-
-	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-
-	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
+	
+	//to this, only traini1/2, testi1/2 ,user/itemSim, available.
+	
+	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
 
 	free_iidNet(userSim);
 	free_iidNet(itemSim);
@@ -80,9 +80,6 @@ int main(int argc, char **argv)
 	free_Bip2(traini2);
 	free_Bip2(testi1);
 	free_Bip2(testi2);
-	free_Bip2(neti1);
-	free_Bip2(neti2);
-	free_L_Bip(mass_result);
 	
 
 	//printf end time;

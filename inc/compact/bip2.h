@@ -82,9 +82,7 @@ struct L_Bip *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip
 struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR);
 struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int *bestK_R);
 
-
-//void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL);
-void knn_getbest_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim, int *bestK_R, int *bestK_PL, double *tmp1, double *tmp2);
+void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim);
 
 
 /************************************************************************************************************/
