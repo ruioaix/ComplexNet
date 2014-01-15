@@ -11,6 +11,7 @@ $fp1 = fopen($file, "r") or die("can not open $file");
 $col2 = array();
 $col3 = array();
 $col4 = array();
+$col8 = array();
 $col10 = array();
 
 $linesNum = 0;
@@ -38,6 +39,7 @@ while (!feof($fp1)) {
   $col2[] = $tmp[1];
   $col3[] = $tmp[2];
   $col4[] = $tmp[3];
+  $col8[] = $tmp[7];
   $col10[] = $tmp[9];
   
 }
@@ -84,6 +86,20 @@ foreach ($col as $value) {
 }
 $variance = $total/$count;
 echo "col3: average: $average, variance: $variance\n";
+
+$col = $col8;
+$count = count($col);
+$total = 0.0;
+foreach ($col as $value) {
+  $total += $value;
+}
+$average = $total/$count;
+$total = 0.0;
+foreach ($col as $value) {
+  $total += pow($value/$average - 1, 2);
+}
+$variance = $total/$count;
+echo "col8: average: $average, variance: $variance\n";
 
 fclose($fp1);
 //fclose($fpw);

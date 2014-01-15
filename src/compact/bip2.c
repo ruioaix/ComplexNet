@@ -660,7 +660,8 @@ static void probs_simcut_Bip_core(int uid, struct Bip_core_base *args, struct ii
 	long k;
 	char sign = 0;
 	for (k=0; k<userSim->count[uid]; ++k) {
-		if (userSim->d3[uid][k] > simcut*userSim->d3[uid][0]) {
+		//if (userSim->d3[uid][k] > simcut*userSim->d3[uid][0]) {
+		if (userSim->d3[uid][k] > simcut) {
 			i = userSim->edges[uid][k];
 			degree = i1count[i];
 			source = (double)i1source[i]/(double)degree;
@@ -1529,7 +1530,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 			realR2 += R;
 
 			if (userSim->count[i]) {
-				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0], bestR, R);fflush(stdout);
+				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");

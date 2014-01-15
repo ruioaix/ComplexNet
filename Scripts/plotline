@@ -10,9 +10,9 @@ set ytics nomirror
 set y2tics
 set y2label 'y2'
 set output 'xy.eps'
-plot '$1' using $2:$3 w lp pt 1 ps 0.5 lc 3 axis x1y1 title 'xy1', '$1' using $2:$4 w lp pt 1 ps 0.5 lc 2 axis x1y2 title 'xy2'
+plot '$1' using $2:$3 w lp pt 1 ps 0.5 lc 3 axis x1y1 title 'xy1'
 set output
 
 EOF
 
-#
+#, '$1' using $2:$4 w lp pt 1 ps 0.5 lc 2 axis x1y2 title 'xy2'
