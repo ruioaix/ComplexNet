@@ -1530,7 +1530,8 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 			realR2 += R;
 
 			if (userSim->count[i]) {
-				printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR/testi1->count[i], R/testi1->count[i], bestR/R, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
+				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
+				printf("%d\t%d\t%ld\t%f\t%f\n", i, bestRK, userSim->count[i], (double)bestRK/userSim->count[i], R-bestR);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");
