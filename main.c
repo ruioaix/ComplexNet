@@ -97,11 +97,9 @@ int main(int argc, char **argv)
 	get_UserSimilarity(traini1, traini2, &userSim);
 	get_ItemSimilarity(traini1, traini2, &itemSim);
 	
-	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
 	sort_desc_iidNet(userSim);
 	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
-	sort_asc_iidNet(userSim);
-	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
+
 	//struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
 	//struct L_Bip *simcut_result = probs_simcut_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
 	//int i;
