@@ -122,3 +122,12 @@ void sort_desc_iidNet(struct iidNet *net) {
 		}
 	}
 }
+
+void sort_asc_iidNet(struct iidNet *net) {
+	int i;
+	for (i=0; i<net->maxId + 1; ++i) {
+		if (net->count[i]) {
+			qsort_di_asc(net->d3[i], 0, net->count[i] - 1, net->edges[i]);
+		}
+	}
+}

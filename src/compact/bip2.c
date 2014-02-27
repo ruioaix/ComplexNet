@@ -32,6 +32,7 @@ struct Bip_core_param {
 	struct iidNet *userSim;
 	struct iidNet *itemSim;
 	double simcut;
+	double bestkcut;
 };
 
 struct Bip_core_base {
@@ -687,6 +688,66 @@ static void probs_simcut_Bip_core(int uid, struct Bip_core_base *args, struct ii
 		}
 	}
 }
+//three-step random walk of Probs, bestk cut.
+static void probs_bestkcut_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, double bestkcut) {
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->i1ids;
+	int **i2ids = args->i2ids; 
+	int i1maxId = args->i1maxId;
+	int i2maxId = args->i2maxId;
+	long *i1count = args->i1count;
+	long *i2count = args->i2count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[uid]; ++j) {
+		neigh = i1ids[uid][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	long bestk= floor(bestkcut * userSim->count[uid]);
+	char sign = 0;
+	for (k=0; k<bestk; ++k) {
+		i = userSim->edges[uid][k];
+		degree = i1count[i];
+		source = (double)i1source[i]/(double)degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i1ids[i][j];
+			i2source[neigh] += source;
+		}
+		sign = 1;
+	}
+	if (!sign) {
+		for (k=0; k<userSim->count[uid]; ++k) {
+			i = userSim->edges[uid][k];
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
 
 
 /** 
@@ -703,6 +764,7 @@ static void probs_simcut_Bip_core(int uid, struct Bip_core_base *args, struct ii
  * 8  -- usersim degree probs (orate, userSim)
  * 9  -- knn 
  * 10 -- similarity cut
+ * 11 -- bestk cut
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -716,6 +778,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	struct iidNet *userSim = param->userSim;
 	struct iidNet *itemSim = param->itemSim;
 	double simcut = param->simcut;
+	double bestkcut = param->bestkcut;
 
 	//int **i1ids      = args->i1ids;
 	//int **i2ids      = args->i2ids; 
@@ -849,6 +912,19 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				if (i1count[i]) {
 					//get rank
 					probs_simcut_Bip_core(i, args, userSim, simcut);
+					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 11:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_bestkcut_Bip_core(i, args, userSim, bestkcut);
 					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
 					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
@@ -1449,6 +1525,29 @@ struct L_Bip *probs_simcut_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct B
 	return recommend_Bip(10, &args, &param, &test);
 }
 
+struct L_Bip *bestkcut_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double bestkcut) {
+	struct Bip_core_param param;
+	param.bestkcut = bestkcut;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	struct Bip_core_base args;
+	args.i1maxId = bipi1->maxId;
+	args.i2maxId = bipi2->maxId;
+	args.i1count = bipi1->count;
+	args.i2count = bipi2->count;
+	args.i1idNum = bipi1->idNum;
+	args.i2idNum = bipi2->idNum;
+	args.i1ids = bipi1->id;
+	args.i2ids = bipi2->id;
+	struct Bip_core_test test;
+	test.id = testi1->id;
+	test.maxId = testi1->maxId;
+	test.count = testi1->count;
+	test.idNum = testi1->idNum;
+	test.edgesNum = testi1->edgesNum;
+	return recommend_Bip(11, &args, &param, &test);
+}
+
 void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim) {
 	printf("\nexperiment_knn_Bip2 begin....\n");fflush(stdout);
 
@@ -1531,7 +1630,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 
 			if (userSim->count[i]) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
-				printf("%d\t%d\t%ld\t%f\t%f\n", i, bestRK, userSim->count[i], (double)bestRK/userSim->count[i], R-bestR);fflush(stdout);
+				printf("%d\t%d\t%ld\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], (double)bestRK/userSim->count[i], R-bestR, (R-bestR)/testi1->count[i]);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");

@@ -58,10 +58,9 @@ void create_2dataset(char *netfilename, struct Bip2 **traini1, struct Bip2 **tra
 	free_2_iiLineFile(twofile);
 }
 
-void get_SortedUserSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **userSim) {
+void get_UserSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **userSim) {
 	struct iidLineFile *userSimilarityfile = similarity_Bip2(traini1, traini2, 1);
 	*userSim = create_iidNet(userSimilarityfile);
-	sort_desc_iidNet(*userSim);
 	free_iidLineFile(userSimilarityfile);
 }
 
@@ -77,15 +76,15 @@ int main(int argc, char **argv)
 	set_RandomSeed();
 
 	char *netfilename;
-	double simcut;
+	//double bestkcut;
 	if (argc == 1) {
 		netfilename = "data/movielens/movielens_2c";
-		simcut = 0.1;	
+		//bestkcut = 0.2;	
 	}
-	else if (argc == 3) {
+	else if (argc == 2) {
 		netfilename = argv[1];
-		char *p;
-		simcut = strtod(argv[2], &p);
+		//char *p;
+		//bestkcut = strtod(argv[2], &p);
 	}
 	else {
 		isError("wrong argc, argv\n");
@@ -95,20 +94,28 @@ int main(int argc, char **argv)
 	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2);
 
 	struct iidNet *userSim, *itemSim;
-	get_SortedUserSimilarity(traini1, traini2, &userSim);
+	get_UserSimilarity(traini1, traini2, &userSim);
 	get_ItemSimilarity(traini1, traini2, &itemSim);
 	
 	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
-	struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	struct L_Bip *simcut_result = probs_simcut_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
+	sort_desc_iidNet(userSim);
+	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
+	sort_asc_iidNet(userSim);
+	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
+	//struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
+	//struct L_Bip *simcut_result = probs_simcut_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
 	//int i;
-	//for(i=0; i<traini1->maxId + 1; ++i) {
-	//	struct L_Bip *simcut_result = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, i);
-		printf("simcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, simcut: %f\n", simcut_result->R, simcut_result->PL, simcut_result->IL, simcut_result->HL, simcut_result->NL, simcut);
-	//	free_L_Bip(simcut_result);
+	//for(i=0; i<100; ++i) {
+	//	//struct L_Bip *simcut_result = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, i);
+	//	double bestkcut = i*0.01+0.01;
+	//	struct L_Bip *bestkcut_result = bestkcut_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
+	//	//printf("simcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, simcut: %f\n", simcut_result->R, simcut_result->PL, simcut_result->IL, simcut_result->HL, simcut_result->NL, simcut);
+	//	printf("bestkcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, bestkcut: %f\n", bestkcut_result->R, bestkcut_result->PL, bestkcut_result->IL, bestkcut_result->HL, bestkcut_result->NL, bestkcut);
+	//	//free_L_Bip(simcut_result);
+	//	free_L_Bip(bestkcut_result);
 	//}
 
-	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
+	//printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
 
 	free_Bip2(traini1);
 	free_Bip2(traini2);
@@ -116,10 +123,9 @@ int main(int argc, char **argv)
 	free_Bip2(testi2);
 	free_iidNet(userSim);
 	free_iidNet(itemSim);
-	free_L_Bip(mass_result);
-	free_L_Bip(simcut_result);
+	//free_L_Bip(mass_result);
+	//free_L_Bip(simcut_result);
 	
-
 	print_time();
 	return 0;
 }
