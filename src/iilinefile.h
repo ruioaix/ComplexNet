@@ -1,5 +1,5 @@
-#ifndef IILINEFILE_H
-#define IILINEFILE_H
+#ifndef CN_IILINEFILE_H
+#define CN_IILINEFILE_H
 
 //for file containing two int in one line.
 struct iiLine {
@@ -17,8 +17,9 @@ struct iiLineFile {
 void free_iiLineFile(struct iiLineFile *file);
 struct iiLineFile *create_iiLineFile(const char * const filename);
 void print_iiLineFile(struct iiLineFile *file, char *filename);
-struct iiLineFile *divide_iiLineFile(struct iiLineFile *file, double rate);
-void free_2_iiLineFile(struct iiLineFile *twofile);
-void print_2_iiLineFile(struct iiLineFile *file1, struct iiLineFile *file2, char *filename);
+
+void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile **first, struct iiLineFile **second);
+//void free_2_iiLineFile(struct iiLineFile *twofile);
+//void print_2_iiLineFile(struct iiLineFile *file1, struct iiLineFile *file2, char *filename);
 
 #endif
