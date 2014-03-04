@@ -24,12 +24,11 @@
 //#include <math.h>
 #include <stdlib.h>
 //#include <string.h>
-#include "inc/linefile/iilinefile.h"
-#include "inc/linefile/iidlinefile.h"
-#include "inc/compact/bip2.h"
-#include "inc/utility/error.h"
-#include "inc/utility/random.h"
-#include "inc/utility/statistics.h"
+#include "iilinefile.h"
+#include "iidlinefile.h"
+#include "bip.h"
+#include "error.h"
+#include "mt_random.h"
 
 void set_RandomSeed(void) {
 	time_t t=time(NULL);

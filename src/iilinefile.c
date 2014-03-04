@@ -137,8 +137,7 @@ void print_iiLineFile(struct iiLineFile *file, char *filename) {
 //the return point contains two point. it's invisible, but it's easy to understand.
 void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile **first, struct iiLineFile **second) {
 	if (rate <=0 || rate >= 1) {
-		printf("divide_iiLineFile error: wrong rate.\n");
-		return NULL;
+		isError("divide_iiLineFile error: wrong rate.\n");
 	}
 
 	long l1, l2;
@@ -156,10 +155,10 @@ void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile *
 	assert(*second != NULL);
 
 
-	(*first).lines = malloc(l1*sizeof(struct iiLine));
-	assert((*first).lines != NULL);
-	(*second).lines = malloc(l2*sizeof(struct iiLine));
-	assert((*second).lines != NULL);
+	(*first)->lines = malloc(l1*sizeof(struct iiLine));
+	assert((*first)->lines != NULL);
+	(*second)->lines = malloc(l2*sizeof(struct iiLine));
+	assert((*second)->lines != NULL);
 
 	long line1=0, line2=0;
 	int i1Max=-1; 
@@ -173,8 +172,8 @@ void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile *
 	long i;
 	for (i=0; i<file->linesNum; ++i) {
 		if (genrand_real1() < rate) {
-			(*first).lines[line1].i1 = file->lines[i].i1;	
-			(*first).lines[line1].i2 = file->lines[i].i2;	
+			(*first)->lines[line1].i1 = file->lines[i].i1;	
+			(*first)->lines[line1].i2 = file->lines[i].i2;	
 			i1Max = i1Max>file->lines[i].i1?i1Max:file->lines[i].i1;
 			i2Max = i2Max>file->lines[i].i2?i2Max:file->lines[i].i2;
 			i1Min = i1Min<file->lines[i].i1?i1Min:file->lines[i].i1;
@@ -182,8 +181,8 @@ void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile *
 			++line1;
 		}
 		else {
-			(*second).lines[line2].i1 = file->lines[i].i1;	
-			(*second).lines[line2].i2 = file->lines[i].i2;	
+			(*second)->lines[line2].i1 = file->lines[i].i1;	
+			(*second)->lines[line2].i2 = file->lines[i].i2;	
 			_i1Max = _i1Max>file->lines[i].i1?_i1Max:file->lines[i].i1;
 			_i2Max = _i2Max>file->lines[i].i2?_i2Max:file->lines[i].i2;
 			_i1Min = _i1Min<file->lines[i].i1?_i1Min:file->lines[i].i1;
@@ -195,27 +194,27 @@ void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile *
 	if (line1>l1 || line2 >l2) {
 		isError("divide_iiLineFile error: l1/l2 too small\n");
 	}
-	(*first).linesNum = line1;
-	(*first).i1Max = i1Max;
-	(*first).i2Max = i2Max;
-	(*first).i1Min = i1Min;
-	(*first).i2Min = i2Min;
-	(*second).linesNum = line2;
-	(*second).i1Max = _i1Max;
-	(*second).i2Max = _i2Max;
-	(*second).i1Min = _i1Min;
-	(*second).i2Min = _i2Min;
+	(*first)->linesNum = line1;
+	(*first)->i1Max = i1Max;
+	(*first)->i2Max = i2Max;
+	(*first)->i1Min = i1Min;
+	(*first)->i2Min = i2Min;
+	(*second)->linesNum = line2;
+	(*second)->i1Max = _i1Max;
+	(*second)->i2Max = _i2Max;
+	(*second)->i1Min = _i1Min;
+	(*second)->i2Min = _i2Min;
 	printf("divide_iiLineFile done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 }
 
-//void free_2_iiLineFile(struct iiLineFile *twofile) {
-//	if(twofile != NULL) {
-//		free(twofile[0].lines);
-//		free(twofile[1].lines);
-//		free(twofile);
-//	}
-//}
-//
+void free_2_iiLineFile(struct iiLineFile *twofile) {
+	if(twofile != NULL) {
+		free(twofile[0].lines);
+		free(twofile[1].lines);
+		free(twofile);
+	}
+}
+
 //void print_2_iiLineFile(struct iiLineFile *file1, struct iiLineFile *file2, char *filename) {
 //	long i;
 //	FILE *fp = fopen(filename, "w");
