@@ -88,7 +88,7 @@ void test_ArgcArgv(int argc, char **argv, char **netfilename) {
 int main(int argc, char **argv)
 {
 	print_time();
-	set_RandomSeed();
+	//set_RandomSeed();
 
 	char *netfilename;
 	test_ArgcArgv(argc, argv, &netfilename);
@@ -105,16 +105,21 @@ int main(int argc, char **argv)
 
 	//struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
 	//struct L_Bip *simcut_result = probs_simcut_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
-	//int i;
-	//for(i=0; i<100; ++i) {
-	//	//struct L_Bip *simcut_result = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, i);
+	
+	int i;
+	long max_similaruer = 0;
+	for (i=0; i<userSim->maxId + 1; ++i) {
+		max_similaruer = max_similaruer>userSim->count[i]?max_similaruer:userSim->count[i];
+	}
+	for(i=1; i<max_similaruer+1; ++i) {
+		struct L_Bip *topR_result = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, i);
 	//	double bestkcut = i*0.01+0.01;
 	//	struct L_Bip *bestkcut_result = bestkcut_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
-	//	//printf("simcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, simcut: %f\n", simcut_result->R, simcut_result->PL, simcut_result->IL, simcut_result->HL, simcut_result->NL, simcut);
+		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i);
 	//	printf("bestkcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, bestkcut: %f\n", bestkcut_result->R, bestkcut_result->PL, bestkcut_result->IL, bestkcut_result->HL, bestkcut_result->NL, bestkcut);
-	//	//free_L_Bip(simcut_result);
+		free_L_Bip(topR_result);
 	//	free_L_Bip(bestkcut_result);
-	//}
+	}
 
 	//printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
 

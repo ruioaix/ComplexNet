@@ -567,7 +567,7 @@ static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNe
 	long k;
 	for (k=0; k<userSim->count[i1]; ++k) {
 		i = userSim->edges[i1][k];
-		if (k == 0 || k < topR) {
+		if (k < topR) {
 			degree = i1count[i];
 			source = (double)i1source[i]/(double)degree;
 			for (j=0; j<degree; ++j) {
@@ -577,6 +577,7 @@ static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNe
 		}
 	}
 }
+
 //three-step random walk of Probs
 static void probs_knn_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, int NK) {
 
@@ -761,7 +762,7 @@ static void probs_bestkcut_Bip_core(int uid, struct Bip_core_base *args, struct 
  * 5  -- hybrid (lambda)
  * 6  -- score hybrid (epsilon) TODO deleted
  * 7  -- usersim onion probs (orate, userSim)
- * 8  -- usersim degree probs (orate, userSim)
+ * 8  -- usersim degree probs (userSim), also known as same k method.
  * 9  -- knn 
  * 10 -- similarity cut
  * 11 -- bestk cut
@@ -1655,6 +1656,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 	free(i2id);
 	printf("calculat best knn done.\n\n");fflush(stdout);
 }
+
 /************************************************************************************************************/
 /************************************************************************************************************/
 /****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
