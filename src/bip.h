@@ -1,4 +1,12 @@
 /**
+ * recommandation is something between user and item, always two part.
+ * maybe a biparte can contain the third part, like score that a user give to a item. but the third part or the forth part can be treated as a param.
+ * this is more flexible.
+ *
+ */
+
+
+/**
  * bip2 means functions in this file only take care of the basic bipartite, 2 part.
  * e.g. user and item. no any other information, like the score which an user give to an item.
  *
@@ -15,12 +23,12 @@
  * struct L_Bip contains the result fo all kinds of recommendation algorithm.
  *
  */
-#ifndef BIP2_H
-#define BIP2_H
+#ifndef CN_BIP_H
+#define CN_BIP_H
 
-#include "../linefile/iilinefile.h"
-#include "../linefile/iidlinefile.h"
-#include "../compact/iidnet.h"
+#include "iilinefile.h"
+#include "iidlinefile.h"
+#include "iidnet.h"
 
 
 //this struct is just one way for describing Bipartite.

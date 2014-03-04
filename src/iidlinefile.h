@@ -1,5 +1,5 @@
-#ifndef IIDLINEFILE_H
-#define IIDLINEFILE_H
+#ifndef CN_IIDLINEFILE_H
+#define CN_IIDLINEFILE_H
 
 //for file containing int/double/int 
 struct iidLine{

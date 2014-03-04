@@ -2,10 +2,10 @@
  * struct L_Bip contains the result fo all kinds of recommendation algorithm.
  *
  */
-#include "../../inc/compact/bip2.h"
-#include "../../inc/utility/error.h"
-#include "../../inc/utility/random.h"
-#include "../../inc/utility/sort.h"
+#include "bip.h"
+#include "error.h"
+#include "mt_random.h"
+#include "sort.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -224,7 +224,7 @@ static inline void Bip_core_common_part(int uid, struct Bip_core_base *args, int
 }
 
 //three-step random walk of Probs
-static void probs_Bip_core(int i1, struct Bip_core_base *args) {
+static void mass_Bip_core(int i1, struct Bip_core_base *args) {
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
 	int **i1ids = args->i1ids;
@@ -310,6 +310,7 @@ static void heats_Bip_core(int i1, struct Bip_core_base *args) {
 		}
 	}
 }
+
 //three-step random walk of HNBI
 static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {
 	double * i1source = args->i1source;
@@ -815,7 +816,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 			for (i = 0; i<i1maxId + 1; ++i) { //each user
 				if (i1count[i]) {
 					//get rank
-					probs_Bip_core(i, args);
+					mass_Bip_core(i, args);
 					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
 					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
