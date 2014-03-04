@@ -70,25 +70,28 @@ void get_ItemSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNe
 	free_iidLineFile(itemSimilarityfile);
 }
 
+void test_ArgcArgv(int argc, char **argv, char **netfilename) {
+	if (argc == 1) {
+		*netfilename = "data/movielens/movielens_2c";
+		//bestkcut = 0.2;	
+	}
+	else if (argc == 2) {
+		*netfilename = argv[1];
+		//char *p;
+		//bestkcut = strtod(argv[2], &p);
+	}
+	else {
+		isError("wrong argc, argv.\n");
+	}
+}
+
 int main(int argc, char **argv)
 {
 	print_time();
 	set_RandomSeed();
 
 	char *netfilename;
-	//double bestkcut;
-	if (argc == 1) {
-		netfilename = "data/movielens/movielens_2c";
-		//bestkcut = 0.2;	
-	}
-	else if (argc == 2) {
-		netfilename = argv[1];
-		//char *p;
-		//bestkcut = strtod(argv[2], &p);
-	}
-	else {
-		isError("wrong argc, argv\n");
-	}
+	test_ArgcArgv(argc, argv, &netfilename);
 
 	struct Bip2 *traini1, *traini2, *testi1, *testi2;
 	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2);
