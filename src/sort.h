@@ -1,5 +1,5 @@
-#ifndef COMPLEXNET_SORT_H
-#define COMPLEXNET_SORT_H
+#ifndef CN_SORT_H
+#define CN_SORT_H
 
 void qsort_i_asc(int s[], int l, int r);
 void qsort_ii_asc(int s[], int l, int r, int in[]);
@@ -12,6 +12,6 @@ void qsort_di_desc(double s[], int l, int r, int in[]);
 void qsort_di_asc(double s[], int l, int r, int in[]);
 void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]);
 
-int binsearch_i_asc(int source[], int length, int key);
+//int binsearch_i_asc(int source[], int length, int key);
 
 #endif

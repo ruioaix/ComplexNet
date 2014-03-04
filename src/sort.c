@@ -1,4 +1,4 @@
-#include "../../inc/utility/sort.h"
+#include "sort.h"
 
 void qsort_i_asc(int s[], int l, int r)
 {
@@ -302,25 +302,25 @@ void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]) {
 	}
 }
 
-int binsearch_i_asc(int source[], int length, int key) {
-	int l=0, r=length-1, mid;
-	if(source[l] == key) {
-		return l;
-	}
-	if(source[r] == key) {
-		return r;
-	}
-	while(l<=r) {
-		mid = l + (r-l)/2;
-		if(source[mid] == key) {
-			return mid;
-		}
-		if(source[mid] > key) {
-			r=mid-1;
-		}
-		else {
-			l=mid+1;
-		}
-	}
-	return -1;
-}
+//int binsearch_i_asc(int source[], int length, int key) {
+//	int l=0, r=length-1, mid;
+//	if(source[l] == key) {
+//		return l;
+//	}
+//	if(source[r] == key) {
+//		return r;
+//	}
+//	while(l<=r) {
+//		mid = l + (r-l)/2;
+//		if(source[mid] == key) {
+//			return mid;
+//		}
+//		if(source[mid] > key) {
+//			r=mid-1;
+//		}
+//		else {
+//			l=mid+1;
+//		}
+//	}
+//	return -1;
+//}
