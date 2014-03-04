@@ -1633,7 +1633,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 			for (k=0; k<traini1->count[i]; ++k) {
 				aveitemdegree += traini2->count[traini1->id[i][k]];	
 			}
-			double avei = aveitemdegree/traini1->count[i];
+			double avei = (double)aveitemdegree/traini1->count[i];
 
 			if (userSim->count[i]) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
