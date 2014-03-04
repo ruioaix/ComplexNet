@@ -1,5 +1,5 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef CN_RANDOM_H
+#define CN_RANDOM_H
 
 void init_by_array(unsigned long init_key[], int key_length);
 unsigned long genrand_int32(void);
@@ -9,6 +9,6 @@ double genrand_real2(void);
 double genrand_real3(void);
 double genrand_res53(void);
 
-int verify_random(void);
+//int verify_random(void);
 
 #endif
