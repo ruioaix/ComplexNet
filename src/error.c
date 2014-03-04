@@ -1,4 +1,4 @@
-#include "../../inc/utility/error.h"
+#include "error.h"
 #include <stddef.h> //for NULL
 #include <stdlib.h> //for exit & EXIT_FAILURE
 
@@ -10,7 +10,7 @@ void fileError(FILE *fp, const char * const filename)
 	}
 }
 
-void memError(void *p, char *errormsg)
+void memError(void *p, const char * const errormsg)
 {
 	if (p==NULL) {
 		fprintf(stderr, "\nmemory error: %s\n" , errormsg);
@@ -20,6 +20,6 @@ void memError(void *p, char *errormsg)
 
 void isError(const char * const errormsg)
 {
-	fprintf(stderr, "[ERROR]:\n\t%s\n", errormsg);
+	fprintf(stderr, "[ERROR]:\n\t%s.\n", errormsg);
 	exit(EXIT_FAILURE);
 }
