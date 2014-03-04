@@ -1,7 +1,7 @@
-#include "../../inc/compact/iidnet.h"
-#include "../../inc/utility/error.h"
-#include "../../inc/utility/random.h"
-#include "../../inc/utility/sort.h"
+#include "iidnet.h"
+#include "error.h"
+#include "mt_random.h"
+#include "sort.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>

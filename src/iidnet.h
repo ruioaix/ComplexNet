@@ -1,7 +1,7 @@
-#ifndef IIDNET_H
-#define IIDNET_H
+#ifndef CN_IIDNET_H
+#define CN_IIDNET_H
 
-#include "../linefile/iidlinefile.h"
+#include "iidlinefile.h"
 
 struct iidNet{
 	int maxId;
