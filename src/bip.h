@@ -6,6 +6,7 @@
  */
 
 
+
 /**
  * bip2 means functions in this file only take care of the basic bipartite, 2 part.
  * e.g. user and item. no any other information, like the score which an user give to an item.

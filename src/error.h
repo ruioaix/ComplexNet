@@ -6,4 +6,5 @@ void fileError(FILE *fp, const char * const filename);
 void memError(void *p, const char * const errormsg);
 void isError(const char * const errormsg);
 
+
 #endif
