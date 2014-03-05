@@ -1,33 +1,32 @@
-objs = 	obj/onion.o\
-		obj/error.o\
-		obj/bip.o\
-		obj/iidlinefile.o\
-		obj/iidnet.o\
-		obj/mt_random.o\
-		obj/sort.o\
-		obj/iilinefile.o
+MAKEROOT := $(shell pwd)
+INCLUDE_DIR := $(MAKEROOT)/src
+CC := gcc
 
-CC=gcc
+
+common_objs = 	obj/error.o \
+				obj/bip.o \
+				obj/iidlinefile.o \
+				obj/iidnet.o \
+				obj/mt_random.o \
+				obj/sort.o \
+				obj/iilinefile.o
+
+main_objs = 	obj/main/onion.o
+
 .PHONY : all clean
 
 all: onion
 
-onion : $(objs)
-	$(CC) -o $@ -lm $(objs)
+onion : $(common_objs) obj/main/onion.o
+	$(CC) -lm $^ -o $@ 
 
-#$(objs) : %.o : %.c
-#	cc -c $< -o $@
-obj/%.o: src/%.c
+obj/%.o: src/%.c 
 	$(CC)  -c $< -o $@
 
-#onion.o : 
-#iidnet.o : 
-#iilinefile.o : iilinefile.h
-#iidlinefile.o : iidlinefile.h
-#bip.o : bip.h
-#error.o : error.h
-#mt_random.o : mt_random.c
-#sort.o : sort.h
+obj/main/%.o: main/%.c
+	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
 clean : 
-	$(RM) onion $(objs)
+	$(RM) $(common_objs)
+	$(RM) $(main_objs)
+	$(RM) onion
