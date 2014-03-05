@@ -14,6 +14,8 @@ main_objs = 	obj/main/onion.o
 
 common_inc = $(common_objs:.o=.d)
 
+.PHONY : all clean
+
 all: onion
 
 include $(common_inc)
@@ -24,7 +26,6 @@ obj/%.d: src/%.c
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-.PHONY : all clean
 
 onion : $(common_objs) obj/main/onion.o
 	$(CC) -lm $^ -o $@ 
