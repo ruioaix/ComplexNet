@@ -10,7 +10,6 @@ common_objs = 	obj/error.o \
 				obj/sort.o \
 				obj/iilinefile.o
 
-main_objs = 	obj/main/onion.o
 
 common_inc = $(common_objs:.o=.d)
 
@@ -36,8 +35,9 @@ obj/%.o: src/%.c
 obj/main/%.o: src/main/%.c
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
+main_objs = 	obj/main/onion.o
 clean : 
-	$(RM) $(common_objs)
 	$(RM) $(main_objs)
+	$(RM) $(common_objs)
 	$(RM) $(common_inc)
 	$(RM) onion
