@@ -23,7 +23,7 @@ onion : $(common_objs) obj/main/onion.o
 obj/%.o: src/%.c 
 	$(CC)  -c $< -o $@
 
-obj/main/%.o: main/%.c
+obj/main/%.o: src/main/%.c
 	$(CC) -I$(INCLUDE_DIR) -c $< -o $@
 
 clean : 
