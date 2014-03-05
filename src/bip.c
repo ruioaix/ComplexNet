@@ -19,20 +19,16 @@
 /************************************************************************************************************/
 /************************************************************************************************************/
 
+//actually Bipii is the most basic biparte.
+//so here I just typedef to create Metrics_Bip and Bip.
 typedef struct Metrics_Bipii Metrics_Bip;
 typedef struct Bipii Bip;
-//static struct Metrics_Bip {
-//	double R;
-//	double PL;
-//	double HL;
-//    double IL;
-//    double NL;
-//	int *topL;
-//	int L;
-//};
+static Metrics_Bip *create_MetricsBip(void) {
+	return create_MetricsBipii();
+}
 
 
-static struct Bip_core_param {
+struct Bip_core_param {
 	double theta;
 	double eta;
 	double lambda;
@@ -47,7 +43,7 @@ static struct Bip_core_param {
 	double bestkcut;
 };
 
-static struct Bip_core_base {
+struct Bip_core_base {
 	double *i1source;
 	double *i2source;
 	int **i1ids;
@@ -59,15 +55,6 @@ static struct Bip_core_base {
 	int i1idNum;
 	int i2idNum;
 };
-
-//static struct Bip_core_test {
-//	int **id;
-//	int maxId;
-//	long *count;
-//	int idNum;
-//	long edgesNum;
-//};
-
 
 //following is for recommendation.
 //Warning: remeber the maxId in testset maybe smaller than the maxId in trainset.
@@ -755,8 +742,7 @@ static void probs_bestkcut_Bip_core(int uid, struct Bip_core_base *args, struct 
  *
  * all L is from this function. if you want to change, change the L below.
  */
-static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct Bip_core_param *param, Bip *test) {
-//static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct Bip_core_param *param, struct Bip_core_test *test) {
+static Metrics_Bip *recommend_Bip(int type, Bip *traini1, Bip *traini2, struct Bip_core_param *param, Bip *test) {
 	double theta  = param->theta;
 	double eta    = param->eta;
 	double lambda = param->lambda;
@@ -768,14 +754,15 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	double simcut = param->simcut;
 	double bestkcut = param->bestkcut;
 
-	//int **i1ids      = args->i1ids;
-	//int **i2ids      = args->i2ids; 
-	int i1maxId      = args->i1maxId;
-	int i2maxId      = args->i2maxId;
-	int i1idNum      = args->i1idNum;
-	int i2idNum      = args->i2idNum;
-	long *i1count    = args->i1count;
-	long *i2count    = args->i2count;
+	struct Bip_core_base args;
+	args.i1ids = traini1->id;
+	args.i2ids = traini2->id; 
+	int i1maxId      = args.i1maxId = traini1->maxId;
+	int i2maxId      = args.i2maxId = traini2->maxId;
+	int i1idNum      = args.i1idNum = traini1->idNum;
+	int i2idNum      = args.i2idNum = traini2->idNum;
+	long *i1count    = args.i1count = traini1->count;
+	long *i2count    = args.i2count = traini2->count;
 
 	int L = 50;
 
@@ -786,8 +773,8 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	assert(i1source != NULL);
 	double *i2source = malloc((i2maxId + 1)*sizeof(double));
 	assert(i2source != NULL);
-	args->i1source = i1source;
-	args->i2source = i2source;
+	args.i1source = i1source;
+	args.i2source = i2source;
 
 	int *rank = malloc((i2maxId + 1)*sizeof(int));
 	assert(rank != NULL);
@@ -797,24 +784,26 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	int i1, i;
 	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
 	assert(topL != NULL);
+
+
 	switch (type) {
 		case 1:
 			for (i = 0; i<i1maxId + 1; ++i) { //each user
 				if (i1count[i]) {
 					//get rank
-					mass_Bip_core(i, args);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					mass_Bip_core(i, &args);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
 		case 2:
 			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
 				if (i1count[i1]) {
-					heats_Bip_core(i1, args);
-					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
-					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+					heats_Bip_core(i1, &args);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -822,9 +811,9 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
 				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 				if (i1count[i1]) {
-					HNBI_Bip_core(i1, args, theta);
-					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
-					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+					HNBI_Bip_core(i1, &args, theta);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -836,10 +825,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					RENBI_Bip_core(i, args, i2sourceA, eta);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					RENBI_Bip_core(i, &args, i2sourceA, eta);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			free(i2sourceA);
@@ -848,9 +837,9 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
 				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
 				if (i1count[i1]) {
-					hybrid_Bip_core(i1, args, lambda);
-					Bip_core_common_part(i1, args, i2id, rank, topL + i1*L, L);
-					metrics_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+					hybrid_Bip_core(i1, &args, lambda);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -860,10 +849,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					onion_probs_Bip_core(i, args, userSim, orate);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					onion_probs_Bip_core(i, &args, userSim, orate);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -873,10 +862,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					topR_probs_Bip_core(i, args, userSim, topR);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					topR_probs_Bip_core(i, &args, userSim, topR);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -886,10 +875,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					probs_knn_Bip_core(i, args, userSim, knn[i]);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					probs_knn_Bip_core(i, &args, userSim, knn[i]);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -899,10 +888,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					probs_simcut_Bip_core(i, args, userSim, simcut);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					probs_simcut_Bip_core(i, &args, userSim, simcut);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -912,10 +901,10 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 				//only compute the i in both i1 and test.
 				if (i1count[i]) {
 					//get rank
-					probs_bestkcut_Bip_core(i, args, userSim, bestkcut);
-					Bip_core_common_part(i, args, i2id, rank, topL + i*L, L);
+					probs_bestkcut_Bip_core(i, &args, userSim, bestkcut);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
 					//use rank to get metrics values
-					metrics_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
 				}
 			}
 			break;
@@ -925,7 +914,8 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	HL = metrics_HL_Bip(i1maxId, i1count, i2maxId, L, topL);
 	IL = metrics_IL_Bip(i1maxId, i1count, i1idNum, i2maxId, L, topL, itemSim);
 	NL = metrics_NL_Bip(i1maxId, i1count, i1idNum, i2count, L, topL);
-	struct L_Bip *retn = create_L_Bip();
+	
+	Metrics_Bip *retn = create_MetricsBip();
 	retn->R = R;
 	retn->PL = PL;
 	retn->HL = HL;
@@ -941,6 +931,201 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 	free(rank);
 	return retn;
 }
+/*
+static Metrics_Bip *recommend_Bip(int type, Bip *traini1, Bip *traini2, struct Bip_core_param *param, Bip *test) {
+	double theta  = param->theta;
+	double eta    = param->eta;
+	double lambda = param->lambda;
+	double orate  = param->orate;
+	int topR      = param->topR;
+	int *knn      = param->knn;
+	struct iidNet *userSim = param->userSim;
+	struct iidNet *itemSim = param->itemSim;
+	double simcut = param->simcut;
+	double bestkcut = param->bestkcut;
+
+	struct Bip_core_base args;
+	args.i1ids = traini1->id;
+	args.i2ids = traini2->id; 
+	int i1maxId      = args.i1maxId = traini1->maxId;
+	int i2maxId      = args.i2maxId = traini2->maxId;
+	int i1idNum      = args.i1idNum = traini1->idNum;
+	int i2idNum      = args.i2idNum = traini2->idNum;
+	long *i1count    = args.i1count = traini1->count;
+	long *i2count    = args.i2count = traini2->count;
+
+	int L = 50;
+
+	double R, PL, HL, IL, NL;
+	R=PL=HL=IL=NL=0;
+
+	double *i1source = malloc((i1maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((i2maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	args.i1source = i1source;
+	args.i2source = i2source;
+
+	int *rank = malloc((i2maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i2id =  malloc((i2maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+
+	int i1, i;
+	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
+	assert(topL != NULL);
+
+
+	char core_recommend_function_name[100];
+	sprinf(core_recommend_function_name, "recommend_core_%d", type);
+
+
+	switch (type) {
+		case 1:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				if (i1count[i]) {
+					//get rank
+					mass_Bip_core(i, &args);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 2:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				if (i1count[i1]) {
+					heats_Bip_core(i1, &args);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 3:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (i1count[i1]) {
+					HNBI_Bip_core(i1, &args, theta);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 4:
+			assert(i2source != NULL);
+			double *i2sourceA = calloc((i2maxId + 1),sizeof(double));
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					RENBI_Bip_core(i, &args, i2sourceA, eta);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			free(i2sourceA);
+			break;
+		case 5:
+			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
+				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
+				if (i1count[i1]) {
+					hybrid_Bip_core(i1, &args, lambda);
+					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
+					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 7:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					onion_probs_Bip_core(i, &args, userSim, orate);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 8:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					topR_probs_Bip_core(i, &args, userSim, topR);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 9:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_knn_Bip_core(i, &args, userSim, knn[i]);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 10:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_simcut_Bip_core(i, &args, userSim, simcut);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+		case 11:
+			for (i = 0; i<i1maxId + 1; ++i) { //each user
+				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+				//only compute the i in both i1 and test.
+				if (i1count[i]) {
+					//get rank
+					probs_bestkcut_Bip_core(i, &args, userSim, bestkcut);
+					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
+					//use rank to get metrics values
+					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
+				}
+			}
+			break;
+	}
+	R /= test->edgesNum;
+	PL /= test->idNum;
+	HL = metrics_HL_Bip(i1maxId, i1count, i2maxId, L, topL);
+	IL = metrics_IL_Bip(i1maxId, i1count, i1idNum, i2maxId, L, topL, itemSim);
+	NL = metrics_NL_Bip(i1maxId, i1count, i1idNum, i2count, L, topL);
+	
+	Metrics_Bip *retn = create_MetricsBip();
+	retn->R = R;
+	retn->PL = PL;
+	retn->HL = HL;
+	retn->IL = IL;
+	retn->NL = NL;
+	retn->topL = topL;
+	retn->L = L;
+
+	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
+	free(i1source);
+	free(i2source);
+	free(i2id);
+	free(rank);
+	return retn;
+}
+*/
 
 /************************************************************************************************************/
 /************************* the following functions are related with BIP2. ***********************************/
@@ -950,7 +1135,7 @@ static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct 
 /************************************************************************************************************/
 
 struct Metrics_Bipii *create_MetricsBipii(void) {
-	struct L_Bip *lp = malloc(sizeof(struct L_Bip));
+	struct Metrics_Bipii *lp = malloc(sizeof(struct Metrics_Bipii));
 	assert(lp != NULL);
 	lp->R = 0;
 	lp->PL = 0;
@@ -962,7 +1147,7 @@ struct Metrics_Bipii *create_MetricsBipii(void) {
 	return lp;
 }
 //free(NULL) is ok.
-void clean_L_Bip(struct L_Bip *lp) {
+void clean_MetricsBipii(struct Metrics_Bipii *lp) {
 	lp->R = 0;
 	lp->PL = 0;
 	lp->HL = 0;
@@ -972,12 +1157,12 @@ void clean_L_Bip(struct L_Bip *lp) {
 	free(lp->topL);
 	lp->topL = NULL;
 }
-void free_L_Bip(struct L_Bip *lp) {
+void free_MetricsBipii(struct Metrics_Bipii *lp) {
 	free(lp->topL);
 	free(lp);
 }
 
-void free_Bip2(struct Bip2 *Bip) {
+void free_Bipii(struct Bipii *Bip) {
 	int i=0;
 	for(i=0; i<Bip->maxId+1; ++i) {
 		if (Bip->count[i]>0) {
@@ -989,11 +1174,11 @@ void free_Bip2(struct Bip2 *Bip) {
 	free(Bip);
 }
 
-//kind of simple, just create struct Bip2.
+//kind of simple, just create struct Bipii.
 //i1toi2 is 1, i1 of struct iiLineFile will be the index.
 //i1toi2 is 0, i2 of struct iiLineFile will be the index.
-struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
-	//all elements of struct Bip2.
+struct Bipii *create_Bipii(const struct iiLineFile * const file, int i1toi2) {
+	//all elements of struct Bipii.
 	int maxId;
 	int minId;
 	int idNum=0;
@@ -1071,7 +1256,7 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 	free(temp);
 
 	//fill Bip and return.
-	struct Bip2 *Bip = malloc(sizeof(struct Bip2));
+	struct Bipii *Bip = malloc(sizeof(struct Bipii));
 	assert(Bip != NULL);
 
 	Bip->maxId=maxId;
@@ -1093,13 +1278,13 @@ struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {
 	return Bip;
 }
 
-//divide Bip2 into two parts.
-//return two struct iiLineFile. the first one is always the small one.
+//divide Bipii into two parts.
+//return two struct iiLineFile. 
+//the first one is always the small one.
 //the second is always the large one.
-struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {
+void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct iiLineFile **small, struct iiLineFile **big) {
 	if (rate <=0 || rate >= 1) {
-		printf("divide_Bip2 error: wrong rate.\n");
-		return NULL;
+		isError("divide_Bipii error: wrong rate.\n");
 	}
 	rate = rate>0.5?1-rate:rate;
 	long l1, l2;
@@ -1111,13 +1296,15 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 		l2 = l1 = bipi1->edgesNum;
 	}
 
-	struct iiLineFile *twofile = malloc(2*sizeof(struct iiLineFile));
-	assert(twofile != NULL);
+	*small = malloc(sizeof(struct iiLineFile));
+	assert(*small != NULL);
+	*big = malloc(sizeof(struct iiLineFile));
+	assert(*big != NULL);
 
-	twofile[0].lines = malloc(l1*sizeof(struct iiLine));
-	assert(twofile[0].lines != NULL);
-	twofile[1].lines = malloc(l2*sizeof(struct iiLine));
-	assert(twofile[1].lines != NULL);
+	(*small)->lines = malloc(l1*sizeof(struct iiLine));
+	assert((*small)->lines != NULL);
+	(*big)->lines = malloc(l2*sizeof(struct iiLine));
+	assert((*big)->lines != NULL);
 
 	long line1=0, line2=0;
 	int i1Max=-1; 
@@ -1148,8 +1335,8 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 			neigh = bipi1->id[i][j];
 			if (genrand_real1() < rate) {
 				if ((counti1[i] == 1 && i1sign[i] == 0) || (counti2[neigh] == 1 && i2sign[neigh] == 0)) {
-					twofile[1].lines[line2].i1 = i;	
-					twofile[1].lines[line2].i2 = neigh;	
+					(*big)->lines[line2].i1 = i;	
+					(*big)->lines[line2].i2 = neigh;	
 					--counti1[i];
 					--counti2[neigh];
 					i1sign[i] = 1;
@@ -1161,8 +1348,8 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 					++line2;
 					continue;
 				}
-				twofile[0].lines[line1].i1 = i;	
-				twofile[0].lines[line1].i2 = neigh;	
+				(*small)->lines[line1].i1 = i;	
+				(*small)->lines[line1].i2 = neigh;	
 				--counti1[i];
 				--counti2[neigh];
 				i1Max = i1Max>i?i1Max:i;
@@ -1172,8 +1359,8 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 				++line1;
 			}
 			else {
-				twofile[1].lines[line2].i1 = i;	
-				twofile[1].lines[line2].i2 = neigh;	
+				(*big)->lines[line2].i1 = i;	
+				(*big)->lines[line2].i2 = neigh;	
 				i1sign[i] = 1;
 				i2sign[neigh] = 1;
 				--counti1[i];
@@ -1186,29 +1373,30 @@ struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double ra
 			}
 		}
 	}
-	assert((line1 <= l1) && (line2 <= l2));
+	if ((line1 > l1) && (line2 > l2)) {
+		isError("divide_Bipii: l1 and l2 two small.\n");
+	}
 
 	free(i1sign);
 	free(i2sign);
 	free(counti1);
 	free(counti2);
 
-	twofile[0].linesNum = line1;
-	twofile[0].i1Max = i1Max;
-	twofile[0].i2Max = i2Max;
-	twofile[0].i1Min = i1Min;
-	twofile[0].i2Min = i2Min;
+	(*small)->linesNum = line1;
+	(*small)->i1Max = i1Max;
+	(*small)->i2Max = i2Max;
+	(*small)->i1Min = i1Min;
+	(*small)->i2Min = i2Min;
 
-	twofile[1].linesNum = line2;
-	twofile[1].i1Max = _i1Max;
-	twofile[1].i2Max = _i2Max;
-	twofile[1].i1Min = _i1Min;
-	twofile[1].i2Min = _i2Min;
-	printf("divide_Bip2 done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
-	return twofile;
+	(*big)->linesNum = line2;
+	(*big)->i1Max = _i1Max;
+	(*big)->i2Max = _i2Max;
+	(*big)->i1Min = _i1Min;
+	(*big)->i2Min = _i2Min;
+	printf("divide_Bipii done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 }
 
-void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
+void *verifyBipii(struct Bipii *bipi1, struct Bipii *bipi2) {
 	long i;
 	int j,k;
 	int *place = malloc((bipi2->maxId+1)*sizeof(int));
@@ -1248,14 +1436,14 @@ void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {
 		isError("the file has duplicate pairs, you can check data/duplicatePairsinNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
 	}
 	else {
-		printf("verifyBip2: perfect network.\n");
+		printf("verifyBipii: perfect network.\n");
 	}
 	return (void *)0;
 }
 
 //if i1ori2 == 1, then calculate i1(user)'s similarity.
 //if i1ori2 == 0, then calculate i2(item)'s similarity.
-struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {
+struct iidLineFile *similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, int i1ori2) {
 	int idmax, idmax2;
 	long *count;
 	int **id;
@@ -1272,7 +1460,7 @@ struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int 
 		id = bipi2->id;
 	}
 	else {
-		isError("similarity_Bip2");
+		isError("similarity_Bipii");
 	}
 	int *sign = calloc((idmax2 + 1),sizeof(int));
 	assert(sign != NULL);
@@ -1340,179 +1528,82 @@ struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int 
 	printf("calculate similarity done.\n");
 	return simfile;
 }
-
-struct L_Bip *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {
+/*
+struct Metrics_Bipii *probs_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {
 	struct Bip_core_param param;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(1, &args, &param, testi1);
+	return recommend_Bip(1, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {
+struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {
 	struct Bip_core_param param;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(2, &args, &param, testi1);
+	return recommend_Bip(2, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double theta) {
+struct Metrics_Bipii *HNBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, double theta) {
 	struct Bip_core_param param;
 	param.theta = theta;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(3, &args, &param, testi1);
+	return recommend_Bip(3, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double eta) {
+struct Metrics_Bipii *RENBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, double eta) {
 	struct Bip_core_param param;
 	param.eta = eta;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(4, &args, &param, testi1);
+	return recommend_Bip(4, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double lambda) {
+struct Metrics_Bipii *hybrid_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, double lambda) {
 	struct Bip_core_param param;
 	param.lambda = lambda;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-//	struct Bip_core_test test;
-//	test.id = testi1->id;
-//	test.maxId = testi1->maxId;
-//	test.count = testi1->count;
-//	test.idNum = testi1->idNum;
-//	test.edgesNum = testi1->edgesNum;
-//	return recommend_Bip(5, &args, &param, &test);
-	return recommend_Bip(5, &args, &param, testi1);
+	return recommend_Bip(5, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double orate) {
+struct Metrics_Bipii *onion_mass_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double orate) {
 	struct Bip_core_param param;
 	param.userSim = userSim;
 	param.orate = orate;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(7, &args, &param, testi1);
+	return recommend_Bip(7, traini1, traini2, &param, testi1);
 }
-
-struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int topR) {
+*/
+struct Metrics_Bipii *topR_probs_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int topR) {
 	struct Bip_core_param param;
 	param.userSim = userSim;
 	param.topR = topR;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(8, &args, &param, testi1);
+	return recommend_Bip(8, traini1, traini2, &param, testi1);
 }
-
-struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *knn) {
+/*
+struct Metrics_Bipii *probs_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *knn) {
 	struct Bip_core_param param;
 	param.knn = knn;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(9, &args, &param, testi1);
+	return recommend_Bip(9, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *probs_simcut_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double simcut) {
+struct Metrics_Bipii *probs_simcut_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double simcut) {
 	struct Bip_core_param param;
 	param.simcut = simcut;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(10, &args, &param, testi1);
+	return recommend_Bip(10, traini1, traini2, &param, testi1);
 }
 
-struct L_Bip *bestkcut_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double bestkcut) {
+struct Metrics_Bipii *bestkcut_probs_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double bestkcut) {
 	struct Bip_core_param param;
 	param.bestkcut = bestkcut;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
-	struct Bip_core_base args;
-	args.i1maxId = bipi1->maxId;
-	args.i2maxId = bipi2->maxId;
-	args.i1count = bipi1->count;
-	args.i2count = bipi2->count;
-	args.i1idNum = bipi1->idNum;
-	args.i2idNum = bipi2->idNum;
-	args.i1ids = bipi1->id;
-	args.i2ids = bipi2->id;
-	return recommend_Bip(11, &args, &param, testi1);
+	return recommend_Bip(11, traini1, traini2, &param, testi1);
 }
-
-void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim) {
-	printf("\nexperiment_knn_Bip2 begin....\n");fflush(stdout);
+*/
+void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {
+	printf("\nexperiment_knn_Bipii begin....\n");fflush(stdout);
 
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	assert(i1source != NULL);
@@ -1580,7 +1671,7 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 				}
 
 				R=PL=0;
-				metrics_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
+				metrics_R_PL_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
 				//printf("%d, %d, %f\n", i, j, R);
 				//R will never be 0, because i is in testi1.
 				if (bestR > R) {
@@ -1617,163 +1708,4 @@ void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2
 	free(rank);
 	free(i2id);
 	printf("calculat best knn done.\n\n");fflush(stdout);
-}
-
-/************************************************************************************************************/
-/************************************************************************************************************/
-/****** the following functions are not used by me any more, but they works fine, so I will keep them. ******/
-/************************************************************************************************************/
-/************************************************************************************************************/
-
-//Bip2 contains eight members. this function will correct six wrong members according to two right ones.
-//renew maxId/minId/countMax/countMin/idNum/edgesNum from count 
-//!!!count and id is always good&right.
-static void renew_Bip2(struct Bip2 *bip) {
-	int i;
-	long countMax = -1;
-	long countMin = LONG_MAX;
-	for (i=bip->minId; i< bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0) {
-			bip->minId = i;
-			break;
-		}
-	}
-	for (i=bip->maxId; i > bip->maxId - 1; --i) {
-		if (bip->count[i] > 0) {
-			bip->maxId = i;
-			break;
-		}
-	}
-	int idNum = 0;
-	long edgesNum = 0;
-	for (i=bip->minId; i< bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0) {
-			edgesNum += bip->count[i];
-			++idNum;
-			countMax = countMax>bip->count[i]?countMax:bip->count[i];
-			countMin = countMin<bip->count[i]?countMin:bip->count[i];
-		}
-	}
-	bip->countMax = countMax;
-	bip->countMin = countMin;
-	bip->idNum = idNum;
-	bip->edgesNum = edgesNum;
-}
-
-//have to remeber: after being abstract, the bip changed.
-//and bip can be used as normal.
-//but its idNum/maxId/minId/edgesNum/countMax/countMin may be different from the origin one.
-//e.g. you get 5000 lines from the first calling of abstract_Bip2, but maybe you can only get
-//4990 lines from the second calling. that means in the origin bip, there are 10 id whose count is 1.
-//get it?
-struct iiLineFile *abstract_Bip2(struct Bip2 *bip) {
-
-	int i1Max=bip->maxId;
-	int i1Min=bip->minId;
-	int i2Max=-1;
-	int i2Min=INT_MAX;
-	
-	int linesNum = bip->idNum;
-	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
-	assert(lines != NULL);
-
-	int i;
-	int j=0;
-	int k=0;
-	for(i=0; i<i1Max+1; ++i) {
-		int degree = bip->count[i];
-		if (degree > 0) {
-			int random = genrand_int31() % degree;
-			lines[j].i1 = i;
-			lines[j].i2 = bip->id[i][random];
-			i2Max = i2Max>lines[j].i2?i2Max:lines[j].i2;
-			i2Min = i2Min<lines[j].i2?i2Max:lines[j].i2;
-			++j;
-			if (random == (degree - 1)) {
-				--bip->count[i];
-				if (bip->count[i] == 0) {
-					//printf("%d, ", i);
-					free(bip->id[i]);
-					++k;
-				}
-			}
-			else {
-				bip->id[i][random] = bip->id[i][degree-1];
-				--bip->count[i];
-			}
-		}
-	}
-
-	int origin = bip->idNum;
-	renew_Bip2(bip);
-
-	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
-	assert(file != NULL);
-	file->i1Max = i1Max;
-	file->i1Min = i1Min;
-	file->i2Max = i2Max;
-	file->i2Min = i2Min;
-	file->linesNum = j;
-	file->lines = lines;
-	printf("abstract_Bip2 done:\n\tBip2 originally has %d ids.\n\tabstract %d edges from %d.\n", origin, j, linesNum);
-	printf("\tthere are %d ids whose degree has become 0 after abstract.\n", k);
-	printf("\tNow Bip2 has %d ids.\n", bip->idNum);
-	return file;
-}
-
-//create perfect iiLineFile
-struct iiLineFile *backtofile_Bip2(struct Bip2 *bip) {
-	int i1Max=bip->maxId;
-	int i1Min=bip->minId;
-	int i2Max=-1;
-	int i2Min=INT_MAX;
-
-	int linesNum = bip->edgesNum;
-	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
-	assert(lines != NULL);
-
-	int i;
-	int j=0;
-	int k=0;
-	for(i=0; i<i1Max+1; ++i) {
-		if (bip->count[i] > 0) {
-			for (j=0; j< bip->count[i]; ++j) {
-				lines[k].i1 = i;
-				lines[k].i2 = bip->id[i][j];
-				i2Max = i2Max>lines[k].i2?i2Max:lines[k].i2;
-				i2Min = i2Min<lines[k].i2?i2Max:lines[k].i2;
-				++k;
-			}
-		}
-	}
-
-	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
-	assert(file != NULL);
-	file->i1Max = i1Max;
-	file->i1Min = i1Min;
-	file->i2Max = i2Max;
-	file->i2Min = i2Min;
-	file->linesNum = k;
-	file->lines = lines;
-	printf("backtofile_Bip2 done. %d lines generated.\n", k);
-	return file;
-}
-
-// if count is 20, then the id whose count is 0-19 will be deleted.
-void cutcount_Bip2(struct Bip2 *bip, long count) {
-	if (count > bip->countMax || count < 0) {
-		printf("cutcount_Bip2 error: wrong count.\n");
-		return;
-	}
-	int i, j=0;
-	for (i=0; i<bip->maxId + 1; ++i) {
-		if (bip->count[i] > 0 && bip->count[i] < count) {
-			bip->count[i] = 0;
-			free(bip->id[i]);
-			++j;
-		}
-	}
-	int origin = bip->idNum;
-	renew_Bip2(bip);
-	printf("cutcount_Bip2 done:\n\tBip2 originally has %d ids.\n\tthere are %d ids whose count < %ld being deleted.\n\tNow Bip2 has %d ids.\n", origin, j, count, bip->idNum);fflush(stdout);
 }

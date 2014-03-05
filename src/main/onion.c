@@ -43,29 +43,31 @@ void print_time(void) {
 	fflush(stdout);
 }
 
-void create_2dataset(char *netfilename, struct Bip2 **traini1, struct Bip2 **traini2, struct Bip2 **testi1, struct Bip2 **testi2) {
+void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **traini2, struct Bipii **testi1, struct Bipii **testi2) {
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
-	struct Bip2 *neti1 = create_Bip2(netfile, 1);
-	struct Bip2 *neti2 = create_Bip2(netfile, 0);
+	struct Bipii *neti1 = create_Bipii(netfile, 1);
+	struct Bipii *neti2 = create_Bipii(netfile, 0);
 	free_iiLineFile(netfile);
-	struct iiLineFile *twofile = divide_Bip2(neti1, neti2, 0.1);
-	free_Bip2(neti1);
-	free_Bip2(neti2);
-	*traini1 = create_Bip2(twofile + 1, 1);
-	*traini2 = create_Bip2(twofile + 1, 0);
-	*testi1 = create_Bip2(twofile, 1);
-	*testi2 = create_Bip2(twofile, 0);
-	free_2_iiLineFile(twofile);
+	struct iiLineFile *first, *second;
+	divide_Bipii(neti1, neti2, 0.1, &first, &second);
+	free_Bipii(neti1);
+	free_Bipii(neti2);
+	*traini1 = create_Bipii(second, 1);
+	*traini2 = create_Bipii(second, 0);
+	*testi1 = create_Bipii(first, 1);
+	*testi2 = create_Bipii(first, 0);
+	free_iiLineFile(first);
+	free_iiLineFile(second);
 }
 
-void get_UserSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **userSim) {
-	struct iidLineFile *userSimilarityfile = similarity_Bip2(traini1, traini2, 1);
+void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {
+	struct iidLineFile *userSimilarityfile = similarity_Bipii(traini1, traini2, 1);
 	*userSim = create_iidNet(userSimilarityfile);
 	free_iidLineFile(userSimilarityfile);
 }
 
-void get_ItemSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **itemSim) {
-	struct iidLineFile *itemSimilarityfile = similarity_Bip2(traini1, traini2, 0);
+void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {
+	struct iidLineFile *itemSimilarityfile = similarity_Bipii(traini1, traini2, 0);
 	*itemSim = create_iidNet(itemSimilarityfile);
 	free_iidLineFile(itemSimilarityfile);
 }
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
 	char *netfilename;
 	test_ArgcArgv(argc, argv, &netfilename);
 
-	struct Bip2 *traini1, *traini2, *testi1, *testi2;
+	struct Bipii *traini1, *traini2, *testi1, *testi2;
 	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2);
 
 	struct iidNet *userSim, *itemSim;
@@ -101,10 +103,10 @@ int main(int argc, char **argv)
 	get_ItemSimilarity(traini1, traini2, &itemSim);
 	
 	sort_desc_iidNet(userSim);
-	experiment_knn_Bip2(traini1, traini2, testi1, testi2, userSim);
+	experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
 
-	//struct L_Bip *mass_result = probs_Bip2(traini1, traini2, testi1, testi2, itemSim);
-	//struct L_Bip *simcut_result = probs_simcut_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
+	//struct L_Bip *mass_result = probs_Bipii(traini1, traini2, testi1, testi2, itemSim);
+	//struct L_Bip *simcut_result = probs_simcut_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
 	
 	int i;
 	long max_similaruer = 0;
@@ -112,21 +114,21 @@ int main(int argc, char **argv)
 		max_similaruer = max_similaruer>userSim->count[i]?max_similaruer:userSim->count[i];
 	}
 	for(i=1; i<max_similaruer+1; ++i) {
-		struct L_Bip *topR_result = topR_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, i);
+		struct Metrics_Bipii *topR_result = topR_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, i);
 	//	double bestkcut = i*0.01+0.01;
-	//	struct L_Bip *bestkcut_result = bestkcut_probs_Bip2(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
+	//	struct Metrics_Bipii *bestkcut_result = bestkcut_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
 		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i);
 	//	printf("bestkcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, bestkcut: %f\n", bestkcut_result->R, bestkcut_result->PL, bestkcut_result->IL, bestkcut_result->HL, bestkcut_result->NL, bestkcut);
-		free_L_Bip(topR_result);
+		free_MetricsBipii(topR_result);
 	//	free_L_Bip(bestkcut_result);
 	}
 
 	//printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
 
-	free_Bip2(traini1);
-	free_Bip2(traini2);
-	free_Bip2(testi1);
-	free_Bip2(testi2);
+	free_Bipii(traini1);
+	free_Bipii(traini2);
+	free_Bipii(testi1);
+	free_Bipii(testi2);
 	free_iidNet(userSim);
 	free_iidNet(itemSim);
 	//free_L_Bip(mass_result);

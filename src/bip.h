@@ -27,6 +27,10 @@
 #include "iidnet.h"
 
 
+/************************************************************************************************************/
+/*******************************following is about Bipii*****************************************************/
+/************************************************************************************************************/
+
 //this struct is just one way for describing Bipartite.
 //other ways like (int ***xx) is also usefully.
 //Bipartite contains two parts. e.g. user and item.
@@ -50,10 +54,10 @@ struct Bipii *create_Bipii(const struct iiLineFile * const file, int i1toi2);
 void free_Bipii(struct Bipii *bip);
 
 //the dividation will guarantee that: 
-//	for each available user(degree of this user is at least one), at least there will be a link in second part.
-//	for each available item(degree of this item is at least one), at least there will be a link in second part.
-//so maybe some users are not existed in the first part.
-void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct iiLineFile **first_part, struct iiLineFile **second_part);
+//	for each available user(degree of this user is at least one), at least there will be a link in big part.
+//	for each available item(degree of this item is at least one), at least there will be a link in big part.
+//so maybe some users are not existed in the small part.
+void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct iiLineFile **small_part, struct iiLineFile **big_part);
 
 //if i1ori2 == 1, then calculate i1(user)'s similarity.
 //if i1ori2 == 0, then calculate i2(item)'s similarity.
