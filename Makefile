@@ -16,7 +16,6 @@ common_inc = $(common_objs:.o=.d)
 
 all: onion
 
-#include $(common_objs:.o=.d)
 include $(common_inc)
 
 obj/%.d: src/%.c

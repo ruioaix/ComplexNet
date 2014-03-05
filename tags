@@ -4,652 +4,180 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-BIP2_H	inc/compact/bip2.h	19;"	d
-BIP3I_H	inc/compact/bip3i.h	2;"	d
-BITSIGN_H	inc/utility/bitsign.h	2;"	d
-BITS_PER_WORD	inc/utility/bitsign.h	/^enum {BITS_PER_WORD=sizeof(unsigned int)*CHAR_BIT};$/;"	e	enum:__anon1
-BIT_OFFSET	inc/utility/bitsign.h	9;"	d
-Bip2	inc/compact/bip2.h	/^struct Bip2 {$/;"	s
-Bip3i	inc/compact/bip3i.h	/^struct Bip3i {$/;"	s
-Bipartite	inc/compact/bipartite.h	/^struct Bipartite {$/;"	s
-COMPLEXNET_BIPARTITE_H	inc/compact/bipartite.h	2;"	d
-COMPLEXNET_DTNET_H	inc/compact/dtnet.h	2;"	d
-COMPLEXNET_NET_H	inc/compact/net.h	2;"	d
-COMPLEXNET_SORT_H	inc/utility/sort.h	2;"	d
-COMPLEXNET_THREADPOOL_H	inc/utility/threadpool.h	2;"	d
-DMP_H	inc/hashtable/dmp.h	2;"	d
-DNET_H	inc/compact/dnet.h	2;"	d
-DNetSpreadArgs	inc/compact/dnet.h	/^struct DNetSpreadArgs {$/;"	s
-DTNetShortPath1NArgs	inc/compact/dtnet.h	/^struct DTNetShortPath1NArgs {$/;"	s
-DirectNet	inc/compact/dnet.h	/^struct DirectNet{$/;"	s
-DirectTemporalNet	inc/compact/dtnet.h	/^struct DirectTemporalNet {$/;"	s
-ERROR_H	inc/utility/error.h	2;"	d
-HASHARG	src/hashtable/dmp.c	/^static int HASHARG = 19;$/;"	v	file:
-HASHTABLE_H	inc/utility/hashtable.h	2;"	d
-HL	inc/compact/bip2.h	/^	double HL;$/;"	m	struct:L_Bip2
-HL	inc/compact/bip3i.h	/^	double HL;$/;"	m	struct:L_Bip3i
-HNBI_Bip2	src/compact/bip2.c	/^struct L_Bip2 *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double theta) {$/;"	f
-HNBI_Bip2_core	src/compact/bip2.c	/^static void HNBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double theta) {$/;"	f	file:
-HashElement	inc/utility/hashtable.h	/^struct HashElement {$/;"	s
-HashElement_DMP	inc/hashtable/dmp.h	/^struct HashElement_DMP {$/;"	s
-HashTable	inc/utility/hashtable.h	/^struct HashTable {$/;"	s
-HashTable_DMP	inc/hashtable/dmp.h	/^struct HashTable_DMP {$/;"	s
-I3DLINEFILE_H	inc/linefile/i3dlinefile.h	2;"	d
-I3LINEFILE_H	inc/linefile/i3linefile.h	2;"	d
-I4LINEFILE_H	inc/linefile/i4linefile.h	2;"	d
-I5DSLINEFILE_H	inc/linefile/i5dslinefile.h	2;"	d
-I5LINEFILE_H	inc/linefile/i5linefile.h	2;"	d
-I5SSLINEFILE_H	inc/linefile/i5sslinefile.h	2;"	d
-I7DDSLINEFILE_H	inc/linefile/i7ddslinefile.h	2;"	d
-IID3LINEFILE_H	inc/linefile/iid3linefile.h	2;"	d
-IIDLINEFILE_H	inc/linefile/iidlinefile.h	2;"	d
-IIDNET_H	inc/compact/iidnet.h	2;"	d
-IILINEFILE_H	inc/linefile/iilinefile.h	2;"	d
-IL	inc/compact/bip2.h	/^    double IL;$/;"	m	struct:L_Bip2
-IL	inc/compact/bip3i.h	/^    double IL;$/;"	m	struct:L_Bip3i
-ILINEFILE_H	inc/linefile/ilinefile.h	2;"	d
-INNLINEFILE	inc/linefile/innlinefile.h	2;"	d
-IS	inc/compact/dnet.h	/^	struct innLine *IS;$/;"	m	struct:DNetSpreadArgs	typeref:struct:DNetSpreadArgs::innLine
-L	inc/compact/bip2.h	/^	int L;$/;"	m	struct:L_Bip2
-L	inc/compact/bip3i.h	/^	int L;$/;"	m	struct:L_Bip3i
-LINES_LENGTH_EACH	src/linefile/i3dlinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i3linefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i4linefile.c	18;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i5dslinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i5linefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i5sslinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/i7ddslinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/iid3linefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/iidlinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/iilinefile.c	18;"	d	file:
-LINES_LENGTH_EACH	src/linefile/ilinefile.c	17;"	d	file:
-LINES_LENGTH_EACH	src/linefile/innlinefile.c	17;"	d	file:
-LINE_INT_NUM_EACH	src/linefile/innlinefile.c	20;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i3dlinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i3linefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i4linefile.c	11;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i5dslinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i5linefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i5sslinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/i7ddslinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/iid3linefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/iidlinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/iilinefile.c	11;"	d	file:
-LINE_LENGTH_MAX	src/linefile/ilinefile.c	10;"	d	file:
-LINE_LENGTH_MAX	src/linefile/innlinefile.c	10;"	d	file:
-LOWER_MASK	src/utility/random.c	10;"	d	file:
-LOWER_MASK	src/utility/threadsafe_random.c	13;"	d	file:
-L_Bip2	inc/compact/bip2.h	/^struct L_Bip2 {$/;"	s
-L_Bip3i	inc/compact/bip3i.h	/^struct L_Bip3i {$/;"	s
-M	src/utility/random.c	7;"	d	file:
-M	src/utility/threadsafe_random.c	10;"	d	file:
-MATRIX_A	src/utility/random.c	8;"	d	file:
-MATRIX_A	src/utility/threadsafe_random.c	11;"	d	file:
-MersenneTwister_Using_ID	src/utility/threadsafe_random.c	/^static int MersenneTwister_Using_ID[Thread_Safe_MAX];$/;"	v	file:
-MersenneTwister_Using_IdNum	src/utility/threadsafe_random.c	/^static int MersenneTwister_Using_IdNum;$/;"	v	file:
-MersenneTwister_Valid_ID	src/utility/threadsafe_random.c	/^static int MersenneTwister_Valid_ID[Thread_Safe_MAX];$/;"	v	file:
-MersenneTwister_Valid_IdNum	src/utility/threadsafe_random.c	/^static int MersenneTwister_Valid_IdNum;$/;"	v	file:
-N	src/utility/random.c	6;"	d	file:
-N	src/utility/threadsafe_random.c	9;"	d	file:
-NL	inc/compact/bip2.h	/^    double NL;$/;"	m	struct:L_Bip2
-NL	inc/compact/bip3i.h	/^    double NL;$/;"	m	struct:L_Bip3i
-Net	inc/compact/net.h	/^struct Net{$/;"	s
-PL	inc/compact/bip2.h	/^	double PL;$/;"	m	struct:L_Bip2
-PL	inc/compact/bip3i.h	/^	double PL;$/;"	m	struct:L_Bip3i
-PSPIPR	inc/matrix/pspipr.h	/^struct PSPIPR{$/;"	s
-PSPIPR_H	inc/matrix/pspipr.h	2;"	d
-PrintCurrent_ID	src/utility/threadsafe_random.c	/^void PrintCurrent_ID(void) {$/;"	f
-R	inc/compact/bip2.h	/^	double R;$/;"	m	struct:L_Bip2
-R	inc/compact/bip3i.h	/^	double R;$/;"	m	struct:L_Bip3i
-RANDOM_H	inc/utility/random.h	2;"	d
-RENBI_Bip2	src/compact/bip2.c	/^struct L_Bip2 *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double eta) {$/;"	f
-RENBI_Bip2_core	src/compact/bip2.c	/^static void RENBI_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *Hij, double eta) {$/;"	f	file:
-SNAPSHOT_H	inc/matrix/snapshot.h	2;"	d
-Snapshot	inc/matrix/snapshot.h	/^struct Snapshot{$/;"	s
-THREADSAFE_RANDOM_H	inc/utility/threadsafe_random.h	2;"	d
-TP	src/utility/threadpool.c	/^static struct ThreadPool *TP=NULL;$/;"	v	typeref:struct:ThreadPool	file:
-ThreadPool	inc/utility/threadpool.h	/^struct ThreadPool{$/;"	s
-Thread_Safe_MAX	src/utility/threadsafe_random.c	14;"	d	file:
-UPPER_MASK	src/utility/random.c	9;"	d	file:
-UPPER_MASK	src/utility/threadsafe_random.c	12;"	d	file:
-WORD_OFFSET	inc/utility/bitsign.h	8;"	d
-abstract_Bip2	src/compact/bip2.c	/^struct iiLineFile *abstract_Bip2(struct Bip2 *bip) {$/;"	f
-abstract_Bipartite	src/compact/bipartite.c	/^struct i4LineFile *abstract_Bipartite(struct Bipartite *bip) {$/;"	f
-addWorktoThreadPool	src/utility/threadpool.c	/^int addWorktoThreadPool( void*(*routine)(void*),void*arg) {$/;"	f
-arg	inc/utility/threadpool.h	/^	void *arg;$/;"	m	struct:workOfTP
-backtofile_Bip2	src/compact/bip2.c	/^struct iiLineFile *backtofile_Bip2(struct Bip2 *bip) {$/;"	f
-backtofile_Bipartite	src/compact/bipartite.c	/^struct i4LineFile *backtofile_Bipartite(struct Bipartite *bip) {$/;"	f
-binsearch_i_asc	src/utility/sort.c	/^int binsearch_i_asc(int source[], int length, int key) {$/;"	f
-buildDNet	src/compact/dnet.c	/^void buildDNet(const struct iiLineFile * const file) {$/;"	f
-buildISStatusStick	src/compact/dnet.c	/^static int buildISStatusStick(const struct innLine * const is, char *statusStick) {$/;"	f	file:
-clean_HashTable_DMP	src/hashtable/dmp.c	/^void clean_HashTable_DMP(struct HashTable_DMP *ht, int infect_source) {$/;"	f
-clean_L_Bip2	src/compact/bip2.c	/^void clean_L_Bip2(struct L_Bip2 *lp) {$/;"	f
-clean_L_Bip3i	src/compact/bip3i.c	/^void clean_L_Bip3i(struct L_Bip3i *lp) {$/;"	f
-clearBitSign	src/utility/bitsign.c	/^void clearBitSign(unsigned int *signStick, int signId)$/;"	f
-cloneDNet	src/compact/dnet.c	/^struct DirectNet *cloneDNet(const struct DirectNet * const dnet) {$/;"	f
-count	inc/compact/bip2.h	/^	long *count;$/;"	m	struct:Bip2
-count	inc/compact/bip3i.h	/^	long *count;$/;"	m	struct:Bip3i
-count	inc/compact/bipartite.h	/^	long *count;$/;"	m	struct:Bipartite
-count	inc/compact/dnet.h	/^	long *count;$/;"	m	struct:DirectNet
-count	inc/compact/iidnet.h	/^	long *count;$/;"	m	struct:iidNet
-count	inc/compact/net.h	/^	long *count;$/;"	m	struct:Net
-countMax	inc/compact/bip2.h	/^	long countMax;$/;"	m	struct:Bip2
-countMax	inc/compact/bip3i.h	/^	long countMax;$/;"	m	struct:Bip3i
-countMax	inc/compact/bipartite.h	/^	long countMax;$/;"	m	struct:Bipartite
-countMax	inc/compact/dnet.h	/^	long countMax;$/;"	m	struct:DirectNet
-countMax	inc/compact/iidnet.h	/^	long countMax;$/;"	m	struct:iidNet
-countMax	inc/compact/net.h	/^	long countMax;$/;"	m	struct:Net
-countMin	inc/compact/bip2.h	/^	long countMin;$/;"	m	struct:Bip2
-countMin	inc/compact/bip3i.h	/^	long countMin;$/;"	m	struct:Bip3i
-countMin	inc/compact/bipartite.h	/^	long countMin;$/;"	m	struct:Bipartite
-createBitSign	src/utility/bitsign.c	/^unsigned int *createBitSign(int signMax)$/;"	f
-createHashTable	src/utility/hashtable.c	/^struct HashTable *createHashTable(int length)$/;"	f
-createThreadPool	src/utility/threadpool.c	/^int createThreadPool(int threadMax) {$/;"	f
-create_Bip2	src/compact/bip2.c	/^struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {$/;"	f
-create_Bip3i	src/compact/bip3i.c	/^struct Bip3i *create_Bip3i(const struct i3LineFile * const file, int i1toi2) {$/;"	f
-create_Bipartite	src/compact/bipartite.c	/^struct Bipartite *create_Bipartite(const struct i4LineFile * const file, int i1toi2) {$/;"	f
-create_HashTable_DMP	src/hashtable/dmp.c	/^struct HashTable_DMP *create_HashTable_DMP(int length)$/;"	f
-create_L_Bip2	src/compact/bip2.c	/^struct L_Bip2 *create_L_Bip2(void) {$/;"	f
-create_L_Bip3i	src/compact/bip3i.c	/^struct L_Bip3i *create_L_Bip3i(void) {$/;"	f
-create_Net	src/compact/net.c	/^struct Net *create_Net(const struct iiLineFile * const file) {$/;"	f
-create_PSPIPR	src/matrix/pspipr.c	/^struct PSPIPR *create_PSPIPR(const struct iid3LineFile * const file) {$/;"	f
-create_Snapshot	src/matrix/snapshot.c	/^struct Snapshot *create_Snapshot(const struct i3LineFile * const file) {$/;"	f
-create_i3LineFile	src/linefile/i3linefile.c	/^struct i3LineFile *create_i3LineFile(const char * const filename) {$/;"	f
-create_i3dLineFile	src/linefile/i3dlinefile.c	/^struct i3dLineFile *create_i3dLineFile(const char * const filename)$/;"	f
-create_i4LineFile	src/linefile/i4linefile.c	/^struct i4LineFile *create_i4LineFile(const char * const filename)$/;"	f
-create_i5LineFile	src/linefile/i5linefile.c	/^struct i5LineFile *create_i5LineFile(const char * const filename) {$/;"	f
-create_i5dsLineFile	src/linefile/i5dslinefile.c	/^struct i5dsLineFile *create_i5dsLineFile(const char * const filename)$/;"	f
-create_i5ssLineFile	src/linefile/i5sslinefile.c	/^struct i5ssLineFile *create_i5ssLineFile(const char * const filename)$/;"	f
-create_i7ddsLineFile	src/linefile/i7ddslinefile.c	/^struct i7ddsLineFile *create_i7ddsLineFile(const char * const filename)$/;"	f
-create_iLineFile	src/linefile/ilinefile.c	/^struct iLineFile *create_iLineFile(const char * const filename) {$/;"	f
-create_iiLineFile	src/linefile/iilinefile.c	/^struct iiLineFile *create_iiLineFile(const char * const filename)$/;"	f
-create_iid3LineFile	src/linefile/iid3linefile.c	/^struct iid3LineFile *create_iid3LineFile(const char * const filename)$/;"	f
-create_iidLineFile	src/linefile/iidlinefile.c	/^struct iidLineFile *create_iidLineFile(const char * const filename)$/;"	f
-create_iidNet	src/compact/iidnet.c	/^struct iidNet *create_iidNet(const struct iidLineFile * const file) {$/;"	f
-create_innLineFile	src/linefile/innlinefile.c	/^struct innLineFile *create_innLineFile(const char * const filename)$/;"	f
-cutcount_Bip2	src/compact/bip2.c	/^void cutcount_Bip2(struct Bip2 *bip, long count) {$/;"	f
-cutcount_Bipartite	src/compact/bipartite.c	/^void cutcount_Bipartite(struct Bipartite *bip, long count) {$/;"	f
-d3	inc/compact/iidnet.h	/^	double **d3;$/;"	m	struct:iidNet
-d3	inc/linefile/iid3linefile.h	/^	double d3;$/;"	m	struct:iid3Line
-d3	inc/linefile/iidlinefile.h	/^	double d3;$/;"	m	struct:iidLine
-d4	inc/linefile/i3dlinefile.h	/^	double d4;$/;"	m	struct:i3dLine
-d4	inc/linefile/iid3linefile.h	/^	double d4;$/;"	m	struct:iid3Line
-d5	inc/linefile/iid3linefile.h	/^	double d5;$/;"	m	struct:iid3Line
-d6	inc/linefile/i5dslinefile.h	/^	double  d6;$/;"	m	struct:i5dsLine
-d8	inc/linefile/i7ddslinefile.h	/^	double d8;$/;"	m	struct:i7ddsLine
-d9	inc/linefile/i7ddslinefile.h	/^	double d9;$/;"	m	struct:i7ddsLine
-d_mass_Bip3i	src/compact/bip3i.c	/^struct L_Bip3i *d_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double eta) {$/;"	f
-d_mass_Bip3i_core	src/compact/bip3i.c	/^static void d_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double eta) {$/;"	f	file:
-d_mass_rank_Bip3i	src/compact/bip3i.c	/^double *d_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double eta) {$/;"	f
-d_mass_rank_Bip3i_core	src/compact/bip3i.c	/^static void d_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int *i2id, int *rank, double eta) {$/;"	f	file:
-day01	inc/compact/dtnet.h	/^	day01 =  86400 ,$/;"	e	enum:timeScopeDTNet
-day02	inc/compact/dtnet.h	/^	day02 =  172800,$/;"	e	enum:timeScopeDTNet
-day03	inc/compact/dtnet.h	/^	day03 =  259200,$/;"	e	enum:timeScopeDTNet
-day04	inc/compact/dtnet.h	/^	day04 =  345600,$/;"	e	enum:timeScopeDTNet
-day05	inc/compact/dtnet.h	/^	day05 =  432000,$/;"	e	enum:timeScopeDTNet
-day06	inc/compact/dtnet.h	/^	day06 =  518400,$/;"	e	enum:timeScopeDTNet
-day07	inc/compact/dtnet.h	/^	day07 =  604800,$/;"	e	enum:timeScopeDTNet
-deleteHEfromHT	src/utility/hashtable.c	/^void deleteHEfromHT(struct HashTable *ht, long element)$/;"	f
-deleteHEfromHT_DMP	src/hashtable/dmp.c	/^void deleteHEfromHT_DMP(struct HashTable_DMP *ht, int i1, int i2)$/;"	f
-destroy	inc/utility/threadpool.h	/^	int destroy;$/;"	m	struct:ThreadPool
-destroyThreadPool	src/utility/threadpool.c	/^void destroyThreadPool(void) {$/;"	f
-divideBytime_Bipartite	src/compact/bipartite.c	/^struct i4LineFile *divideBytime_Bipartite(struct Bipartite *bip, double rate) {$/;"	f
-divide_Bip2	src/compact/bip2.c	/^struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {$/;"	f
-divide_Bip3i	src/compact/bip3i.c	/^struct i3LineFile *divide_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2, double rate) {$/;"	f
-divide_i4LineFile	src/linefile/i4linefile.c	/^struct i4LineFile *divide_i4LineFile(struct i4LineFile *file, double rate) {$/;"	f
-divide_iiLineFile	src/linefile/iilinefile.c	/^struct iiLineFile *divide_iiLineFile(struct iiLineFile *file, double rate) {$/;"	f
-dmp	src/hashtable/dmp.c	/^double *dmp(struct HashTable_DMP *ht, int infect_source, double infect_rate, double recover_rate, int T, struct Net *net, double *PS, double *PI, double *PR) {$/;"	f
-dnet	src/compact/dnet.c	/^static struct DirectNet dnet;$/;"	v	typeref:struct:DirectNet	file:
-dnet_spread	src/compact/dnet.c	/^void *dnet_spread(void *args_void)$/;"	f
-dtnet	src/compact/dtnet.c	/^static struct DirectTemporalNet dtnet;$/;"	v	typeref:struct:DirectTemporalNet	file:
-edges	inc/compact/iidnet.h	/^	int **edges;$/;"	m	struct:iidNet
-edges	inc/compact/net.h	/^	int **edges;$/;"	m	struct:Net
-edgesNum	inc/compact/bip2.h	/^	long edgesNum;$/;"	m	struct:Bip2
-edgesNum	inc/compact/bip3i.h	/^	long edgesNum;$/;"	m	struct:Bip3i
-edgesNum	inc/compact/bipartite.h	/^	long edgesNum;$/;"	m	struct:Bipartite
-edgesNum	inc/compact/dnet.h	/^	long edgesNum;$/;"	m	struct:DirectNet
-edgesNum	inc/compact/dtnet.h	/^	long edgesNum;$/;"	m	struct:DirectTemporalNet
-edgesNum	inc/compact/iidnet.h	/^	long edgesNum;$/;"	m	struct:iidNet
-edgesNum	inc/compact/net.h	/^	long edgesNum;$/;"	m	struct:Net
-element	inc/utility/hashtable.h	/^	long element;$/;"	m	struct:HashElement
-elementNum	inc/hashtable/dmp.h	/^	int *elementNum;$/;"	m	struct:HashTable_DMP
-elementNum	inc/utility/hashtable.h	/^	int *elementNum;$/;"	m	struct:HashTable
-elementNumBackHT	src/hashtable/dmp.c	/^static void elementNumBackHT(struct HashTable_DMP *ht)$/;"	f	file:
-elementNumBackHT	src/utility/hashtable.c	/^static void elementNumBackHT(struct HashTable *ht)$/;"	f	file:
-elementNumSumHT	src/hashtable/dmp.c	/^static void elementNumSumHT(struct HashTable_DMP *ht)$/;"	f	file:
-elementNumSumHT	src/utility/hashtable.c	/^static void elementNumSumHT(struct HashTable *ht)$/;"	f	file:
-elementSumNum	inc/hashtable/dmp.h	/^	long elementSumNum;$/;"	m	struct:HashTable_DMP
-elementSumNum	inc/utility/hashtable.h	/^	int elementSumNum;$/;"	m	struct:HashTable
-epsilon	src/compact/bip2.c	/^	double epsilon;$/;"	m	struct:param_recommend_Bip2	file:
-epsilon	src/compact/bip3i.c	/^	double epsilon;$/;"	m	struct:param_rank_Bip3i	file:
-epsilon	src/compact/bip3i.c	/^	double epsilon;$/;"	m	struct:param_recommend_Bip3i	file:
-eta	src/compact/bip2.c	/^	double eta;$/;"	m	struct:param_recommend_Bip2	file:
-eta	src/compact/bip3i.c	/^	double eta;$/;"	m	struct:param_rank_Bip3i	file:
-eta	src/compact/bip3i.c	/^	double eta;$/;"	m	struct:param_recommend_Bip3i	file:
-fileError	src/utility/error.c	/^void fileError(FILE *fp, const char * const filename)$/;"	f
-fill_i3Line	src/linefile/i3linefile.c	/^static void fill_i3Line(char *line, struct i3Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_i3dLine	src/linefile/i3dlinefile.c	/^static void fill_i3dLine(char *line, struct i3dLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_i4Line	src/linefile/i4linefile.c	/^static void fill_i4Line(char *line, struct i4Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *i2MaxId, int *i2MinId, long filelineNum)$/;"	f	file:
-fill_i5Line	src/linefile/i5linefile.c	/^static void fill_i5Line(char *line, struct i5Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_i5dsLine	src/linefile/i5dslinefile.c	/^static void fill_i5dsLine(char *line, struct i5dsLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_i5ssLine	src/linefile/i5sslinefile.c	/^static void fill_i5ssLine(char *line, struct i5ssLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_i7ddsLine	src/linefile/i7ddslinefile.c	/^static void fill_i7ddsLine(char *line, struct i7ddsLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_iLine	src/linefile/ilinefile.c	/^static void fill_iLine(char *line, struct iLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)$/;"	f	file:
-fill_iiLine	src/linefile/iilinefile.c	/^static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_iid3Line	src/linefile/iid3linefile.c	/^static void fill_iid3Line(char *line, struct iid3Line *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_iidLine	src/linefile/iidlinefile.c	/^static void fill_iidLine(char *line, struct iidLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
-fill_innLine	src/linefile/innlinefile.c	/^static struct innLine fill_innLine(char *line, long filelineNum) {$/;"	f	file:
-fp	inc/compact/dnet.h	/^	FILE *fp;$/;"	m	struct:DNetSpreadArgs
-freeDNet	src/compact/dnet.c	/^void freeDNet(void) {$/;"	f
-freeHashElement	src/utility/hashtable.c	/^static void freeHashElement(struct HashElement *he)$/;"	f	file:
-freeHashTable	src/utility/hashtable.c	/^void freeHashTable(struct HashTable *ht)$/;"	f
-free_2_i3LineFile	src/linefile/i3linefile.c	/^void free_2_i3LineFile(struct i3LineFile *twofile) {$/;"	f
-free_2_i4LineFile	src/linefile/i4linefile.c	/^void free_2_i4LineFile(struct i4LineFile *twofile) {$/;"	f
-free_2_iiLineFile	src/linefile/iilinefile.c	/^void free_2_iiLineFile(struct iiLineFile *twofile) {$/;"	f
-free_Bip2	src/compact/bip2.c	/^void free_Bip2(struct Bip2 *Bip) {$/;"	f
-free_Bip3i	src/compact/bip3i.c	/^void free_Bip3i(struct Bip3i *Bip) {$/;"	f
-free_Bipartite	src/compact/bipartite.c	/^void free_Bipartite(struct Bipartite *Bip) {$/;"	f
-free_DirectTemporalNet	src/compact/dtnet.c	/^void free_DirectTemporalNet(void) {$/;"	f
-free_HashElement_DMP	src/hashtable/dmp.c	/^static void free_HashElement_DMP(struct HashElement_DMP *he)$/;"	f	file:
-free_HashTable_DMP	src/hashtable/dmp.c	/^void free_HashTable_DMP(struct HashTable_DMP *ht)$/;"	f
-free_L_Bip2	src/compact/bip2.c	/^void free_L_Bip2(struct L_Bip2 *lp) {$/;"	f
-free_L_Bip3i	src/compact/bip3i.c	/^void free_L_Bip3i(struct L_Bip3i *lp) {$/;"	f
-free_Net	src/compact/net.c	/^void free_Net(struct Net *net) {$/;"	f
-free_PSPIPR	src/matrix/pspipr.c	/^void free_PSPIPR(struct PSPIPR *net) {$/;"	f
-free_Snapshot	src/matrix/snapshot.c	/^void free_Snapshot(struct Snapshot *net) {$/;"	f
-free_i3LineFile	src/linefile/i3linefile.c	/^void free_i3LineFile(struct i3LineFile *file) {$/;"	f
-free_i3dLineFile	src/linefile/i3dlinefile.c	/^void free_i3dLineFile(struct i3dLineFile *file) {$/;"	f
-free_i4LineFile	src/linefile/i4linefile.c	/^void free_i4LineFile(struct i4LineFile *file) {$/;"	f
-free_i5LineFile	src/linefile/i5linefile.c	/^void free_i5LineFile(struct i5LineFile *file) {$/;"	f
-free_i5dsLineFile	src/linefile/i5dslinefile.c	/^void free_i5dsLineFile(struct i5dsLineFile *file) {$/;"	f
-free_i5ssLineFile	src/linefile/i5sslinefile.c	/^void free_i5ssLineFile(struct i5ssLineFile *file) {$/;"	f
-free_i7ddsLineFile	src/linefile/i7ddslinefile.c	/^void free_i7ddsLineFile(struct i7ddsLineFile *file) {$/;"	f
-free_iLineFile	src/linefile/ilinefile.c	/^void free_iLineFile(struct iLineFile *file) {$/;"	f
-free_iiLineFile	src/linefile/iilinefile.c	/^void free_iiLineFile(struct iiLineFile *file) {$/;"	f
-free_iid3LineFile	src/linefile/iid3linefile.c	/^void free_iid3LineFile(struct iid3LineFile *file) {$/;"	f
-free_iidLineFile	src/linefile/iidlinefile.c	/^void free_iidLineFile(struct iidLineFile *file) {$/;"	f
-free_iidNet	src/compact/iidnet.c	/^void free_iidNet(struct iidNet *net) {$/;"	f
-free_innLineFile	src/linefile/innlinefile.c	/^void free_innLineFile(struct innLineFile *file) {$/;"	f
-free_threadsafe	src/utility/threadsafe_random.c	/^void free_threadsafe(int t) {$/;"	f
-genrand_int31	src/utility/random.c	/^long genrand_int31(void)$/;"	f
-genrand_int32	src/utility/random.c	/^unsigned long genrand_int32(void)$/;"	f
-genrand_int32_threadsafe	src/utility/threadsafe_random.c	/^unsigned long genrand_int32_threadsafe(int t)$/;"	f
-genrand_real1	src/utility/random.c	/^double genrand_real1(void)$/;"	f
-genrand_real1_threadsafe	src/utility/threadsafe_random.c	/^double genrand_real1_threadsafe(int t)$/;"	f
-genrand_real2	src/utility/random.c	/^double genrand_real2(void)$/;"	f
-genrand_real2_threadsafe	src/utility/threadsafe_random.c	/^double genrand_real2_threadsafe(int t)$/;"	f
-genrand_real3	src/utility/random.c	/^double genrand_real3(void)$/;"	f
-genrand_res53	src/utility/random.c	/^double genrand_res53(void) $/;"	f
-getBitSign	src/utility/bitsign.c	/^int getBitSign(unsigned int *signStick, int signId)$/;"	f
-getDTNet	src/compact/dtnet.c	/^struct DirectTemporalNet *getDTNet() {$/;"	f
-getDirectNet	src/compact/dnet.c	/^struct DirectNet *getDirectNet(void) {$/;"	f
-getHEfromHT_DMP	src/hashtable/dmp.c	/^struct HashElement_DMP *getHEfromHT_DMP(struct HashTable_DMP *ht, int i1, int i2) {$/;"	f
-getMaxId_DirectTemporalNet	src/compact/dtnet.c	/^int getMaxId_DirectTemporalNet() {$/;"	f
-getelementIndexHT	src/utility/hashtable.c	/^int getelementIndexHT(struct HashTable *ht, long element)$/;"	f
-getelementSumNumHT	src/utility/hashtable.c	/^int getelementSumNumHT(struct HashTable *ht) {$/;"	f
-getelementSumNumHT_DMP	src/hashtable/dmp.c	/^long getelementSumNumHT_DMP(struct HashTable_DMP *ht) {$/;"	f
-getelementValueHT	src/utility/hashtable.c	/^long getelementValueHT(struct HashTable *ht, int index) {$/;"	f
-geti1num_i3LineFile	src/linefile/i3linefile.c	/^int geti1num_i3LineFile(struct i3LineFile *file) {$/;"	f
-gettimeMax_DirectTemporalNet	src/compact/dtnet.c	/^int gettimeMax_DirectTemporalNet() {$/;"	f
-gettimeMin_DirectTemporalNet	src/compact/dtnet.c	/^int gettimeMin_DirectTemporalNet() {$/;"	f
-gettimeScope_DirectTemporalNet	src/compact/dtnet.c	/^int gettimeScope_DirectTemporalNet() {$/;"	f
-haswork	inc/utility/threadpool.h	/^	pthread_cond_t haswork;$/;"	m	struct:ThreadPool
-he	inc/hashtable/dmp.h	/^	struct HashElement_DMP **he;$/;"	m	struct:HashTable_DMP	typeref:struct:HashTable_DMP::HashElement_DMP
-he	inc/utility/hashtable.h	/^	struct HashElement **he;$/;"	m	struct:HashTable	typeref:struct:HashTable::HashElement
-heats_Bip2	src/compact/bip2.c	/^struct L_Bip2 *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {$/;"	f
-heats_Bip2_core	src/compact/bip2.c	/^static void heats_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {$/;"	f	file:
-hour01	inc/compact/dtnet.h	/^	hour01 = 3600  ,$/;"	e	enum:timeScopeDTNet
-hour02	inc/compact/dtnet.h	/^	hour02 = 7200  ,$/;"	e	enum:timeScopeDTNet
-hour03	inc/compact/dtnet.h	/^	hour03 = 10800 ,$/;"	e	enum:timeScopeDTNet
-hour04	inc/compact/dtnet.h	/^	hour04 = 14400 ,$/;"	e	enum:timeScopeDTNet
-hour05	inc/compact/dtnet.h	/^	hour05 = 18000 ,$/;"	e	enum:timeScopeDTNet
-hour06	inc/compact/dtnet.h	/^	hour06 = 21600 ,$/;"	e	enum:timeScopeDTNet
-hour07	inc/compact/dtnet.h	/^	hour07 = 25200 ,$/;"	e	enum:timeScopeDTNet
-hour08	inc/compact/dtnet.h	/^	hour08 = 28800 ,$/;"	e	enum:timeScopeDTNet
-hour09	inc/compact/dtnet.h	/^	hour09 = 32400 ,$/;"	e	enum:timeScopeDTNet
-hour10	inc/compact/dtnet.h	/^	hour10 = 36000 ,$/;"	e	enum:timeScopeDTNet
-hour11	inc/compact/dtnet.h	/^	hour11 = 39600 ,$/;"	e	enum:timeScopeDTNet
-hour12	inc/compact/dtnet.h	/^	hour12 = 43200 ,$/;"	e	enum:timeScopeDTNet
-hour13	inc/compact/dtnet.h	/^	hour13 = 46800 ,$/;"	e	enum:timeScopeDTNet
-hour14	inc/compact/dtnet.h	/^	hour14 = 50400 ,$/;"	e	enum:timeScopeDTNet
-hour15	inc/compact/dtnet.h	/^	hour15 = 54000 ,$/;"	e	enum:timeScopeDTNet
-hour16	inc/compact/dtnet.h	/^	hour16 = 57600 ,$/;"	e	enum:timeScopeDTNet
-hour17	inc/compact/dtnet.h	/^	hour17 = 61200 ,$/;"	e	enum:timeScopeDTNet
-hour18	inc/compact/dtnet.h	/^	hour18 = 64800 ,$/;"	e	enum:timeScopeDTNet
-hour19	inc/compact/dtnet.h	/^	hour19 = 68400 ,$/;"	e	enum:timeScopeDTNet
-hour20	inc/compact/dtnet.h	/^	hour20 = 72000 ,$/;"	e	enum:timeScopeDTNet
-hour21	inc/compact/dtnet.h	/^	hour21 = 75600 ,$/;"	e	enum:timeScopeDTNet
-hour22	inc/compact/dtnet.h	/^	hour22 = 79200 ,$/;"	e	enum:timeScopeDTNet
-hour23	inc/compact/dtnet.h	/^	hour23 = 82800 ,$/;"	e	enum:timeScopeDTNet
-hour24	inc/compact/dtnet.h	/^	hour24 = 86400 ,$/;"	e	enum:timeScopeDTNet
-ht	inc/compact/dtnet.h	/^	struct HashTable *ht;$/;"	m	struct:DTNetShortPath1NArgs	typeref:struct:DTNetShortPath1NArgs::HashTable
-hybrid_Bip2	src/compact/bip2.c	/^struct L_Bip2 *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda) {$/;"	f
-hybrid_Bip2_core	src/compact/bip2.c	/^static void hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda) {$/;"	f	file:
-hybrid_Bip3i	src/compact/bip3i.c	/^struct L_Bip3i *hybrid_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double lambda) {$/;"	f
-hybrid_Bip3i_core	src/compact/bip3i.c	/^static void hybrid_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, double lambda) {$/;"	f	file:
-hybrid_rank_Bip3i	src/compact/bip3i.c	/^double *hybrid_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double lambda) {$/;"	f
-hybrid_rank_Bip3i_core	src/compact/bip3i.c	/^static void hybrid_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, int *i2id, int *rank, double lambda) {$/;"	f	file:
-i1	inc/hashtable/dmp.h	/^	int i1;$/;"	m	struct:HashElement_DMP
-i1	inc/linefile/i3dlinefile.h	/^	int i1;$/;"	m	struct:i3dLine
-i1	inc/linefile/i3linefile.h	/^	int i1;$/;"	m	struct:i3Line
-i1	inc/linefile/i4linefile.h	/^	int i1;$/;"	m	struct:i4Line
-i1	inc/linefile/i5dslinefile.h	/^	int i1;$/;"	m	struct:i5dsLine
-i1	inc/linefile/i5linefile.h	/^	int i1;$/;"	m	struct:i5Line
-i1	inc/linefile/i5sslinefile.h	/^	int i1;$/;"	m	struct:i5ssLine
-i1	inc/linefile/i7ddslinefile.h	/^	int i1;$/;"	m	struct:i7ddsLine
-i1	inc/linefile/iid3linefile.h	/^	int i1;$/;"	m	struct:iid3Line
-i1	inc/linefile/iidlinefile.h	/^	int i1;$/;"	m	struct:iidLine
-i1	inc/linefile/iilinefile.h	/^	int i1;$/;"	m	struct:iiLine
-i1	inc/linefile/ilinefile.h	/^	int i1;$/;"	m	struct:iLine
-i1Max	inc/linefile/i3dlinefile.h	/^	int i1Max;$/;"	m	struct:i3dLineFile
-i1Max	inc/linefile/i3linefile.h	/^	int i1Max;$/;"	m	struct:i3LineFile
-i1Max	inc/linefile/i4linefile.h	/^	int i1Max;$/;"	m	struct:i4LineFile
-i1Max	inc/linefile/i5dslinefile.h	/^	int i1Max;$/;"	m	struct:i5dsLineFile
-i1Max	inc/linefile/i5linefile.h	/^	int i1Max;$/;"	m	struct:i5LineFile
-i1Max	inc/linefile/i5sslinefile.h	/^	int i1Max;$/;"	m	struct:i5ssLineFile
-i1Max	inc/linefile/i7ddslinefile.h	/^	int i1Max;$/;"	m	struct:i7ddsLineFile
-i1Max	inc/linefile/iid3linefile.h	/^	int i1Max;$/;"	m	struct:iid3LineFile
-i1Max	inc/linefile/iidlinefile.h	/^	int i1Max;$/;"	m	struct:iidLineFile
-i1Max	inc/linefile/iilinefile.h	/^	int i1Max;$/;"	m	struct:iiLineFile
-i1Max	inc/linefile/ilinefile.h	/^	int i1Max;$/;"	m	struct:iLineFile
-i1Min	inc/linefile/i3dlinefile.h	/^	int i1Min;$/;"	m	struct:i3dLineFile
-i1Min	inc/linefile/i3linefile.h	/^	int i1Min;$/;"	m	struct:i3LineFile
-i1Min	inc/linefile/i4linefile.h	/^	int i1Min;$/;"	m	struct:i4LineFile
-i1Min	inc/linefile/i5dslinefile.h	/^	int i1Min;$/;"	m	struct:i5dsLineFile
-i1Min	inc/linefile/i5linefile.h	/^	int i1Min;$/;"	m	struct:i5LineFile
-i1Min	inc/linefile/i5sslinefile.h	/^	int i1Min;$/;"	m	struct:i5ssLineFile
-i1Min	inc/linefile/i7ddslinefile.h	/^	int i1Min;$/;"	m	struct:i7ddsLineFile
-i1Min	inc/linefile/iid3linefile.h	/^	int i1Min;$/;"	m	struct:iid3LineFile
-i1Min	inc/linefile/iidlinefile.h	/^	int i1Min;$/;"	m	struct:iidLineFile
-i1Min	inc/linefile/iilinefile.h	/^	int i1Min;$/;"	m	struct:iiLineFile
-i1Min	inc/linefile/ilinefile.h	/^	int i1Min;$/;"	m	struct:iLineFile
-i2	inc/hashtable/dmp.h	/^	int i2;$/;"	m	struct:HashElement_DMP
-i2	inc/linefile/i3dlinefile.h	/^	int i2;$/;"	m	struct:i3dLine
-i2	inc/linefile/i3linefile.h	/^	int i2;$/;"	m	struct:i3Line
-i2	inc/linefile/i4linefile.h	/^	int i2;$/;"	m	struct:i4Line
-i2	inc/linefile/i5dslinefile.h	/^	int i2;$/;"	m	struct:i5dsLine
-i2	inc/linefile/i5linefile.h	/^	int i2;$/;"	m	struct:i5Line
-i2	inc/linefile/i5sslinefile.h	/^	int i2;$/;"	m	struct:i5ssLine
-i2	inc/linefile/i7ddslinefile.h	/^	int i2;$/;"	m	struct:i7ddsLine
-i2	inc/linefile/iid3linefile.h	/^	int i2;$/;"	m	struct:iid3Line
-i2	inc/linefile/iidlinefile.h	/^	int i2;$/;"	m	struct:iidLine
-i2	inc/linefile/iilinefile.h	/^	int i2;$/;"	m	struct:iiLine
-i2Max	inc/linefile/i3dlinefile.h	/^	int i2Max;$/;"	m	struct:i3dLineFile
-i2Max	inc/linefile/i3linefile.h	/^	int i2Max;$/;"	m	struct:i3LineFile
-i2Max	inc/linefile/i4linefile.h	/^	int i2Max;$/;"	m	struct:i4LineFile
-i2Max	inc/linefile/i5dslinefile.h	/^	int i2Max;$/;"	m	struct:i5dsLineFile
-i2Max	inc/linefile/i5linefile.h	/^	int i2Max;$/;"	m	struct:i5LineFile
-i2Max	inc/linefile/i5sslinefile.h	/^	int i2Max;$/;"	m	struct:i5ssLineFile
-i2Max	inc/linefile/i7ddslinefile.h	/^	int i2Max;$/;"	m	struct:i7ddsLineFile
-i2Max	inc/linefile/iid3linefile.h	/^	int i2Max;$/;"	m	struct:iid3LineFile
-i2Max	inc/linefile/iidlinefile.h	/^	int i2Max;$/;"	m	struct:iidLineFile
-i2Max	inc/linefile/iilinefile.h	/^	int i2Max;$/;"	m	struct:iiLineFile
-i2Min	inc/linefile/i3dlinefile.h	/^	int i2Min;$/;"	m	struct:i3dLineFile
-i2Min	inc/linefile/i3linefile.h	/^	int i2Min;$/;"	m	struct:i3LineFile
-i2Min	inc/linefile/i4linefile.h	/^	int i2Min;$/;"	m	struct:i4LineFile
-i2Min	inc/linefile/i5dslinefile.h	/^	int i2Min;$/;"	m	struct:i5dsLineFile
-i2Min	inc/linefile/i5linefile.h	/^	int i2Min;$/;"	m	struct:i5LineFile
-i2Min	inc/linefile/i5sslinefile.h	/^	int i2Min;$/;"	m	struct:i5ssLineFile
-i2Min	inc/linefile/i7ddslinefile.h	/^	int i2Min;$/;"	m	struct:i7ddsLineFile
-i2Min	inc/linefile/iid3linefile.h	/^	int i2Min;$/;"	m	struct:iid3LineFile
-i2Min	inc/linefile/iidlinefile.h	/^	int i2Min;$/;"	m	struct:iidLineFile
-i2Min	inc/linefile/iilinefile.h	/^	int i2Min;$/;"	m	struct:iiLineFile
-i3	inc/compact/bip3i.h	/^	int **i3;$/;"	m	struct:Bip3i
-i3	inc/compact/bipartite.h	/^	int **i3;$/;"	m	struct:Bipartite
-i3	inc/linefile/i3dlinefile.h	/^	int i3;$/;"	m	struct:i3dLine
-i3	inc/linefile/i3linefile.h	/^	int i3;$/;"	m	struct:i3Line
-i3	inc/linefile/i4linefile.h	/^	int i3;$/;"	m	struct:i4Line
-i3	inc/linefile/i5dslinefile.h	/^	int i3;$/;"	m	struct:i5dsLine
-i3	inc/linefile/i5linefile.h	/^	int i3;$/;"	m	struct:i5Line
-i3	inc/linefile/i5sslinefile.h	/^	int i3;$/;"	m	struct:i5ssLine
-i3	inc/linefile/i7ddslinefile.h	/^	int i3;$/;"	m	struct:i7ddsLine
-i3Line	inc/linefile/i3linefile.h	/^struct i3Line{$/;"	s
-i3LineFile	inc/linefile/i3linefile.h	/^struct i3LineFile{$/;"	s
-i3dLine	inc/linefile/i3dlinefile.h	/^struct i3dLine{$/;"	s
-i3dLineFile	inc/linefile/i3dlinefile.h	/^struct i3dLineFile {$/;"	s
-i4	inc/compact/bipartite.h	/^	int **i4;$/;"	m	struct:Bipartite
-i4	inc/linefile/i4linefile.h	/^	int i4;$/;"	m	struct:i4Line
-i4	inc/linefile/i5dslinefile.h	/^	int i4;$/;"	m	struct:i5dsLine
-i4	inc/linefile/i5linefile.h	/^	int i4;$/;"	m	struct:i5Line
-i4	inc/linefile/i5sslinefile.h	/^	int i4;$/;"	m	struct:i5ssLine
-i4	inc/linefile/i7ddslinefile.h	/^	int i4;$/;"	m	struct:i7ddsLine
-i4Line	inc/linefile/i4linefile.h	/^struct i4Line {$/;"	s
-i4LineFile	inc/linefile/i4linefile.h	/^struct i4LineFile {$/;"	s
-i5	inc/linefile/i5dslinefile.h	/^	int i5;$/;"	m	struct:i5dsLine
-i5	inc/linefile/i5linefile.h	/^	int i5;$/;"	m	struct:i5Line
-i5	inc/linefile/i5sslinefile.h	/^	int i5;$/;"	m	struct:i5ssLine
-i5	inc/linefile/i7ddslinefile.h	/^	int i5;$/;"	m	struct:i7ddsLine
-i5Line	inc/linefile/i5linefile.h	/^struct i5Line{$/;"	s
-i5LineFile	inc/linefile/i5linefile.h	/^struct i5LineFile{$/;"	s
-i5dsLine	inc/linefile/i5dslinefile.h	/^struct i5dsLine {$/;"	s
-i5dsLineFile	inc/linefile/i5dslinefile.h	/^struct i5dsLineFile {$/;"	s
-i5ssLine	inc/linefile/i5sslinefile.h	/^struct i5ssLine {$/;"	s
-i5ssLineFile	inc/linefile/i5sslinefile.h	/^struct i5ssLineFile {$/;"	s
-i6	inc/linefile/i7ddslinefile.h	/^	int i6;$/;"	m	struct:i7ddsLine
-i7	inc/linefile/i7ddslinefile.h	/^	int i7;$/;"	m	struct:i7ddsLine
-i7ddsLine	inc/linefile/i7ddslinefile.h	/^struct i7ddsLine {$/;"	s
-i7ddsLineFile	inc/linefile/i7ddslinefile.h	/^struct i7ddsLineFile {$/;"	s
-iLine	inc/linefile/ilinefile.h	/^struct iLine {$/;"	s
-iLineFile	inc/linefile/ilinefile.h	/^struct iLineFile {$/;"	s
-id	inc/compact/bip2.h	/^	int **id;$/;"	m	struct:Bip2
-id	inc/compact/bip3i.h	/^	int **id;$/;"	m	struct:Bip3i
-id	inc/compact/bipartite.h	/^	int **id;$/;"	m	struct:Bipartite
-idNum	inc/compact/bip2.h	/^	int idNum;$/;"	m	struct:Bip2
-idNum	inc/compact/bip3i.h	/^	int idNum;$/;"	m	struct:Bip3i
-idNum	inc/compact/bipartite.h	/^	int idNum;$/;"	m	struct:Bipartite
-iiLine	inc/linefile/iilinefile.h	/^struct iiLine {$/;"	s
-iiLineFile	inc/linefile/iilinefile.h	/^struct iiLineFile {$/;"	s
-iid3Line	inc/linefile/iid3linefile.h	/^struct iid3Line {$/;"	s
-iid3LineFile	inc/linefile/iid3linefile.h	/^struct iid3LineFile {$/;"	s
-iidLine	inc/linefile/iidlinefile.h	/^struct iidLine{$/;"	s
-iidLineFile	inc/linefile/iidlinefile.h	/^struct iidLineFile {$/;"	s
-iidNet	inc/compact/iidnet.h	/^struct iidNet{$/;"	s
-inCount	inc/compact/dtnet.h	/^	long *inCount;$/;"	m	struct:DirectTemporalNet
-inCountMax	inc/compact/dtnet.h	/^	long inCountMax;$/;"	m	struct:DirectTemporalNet
-index	inc/utility/hashtable.h	/^	long *index;$/;"	m	struct:HashTable
-indexSign	inc/utility/hashtable.h	/^	char indexSign;$/;"	m	struct:HashTable
-infectRate	inc/compact/dnet.h	/^	double infectRate;$/;"	m	struct:DNetSpreadArgs
-infect_source	inc/hashtable/dmp.h	/^	int infect_source;$/;"	m	struct:HashTable_DMP
-init_DirectTemporalNet	src/compact/dtnet.c	/^void init_DirectTemporalNet(const struct i4LineFile* const file) {$/;"	f
-init_HashTable_DMP	src/hashtable/dmp.c	/^void init_HashTable_DMP(struct HashTable_DMP *ht, struct iiLineFile *file, int infect_source) {$/;"	f
-init_by_array	src/utility/random.c	/^void init_by_array(unsigned long init_key[], int key_length)$/;"	f
-init_by_array_threadsafe	src/utility/threadsafe_random.c	/^int init_by_array_threadsafe(unsigned long init_key[], int key_length)$/;"	f
-init_genrand	src/utility/random.c	/^static void init_genrand(unsigned long s)$/;"	f	file:
-init_genrand_threadsafe	src/utility/threadsafe_random.c	/^void init_genrand_threadsafe(unsigned long s, int t)$/;"	f
-init_threadsafe	src/utility/threadsafe_random.c	/^void init_threadsafe(void) {$/;"	f
-inn	inc/linefile/innlinefile.h	/^	int *inn;$/;"	m	struct:innLine
-innLine	inc/linefile/innlinefile.h	/^struct innLine{$/;"	s
-innLineFile	inc/linefile/innlinefile.h	/^struct innLineFile {$/;"	s
-insertHEtoHT	src/utility/hashtable.c	/^int insertHEtoHT(struct HashTable *ht, long element)$/;"	f
-insertHEtoHT_DMP	src/hashtable/dmp.c	/^int insertHEtoHT_DMP(struct HashTable_DMP *ht, int i1, int i2, double theta, double phi, double p1, double p2)$/;"	f
-isError	src/utility/error.c	/^void isError(const char * const errormsg)$/;"	f
-lambda	src/compact/bip2.c	/^	double lambda;$/;"	m	struct:param_recommend_Bip2	file:
-lambda	src/compact/bip3i.c	/^	double lambda;$/;"	m	struct:param_rank_Bip3i	file:
-lambda	src/compact/bip3i.c	/^	double lambda;$/;"	m	struct:param_recommend_Bip3i	file:
-length	inc/hashtable/dmp.h	/^	int length;$/;"	m	struct:HashTable_DMP
-length	inc/utility/hashtable.h	/^	int length;$/;"	m	struct:HashTable
-lineId	inc/linefile/innlinefile.h	/^	int lineId;$/;"	m	struct:innLine
-lines	inc/linefile/i3dlinefile.h	/^	struct i3dLine *lines;$/;"	m	struct:i3dLineFile	typeref:struct:i3dLineFile::i3dLine
-lines	inc/linefile/i3linefile.h	/^	struct i3Line *lines;$/;"	m	struct:i3LineFile	typeref:struct:i3LineFile::i3Line
-lines	inc/linefile/i4linefile.h	/^	struct i4Line *lines;$/;"	m	struct:i4LineFile	typeref:struct:i4LineFile::i4Line
-lines	inc/linefile/i5dslinefile.h	/^	struct i5dsLine *lines;$/;"	m	struct:i5dsLineFile	typeref:struct:i5dsLineFile::i5dsLine
-lines	inc/linefile/i5linefile.h	/^	struct i5Line *lines;$/;"	m	struct:i5LineFile	typeref:struct:i5LineFile::i5Line
-lines	inc/linefile/i5sslinefile.h	/^	struct i5ssLine *lines;$/;"	m	struct:i5ssLineFile	typeref:struct:i5ssLineFile::i5ssLine
-lines	inc/linefile/i7ddslinefile.h	/^	struct i7ddsLine *lines;$/;"	m	struct:i7ddsLineFile	typeref:struct:i7ddsLineFile::i7ddsLine
-lines	inc/linefile/iid3linefile.h	/^	struct iid3Line *lines;$/;"	m	struct:iid3LineFile	typeref:struct:iid3LineFile::iid3Line
-lines	inc/linefile/iidlinefile.h	/^	struct iidLine *lines;$/;"	m	struct:iidLineFile	typeref:struct:iidLineFile::iidLine
-lines	inc/linefile/iilinefile.h	/^	struct iiLine *lines;$/;"	m	struct:iiLineFile	typeref:struct:iiLineFile::iiLine
-lines	inc/linefile/ilinefile.h	/^	struct iLine *lines;$/;"	m	struct:iLineFile	typeref:struct:iLineFile::iLine
-lines	inc/linefile/innlinefile.h	/^	struct innLine *lines;$/;"	m	struct:innLineFile	typeref:struct:innLineFile::innLine
-linesNum	inc/linefile/i3dlinefile.h	/^	long linesNum;$/;"	m	struct:i3dLineFile
-linesNum	inc/linefile/i3linefile.h	/^	long linesNum;$/;"	m	struct:i3LineFile
-linesNum	inc/linefile/i4linefile.h	/^	long linesNum;$/;"	m	struct:i4LineFile
-linesNum	inc/linefile/i5dslinefile.h	/^	long linesNum;$/;"	m	struct:i5dsLineFile
-linesNum	inc/linefile/i5linefile.h	/^	long linesNum;$/;"	m	struct:i5LineFile
-linesNum	inc/linefile/i5sslinefile.h	/^	long linesNum;$/;"	m	struct:i5ssLineFile
-linesNum	inc/linefile/i7ddslinefile.h	/^	long linesNum;$/;"	m	struct:i7ddsLineFile
-linesNum	inc/linefile/iid3linefile.h	/^	long linesNum;$/;"	m	struct:iid3LineFile
-linesNum	inc/linefile/iidlinefile.h	/^	long linesNum;$/;"	m	struct:iidLineFile
-linesNum	inc/linefile/iilinefile.h	/^	long linesNum;$/;"	m	struct:iiLineFile
-linesNum	inc/linefile/ilinefile.h	/^	long linesNum;$/;"	m	struct:iLineFile
-linesNum	inc/linefile/innlinefile.h	/^	long linesNum;$/;"	m	struct:innLineFile
-loopNum	inc/compact/dnet.h	/^	int loopNum;$/;"	m	struct:DNetSpreadArgs
-maxId	inc/compact/bip2.h	/^	int maxId;$/;"	m	struct:Bip2
-maxId	inc/compact/bip3i.h	/^	int maxId;$/;"	m	struct:Bip3i
-maxId	inc/compact/bipartite.h	/^	int maxId;$/;"	m	struct:Bipartite
-maxId	inc/compact/dnet.h	/^	int maxId;$/;"	m	struct:DirectNet
-maxId	inc/compact/dtnet.h	/^	int maxId;$/;"	m	struct:DirectTemporalNet
-maxId	inc/compact/iidnet.h	/^	int maxId;$/;"	m	struct:iidNet
-maxId	inc/compact/net.h	/^	int maxId;$/;"	m	struct:Net
-maxId	inc/matrix/pspipr.h	/^	int maxId;$/;"	m	struct:PSPIPR
-maxId	inc/matrix/snapshot.h	/^	int maxId;$/;"	m	struct:Snapshot
-maxscore	src/compact/bip3i.c	/^	int maxscore;$/;"	m	struct:param_rank_Bip3i	file:
-maxscore	src/compact/bip3i.c	/^	int maxscore;$/;"	m	struct:param_recommend_Bip3i	file:
-memError	src/utility/error.c	/^void memError(void *p, char *errormsg)$/;"	f
-metrics_Bip2	src/compact/bip2.c	/^static void metrics_Bip2(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *rank, double *R, double *PL) {$/;"	f	file:
-metrics_Bip3i	src/compact/bip3i.c	/^static void metrics_Bip3i(int i1, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *rank, double *R, double *PL) {$/;"	f	file:
-metrics_HL_Bip2	src/compact/bip2.c	/^static double metrics_HL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {$/;"	f	file:
-metrics_HL_Bip3i	src/compact/bip3i.c	/^static double metrics_HL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *Hij) {$/;"	f	file:
-metrics_IL_Bip2	src/compact/bip2.c	/^static double metrics_IL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij, struct iidNet *sim) {$/;"	f	file:
-metrics_IL_Bip3i	src/compact/bip3i.c	/^static double metrics_IL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *Hij, struct iidNet *sim) {$/;"	f	file:
-metrics_NL_Bip2	src/compact/bip2.c	/^static double metrics_NL_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, int L, int *Hij) {$/;"	f	file:
-metrics_NL_Bip3i	src/compact/bip3i.c	/^static double metrics_NL_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, int L, int *Hij) {$/;"	f	file:
-minId	inc/compact/bip2.h	/^	int minId;$/;"	m	struct:Bip2
-minId	inc/compact/bip3i.h	/^	int minId;$/;"	m	struct:Bip3i
-minId	inc/compact/bipartite.h	/^	int minId;$/;"	m	struct:Bipartite
-minId	inc/compact/dnet.h	/^	int minId;$/;"	m	struct:DirectNet
-minId	inc/compact/dtnet.h	/^	int minId;$/;"	m	struct:DirectTemporalNet
-minId	inc/compact/iidnet.h	/^	int minId;$/;"	m	struct:iidNet
-minId	inc/compact/net.h	/^	int minId;$/;"	m	struct:Net
-minId	inc/matrix/pspipr.h	/^	int minId;$/;"	m	struct:PSPIPR
-minId	inc/matrix/snapshot.h	/^	int minId;$/;"	m	struct:Snapshot
-mt	src/utility/random.c	/^static unsigned long mt[N]={$/;"	v	file:
-mt_a	src/utility/threadsafe_random.c	/^static unsigned long mt_a[Thread_Safe_MAX][N]; \/* the array for the state vector  *\/$/;"	v	file:
-mti	src/utility/random.c	/^static int mti=624; \/\/ modified by rui, not need to init anymore $/;"	v	file:
-mti_a	src/utility/threadsafe_random.c	/^static int mti_a[Thread_Safe_MAX]; \/* mti==N+1 means mt[N] is not initialized *\/$/;"	v	file:
-mutex	inc/compact/dtnet.h	/^	pthread_mutex_t *mutex;$/;"	m	struct:DTNetShortPath1NArgs
-mutex	inc/utility/threadpool.h	/^	pthread_mutex_t mutex;$/;"	m	struct:ThreadPool
-mutex	src/utility/threadsafe_random.c	/^static pthread_mutex_t mutex;$/;"	v	file:
-net_dmp	src/compact/net.c	/^void net_dmp(struct Net *net, int T, double infect_rate, double recover_rate) {$/;"	f
-net_dmp_core	src/compact/net.c	/^static void net_dmp_core(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR, double *theta_temp) {$/;"	f	file:
-net_dmp_init	src/compact/net.c	/^static void net_dmp_init(struct Net *net, int infect_source, double **P, double **Theta, double **Phi, double *PS, double *PI, double *PR) {$/;"	f	file:
-net_dmp_is	src/compact/net.c	/^double *net_dmp_is(struct Net *net, int infect_source, int T, double infect_rate, double recover_rate) {$/;"	f
-net_find_index	src/compact/net.c	/^long net_find_index(struct Net *net, int v1, int v2) {$/;"	f
-next	inc/hashtable/dmp.h	/^	struct HashElement_DMP *next;$/;"	m	struct:HashElement_DMP	typeref:struct:HashElement_DMP::HashElement_DMP
-next	inc/utility/hashtable.h	/^	struct HashElement *next;$/;"	m	struct:HashElement	typeref:struct:HashElement::HashElement
-next	inc/utility/threadpool.h	/^	struct workOfTP *next;$/;"	m	struct:workOfTP	typeref:struct:workOfTP::workOfTP
-num	inc/linefile/innlinefile.h	/^	int num;$/;"	m	struct:innLine
-onion_mass_Bip2	src/compact/bip2.c	/^struct L_Bip2 *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, double orate) {$/;"	f
-onion_probs_Bip2_core	src/compact/bip2.c	/^static void onion_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, double orate) {$/;"	f	file:
-orate	src/compact/bip2.c	/^	double orate;$/;"	m	struct:param_recommend_Bip2	file:
-out	inc/compact/dtnet.h	/^	int **out;$/;"	m	struct:DirectTemporalNet
-outCount	inc/compact/dtnet.h	/^	long *outCount;$/;"	m	struct:DirectTemporalNet
-outCountMax	inc/compact/dtnet.h	/^	long outCountMax;$/;"	m	struct:DirectTemporalNet
-outTemporal	inc/compact/dtnet.h	/^	int **outTemporal;	$/;"	m	struct:DirectTemporalNet
-outTemporal_second01	inc/compact/dtnet.h	/^	int **outTemporal_second01;	$/;"	m	struct:DirectTemporalNet
-p1	inc/hashtable/dmp.h	/^	double p1;$/;"	m	struct:HashElement_DMP
-p2	inc/hashtable/dmp.h	/^	double p2;$/;"	m	struct:HashElement_DMP
-param_rank_Bip3i	src/compact/bip3i.c	/^struct param_rank_Bip3i {$/;"	s	file:
-param_recommend_Bip2	src/compact/bip2.c	/^struct param_recommend_Bip2 {$/;"	s	file:
-param_recommend_Bip3i	src/compact/bip3i.c	/^struct param_recommend_Bip3i {$/;"	s	file:
-phi	inc/hashtable/dmp.h	/^	double phi;$/;"	m	struct:HashElement_DMP
-print_2_i4LineFile	src/linefile/i4linefile.c	/^void print_2_i4LineFile(struct i4LineFile *file1, struct i4LineFile *file2, char *filename) {$/;"	f
-print_2_iiLineFile	src/linefile/iilinefile.c	/^void print_2_iiLineFile(struct iiLineFile *file1, struct iiLineFile *file2, char *filename) {$/;"	f
-print_ENum_HashTable_DMP	src/hashtable/dmp.c	/^void print_ENum_HashTable_DMP(struct HashTable_DMP *ht, char *filename) {$/;"	f
-print_HashTable_DMP	src/hashtable/dmp.c	/^void print_HashTable_DMP(struct HashTable_DMP *ht, char *filename) {$/;"	f
-print_Net	src/compact/net.c	/^void print_Net(struct Net *net, char *filename) {$/;"	f
-print_PSPIPR	src/matrix/pspipr.c	/^void print_PSPIPR(struct PSPIPR *net, char *filename) {$/;"	f
-print_Snapshot	src/matrix/snapshot.c	/^void print_Snapshot(struct Snapshot *net, char *filename) {$/;"	f
-print_i3LineFile	src/linefile/i3linefile.c	/^void print_i3LineFile(struct i3LineFile *file, char *filename) {$/;"	f
-print_i4LineFile	src/linefile/i4linefile.c	/^void print_i4LineFile(struct i4LineFile *file, char *filename) {$/;"	f
-print_i5LineFile	src/linefile/i5linefile.c	/^void print_i5LineFile(struct i5LineFile *file, char *filename) {$/;"	f
-print_iLineFile	src/linefile/ilinefile.c	/^void print_iLineFile(struct iLineFile *file, char *filename) {$/;"	f
-print_iiLineFile	src/linefile/iilinefile.c	/^void print_iiLineFile(struct iiLineFile *file, char *filename) {$/;"	f
-print_iid3LineFile	src/linefile/iid3linefile.c	/^void print_iid3LineFile(struct iid3LineFile *file, char *filename) {$/;"	f
-print_iidLineFile	src/linefile/iidlinefile.c	/^void print_iidLineFile(struct iidLineFile *file, char *filename) {$/;"	f
-print_iidNet	src/compact/iidnet.c	/^void print_iidNet(struct iidNet *net, char *filename) {$/;"	f
-probs_Bip2	src/compact/bip2.c	/^struct L_Bip2 *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim) {$/;"	f
-probs_Bip2_core	src/compact/bip2.c	/^static void probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL) {$/;"	f	file:
-psir	inc/matrix/pspipr.h	/^	double ***psir;$/;"	m	struct:PSPIPR
-qsort_d_asc	src/utility/sort.c	/^void qsort_d_asc(double s[], int l, int r)$/;"	f
-qsort_d_desc	src/utility/sort.c	/^void qsort_d_desc(double s[], int l, int r)$/;"	f
-qsort_di_asc	src/utility/sort.c	/^void qsort_di_asc(double s[], int l, int r, int in[])$/;"	f
-qsort_di_desc	src/utility/sort.c	/^void qsort_di_desc(double s[], int l, int r, int in[])$/;"	f
-qsort_i3_asc	src/utility/sort.c	/^void qsort_i3_asc(int s[], int l, int r, int in[], int in2[])$/;"	f
-qsort_i_asc	src/utility/sort.c	/^void qsort_i_asc(int s[], int l, int r)$/;"	f
-qsort_id3_asc	src/utility/sort.c	/^void qsort_id3_asc(int s[], int l, int r, double in[], double in1[], double in2[])$/;"	f
-qsort_ii_asc	src/utility/sort.c	/^void qsort_ii_asc(int s[], int l, int r, int in[])$/;"	f
-qsort_ii_desc	src/utility/sort.c	/^void qsort_ii_desc(int s[], int l, int r, int in[])$/;"	f
-qsort_iid_asc	src/utility/sort.c	/^void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]) {$/;"	f
-rank_Bip3i	src/compact/bip3i.c	/^static double *rank_Bip3i(int type, struct Bip3i *neti1, struct Bip3i *neti2, struct param_rank_Bip3i param) {$/;"	f	file:
-recommend_Bip2	src/compact/bip2.c	/^static struct L_Bip2 *recommend_Bip2(int type, struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct param_recommend_Bip2 param) {$/;"	f	file:
-recommend_Bip3i	src/compact/bip3i.c	/^static struct L_Bip3i *recommend_Bip3i(int type, struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, struct param_recommend_Bip3i param) {$/;"	f	file:
-renew_Bip2	src/compact/bip2.c	/^static void renew_Bip2(struct Bip2 *bip) {$/;"	f	file:
-renew_Bipartite	src/compact/bipartite.c	/^static void renew_Bipartite(struct Bipartite *bip) {$/;"	f	file:
-routine	inc/utility/threadpool.h	/^	void* (*routine)(void*);$/;"	m	struct:workOfTP
-s10	inc/linefile/i7ddslinefile.h	/^	char s10[100];$/;"	m	struct:i7ddsLine
-s6	inc/linefile/i5sslinefile.h	/^	char s6[100];$/;"	m	struct:i5ssLine
-s7	inc/linefile/i5dslinefile.h	/^	char s7[1000];$/;"	m	struct:i5dsLine
-s7	inc/linefile/i5sslinefile.h	/^	char s7[1000];$/;"	m	struct:i5ssLine
-s_mass_Bip3i	src/compact/bip3i.c	/^struct L_Bip3i *s_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double theta, int maxscore) {$/;"	f
-s_mass_Bip3i_core	src/compact/bip3i.c	/^static void s_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double theta, int maxscore) {$/;"	f	file:
-s_mass_rank_Bip3i	src/compact/bip3i.c	/^double *s_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double theta, int maxscore) {$/;"	f
-s_mass_rank_Bip3i_core	src/compact/bip3i.c	/^static void s_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i1sourceA, double *i2sourceA, int *i2id, int *rank, double theta, int maxscore) {$/;"	f	file:
-score	src/compact/bip2.c	/^	double *score;$/;"	m	struct:param_recommend_Bip2	file:
-score_hybrid_Bip2	src/compact/bip2.c	/^struct L_Bip2 *score_hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, double lambda, double *score, double epsilon) {$/;"	f
-score_hybrid_Bip2_core	src/compact/bip2.c	/^static void score_hybrid_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *Hij, double lambda, double *score, double epsilon) {$/;"	f	file:
-second01	inc/compact/dtnet.h	/^	second01 = 1,$/;"	e	enum:timeScopeDTNet
-setBitSign	src/utility/bitsign.c	/^void setBitSign(unsigned int *signStick, int signId)$/;"	f
-setTimeScope_DirectTemporalNet	src/compact/dtnet.c	/^void setTimeScope_DirectTemporalNet(int timeScope) {$/;"	f
-setelementIndexHT	src/utility/hashtable.c	/^void setelementIndexHT(struct HashTable *ht) {$/;"	f
-shortpath_1n_DTNet	src/compact/dtnet.c	/^void *shortpath_1n_DTNet(void *arg) {$/;"	f
-similarity_Bip2	src/compact/bip2.c	/^void similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, char *filename) {$/;"	f
-similarity_realtime_Bip2	src/compact/bip2.c	/^struct iidLineFile *similarity_realtime_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {$/;"	f
-similarity_realtime_Bip3i	src/compact/bip3i.c	/^struct iidLineFile *similarity_realtime_Bip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {$/;"	f
-sortBytime_Bipartite	src/compact/bipartite.c	/^void sortBytime_Bipartite(struct Bipartite *bip) {$/;"	f
-sort_desc_iidNet	src/compact/iidnet.c	/^void sort_desc_iidNet(struct iidNet *net) {$/;"	f
-stat	inc/matrix/snapshot.h	/^	char **stat;$/;"	m	struct:Snapshot
-sumSign	inc/hashtable/dmp.h	/^	char sumSign;$/;"	m	struct:HashTable_DMP
-sumSign	inc/utility/hashtable.h	/^	char sumSign;$/;"	m	struct:HashTable
-theta	inc/hashtable/dmp.h	/^	double theta;$/;"	m	struct:HashElement_DMP
-theta	src/compact/bip2.c	/^	double theta;$/;"	m	struct:param_recommend_Bip2	file:
-theta	src/compact/bip3i.c	/^	double theta;$/;"	m	struct:param_rank_Bip3i	file:
-theta	src/compact/bip3i.c	/^	double theta;$/;"	m	struct:param_recommend_Bip3i	file:
-thirdstepSD_mass_Bip3i	src/compact/bip3i.c	/^struct L_Bip3i *thirdstepSD_mass_Bip3i(struct Bip3i *traini1, struct Bip3i *traini2, struct Bip3i *testi1, struct Bip3i *testi2, struct iidNet *trainSim, double epsilon) {$/;"	f
-thirdstepSD_mass_Bip3i_core	src/compact/bip3i.c	/^static void thirdstepSD_mass_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int L, int *i2id, int *rank, int *topL, double epsilon) {$/;"	f	file:
-thirdstepSD_mass_rank_Bip3i	src/compact/bip3i.c	/^double *thirdstepSD_mass_rank_Bip3i(struct Bip3i *neti1, struct Bip3i *neti2, double epsilon) {$/;"	f
-thirdstepSD_mass_rank_Bip3i_core	src/compact/bip3i.c	/^static void thirdstepSD_mass_rank_Bip3i_core(int i1, struct Bip3i *traini1, struct Bip3i *traini2, double *i1source, double *i2source, double *i2sourceA, int *i2id, int *rank, double epsilon) {$/;"	f	file:
-threadId	inc/utility/threadpool.h	/^	pthread_t *threadId;$/;"	m	struct:ThreadPool
-threadMax	inc/utility/threadpool.h	/^	int threadMax;$/;"	m	struct:ThreadPool
-thread_routine	src/utility/threadpool.c	/^static void* thread_routine(void*arg) {$/;"	f	file:
-timeMax	inc/compact/dtnet.h	/^	int timeMax;$/;"	m	struct:DirectTemporalNet
-timeMax_second01	inc/compact/dtnet.h	/^	int timeMax_second01;$/;"	m	struct:DirectTemporalNet
-timeMin	inc/compact/dtnet.h	/^	int timeMin;$/;"	m	struct:DirectTemporalNet
-timeMin_second01	inc/compact/dtnet.h	/^	int timeMin_second01;$/;"	m	struct:DirectTemporalNet
-timeScope	inc/compact/dtnet.h	/^	int timeScope;$/;"	m	struct:DirectTemporalNet
-timeScopeDTNet	inc/compact/dtnet.h	/^enum timeScopeDTNet {$/;"	g
-timeStatistics	inc/compact/dtnet.h	/^	int *timeStatistics;$/;"	m	struct:DTNetShortPath1NArgs
-to	inc/compact/dnet.h	/^	int **to;$/;"	m	struct:DirectNet
-topL	inc/compact/bip2.h	/^	int *topL;$/;"	m	struct:L_Bip2
-topL	inc/compact/bip3i.h	/^	int *topL;$/;"	m	struct:L_Bip3i
-topR	src/compact/bip2.c	/^	int topR;$/;"	m	struct:param_recommend_Bip2	file:
-topR_probs_Bip2	src/compact/bip2.c	/^struct L_Bip2 *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *trainSim, struct iidNet *userSim, int topR) {$/;"	f
-topR_probs_Bip2_core	src/compact/bip2.c	/^static void topR_probs_Bip2_core(int i1, struct Bip2 *bipi1, struct Bip2 *bipi2, double *i1source, double *i2source, int L, int *i2id, int *rank, int *topL, struct iidNet *userSim, int topR) {$/;"	f	file:
-touchParam	inc/compact/dnet.h	/^	double touchParam;$/;"	m	struct:DNetSpreadArgs
-userSim	src/compact/bip2.c	/^	struct iidNet *userSim;$/;"	m	struct:param_recommend_Bip2	typeref:struct:param_recommend_Bip2::iidNet	file:
-verifyBip2	src/compact/bip2.c	/^void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {$/;"	f
-verifyBip3i	src/compact/bip3i.c	/^void *verifyBip3i(struct Bip3i *bipi1, struct Bip3i *bipi2) {$/;"	f
-verifyDNet	src/compact/dnet.c	/^void *verifyDNet(void *arg) {$/;"	f
-verifyDTNet	src/compact/dtnet.c	/^void *verifyDTNet(void *arg) {$/;"	f
-verifyNet	src/compact/net.c	/^void *verifyNet(void *arg) {$/;"	f
-verify_random	src/utility/random.c	/^int verify_random(void)$/;"	f
-vtId	inc/compact/dtnet.h	/^	int vtId;$/;"	m	struct:DTNetShortPath1NArgs
-vtsNum	inc/compact/dnet.h	/^	int vtsNum;$/;"	m	struct:DirectNet
-vtsNum	inc/compact/dtnet.h	/^	int vtsNum;$/;"	m	struct:DirectTemporalNet
-vtsNum	inc/compact/iidnet.h	/^	int vtsNum;$/;"	m	struct:iidNet
-vtsNum	inc/compact/net.h	/^	int vtsNum;$/;"	m	struct:Net
-wc_bip2_ii_HT	src/utility/hashtable.c	/^void wc_bip2_ii_HT(struct iiLineFile *file, char *filename) {$/;"	f
-workOfTP	inc/utility/threadpool.h	/^struct workOfTP{$/;"	s
-works	inc/utility/threadpool.h	/^	struct workOfTP *works;$/;"	m	struct:ThreadPool	typeref:struct:ThreadPool::workOfTP
-writeContinuousi4LineFileHT	src/utility/hashtable.c	/^void *writeContinuousi4LineFileHT(void * arg) {$/;"	f
-writeContinuousiiLineFileHT	src/utility/hashtable.c	/^void *writeContinuousiiLineFileHT(void * arg) {$/;"	f
+Bip2	src/bip.h	/^struct Bip2 {$/;"	s
+Bip_core_base	src/bip.c	/^struct Bip_core_base {$/;"	s	file:
+Bip_core_common_part	src/bip.c	/^static inline void Bip_core_common_part(int uid, struct Bip_core_base *args, int *i2id, int *rank, int *topL_i1L, int L) {$/;"	f	file:
+Bip_core_param	src/bip.c	/^struct Bip_core_param {$/;"	s	file:
+Bip_core_test	src/bip.c	/^struct Bip_core_test {$/;"	s	file:
+CN_BIP_H	src/bip.h	28;"	d
+CN_ERROR_H	src/error.h	2;"	d
+CN_IIDLINEFILE_H	src/iidlinefile.h	2;"	d
+CN_IIDNET_H	src/iidnet.h	2;"	d
+CN_IILINEFILE_H	src/iilinefile.h	2;"	d
+CN_MT_RANDOM_H	src/mt_random.h	2;"	d
+CN_SORT_H	src/sort.h	2;"	d
+HL	src/bip.h	/^	double HL;$/;"	m	struct:L_Bip
+HNBI_Bip2	src/bip.c	/^struct L_Bip *HNBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double theta) {$/;"	f
+HNBI_Bip_core	src/bip.c	/^static void HNBI_Bip_core(int i1, struct Bip_core_base *args, double theta) {$/;"	f	file:
+IL	src/bip.h	/^    double IL;$/;"	m	struct:L_Bip
+L	src/bip.h	/^	int L;$/;"	m	struct:L_Bip
+LINES_LENGTH_EACH	src/iidlinefile.c	17;"	d	file:
+LINES_LENGTH_EACH	src/iilinefile.c	18;"	d	file:
+LINE_LENGTH_MAX	src/iidlinefile.c	10;"	d	file:
+LINE_LENGTH_MAX	src/iilinefile.c	11;"	d	file:
+LOWER_MASK	src/mt_random.c	9;"	d	file:
+L_Bip	src/bip.h	/^struct L_Bip {$/;"	s
+M	src/mt_random.c	6;"	d	file:
+MATRIX_A	src/mt_random.c	7;"	d	file:
+N	src/mt_random.c	5;"	d	file:
+NL	src/bip.h	/^    double NL;$/;"	m	struct:L_Bip
+PL	src/bip.h	/^	double PL;$/;"	m	struct:L_Bip
+R	src/bip.h	/^	double R;$/;"	m	struct:L_Bip
+RENBI_Bip2	src/bip.c	/^struct L_Bip *RENBI_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double eta) {$/;"	f
+RENBI_Bip_core	src/bip.c	/^static void RENBI_Bip_core(int i1, struct Bip_core_base *args, double *i2sourceA, double eta) {$/;"	f	file:
+UPPER_MASK	src/mt_random.c	8;"	d	file:
+abstract_Bip2	src/bip.c	/^struct iiLineFile *abstract_Bip2(struct Bip2 *bip) {$/;"	f
+backtofile_Bip2	src/bip.c	/^struct iiLineFile *backtofile_Bip2(struct Bip2 *bip) {$/;"	f
+bestkcut	src/bip.c	/^	double bestkcut;$/;"	m	struct:Bip_core_param	file:
+bestkcut_probs_Bip2	src/bip.c	/^struct L_Bip *bestkcut_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double bestkcut) {$/;"	f
+clean_L_Bip	src/bip.c	/^void clean_L_Bip(struct L_Bip *lp) {$/;"	f
+count	src/bip.c	/^	long *count;$/;"	m	struct:Bip_core_test	file:
+count	src/bip.h	/^	long *count;$/;"	m	struct:Bip2
+count	src/iidnet.h	/^	long *count;$/;"	m	struct:iidNet
+countMax	src/bip.h	/^	long countMax;$/;"	m	struct:Bip2
+countMax	src/iidnet.h	/^	long countMax;$/;"	m	struct:iidNet
+countMin	src/bip.h	/^	long countMin;$/;"	m	struct:Bip2
+create_2dataset	src/main/onion.c	/^void create_2dataset(char *netfilename, struct Bip2 **traini1, struct Bip2 **traini2, struct Bip2 **testi1, struct Bip2 **testi2) {$/;"	f
+create_Bip2	src/bip.c	/^struct Bip2 *create_Bip2(const struct iiLineFile * const file, int i1toi2) {$/;"	f
+create_L_Bip	src/bip.c	/^struct L_Bip *create_L_Bip(void) {$/;"	f
+create_iiLineFile	src/iilinefile.c	/^struct iiLineFile *create_iiLineFile(const char * const filename)$/;"	f
+create_iidLineFile	src/iidlinefile.c	/^struct iidLineFile *create_iidLineFile(const char * const filename)$/;"	f
+create_iidNet	src/iidnet.c	/^struct iidNet *create_iidNet(const struct iidLineFile * const file) {$/;"	f
+cutcount_Bip2	src/bip.c	/^void cutcount_Bip2(struct Bip2 *bip, long count) {$/;"	f
+d3	src/iidlinefile.h	/^	double d3;$/;"	m	struct:iidLine
+d3	src/iidnet.h	/^	double **d3;$/;"	m	struct:iidNet
+divide_Bip2	src/bip.c	/^struct iiLineFile *divide_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, double rate) {$/;"	f
+divide_iiLineFile	src/iilinefile.c	/^void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile **first, struct iiLineFile **second) {$/;"	f
+edges	src/iidnet.h	/^	int **edges;$/;"	m	struct:iidNet
+edgesNum	src/bip.c	/^	long edgesNum;$/;"	m	struct:Bip_core_test	file:
+edgesNum	src/bip.h	/^	long edgesNum;$/;"	m	struct:Bip2
+edgesNum	src/iidnet.h	/^	long edgesNum;$/;"	m	struct:iidNet
+epsilon	src/bip.c	/^	double epsilon;$/;"	m	struct:Bip_core_param	file:
+eta	src/bip.c	/^	double eta;$/;"	m	struct:Bip_core_param	file:
+experiment_knn_Bip2	src/bip.c	/^void experiment_knn_Bip2(struct Bip2 *traini1, struct Bip2 *traini2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *userSim) {$/;"	f
+fileError	src/error.c	/^void fileError(FILE *fp, const char * const filename)$/;"	f
+fill_iiLine	src/iilinefile.c	/^static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
+fill_iidLine	src/iidlinefile.c	/^static void fill_iidLine(char *line, struct iidLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
+free_2_iiLineFile	src/iilinefile.c	/^void free_2_iiLineFile(struct iiLineFile *twofile) {$/;"	f
+free_Bip2	src/bip.c	/^void free_Bip2(struct Bip2 *Bip) {$/;"	f
+free_L_Bip	src/bip.c	/^void free_L_Bip(struct L_Bip *lp) {$/;"	f
+free_iiLineFile	src/iilinefile.c	/^void free_iiLineFile(struct iiLineFile *file) {$/;"	f
+free_iidLineFile	src/iidlinefile.c	/^void free_iidLineFile(struct iidLineFile *file) {$/;"	f
+free_iidNet	src/iidnet.c	/^void free_iidNet(struct iidNet *net) {$/;"	f
+genrand_int31	src/mt_random.c	/^long genrand_int31(void)$/;"	f
+genrand_int32	src/mt_random.c	/^unsigned long genrand_int32(void)$/;"	f
+genrand_real1	src/mt_random.c	/^double genrand_real1(void)$/;"	f
+genrand_real2	src/mt_random.c	/^double genrand_real2(void)$/;"	f
+genrand_real3	src/mt_random.c	/^double genrand_real3(void)$/;"	f
+genrand_res53	src/mt_random.c	/^double genrand_res53(void) $/;"	f
+get_ItemSimilarity	src/main/onion.c	/^void get_ItemSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **itemSim) {$/;"	f
+get_UserSimilarity	src/main/onion.c	/^void get_UserSimilarity(struct Bip2 *traini1, struct Bip2 *traini2, struct iidNet **userSim) {$/;"	f
+heats_Bip2	src/bip.c	/^struct L_Bip *heats_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {$/;"	f
+heats_Bip_core	src/bip.c	/^static void heats_Bip_core(int i1, struct Bip_core_base *args) {$/;"	f	file:
+hybrid_Bip2	src/bip.c	/^struct L_Bip *hybrid_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, double lambda) {$/;"	f
+hybrid_Bip_core	src/bip.c	/^static void hybrid_Bip_core(int i1, struct Bip_core_base *args, double lambda) {$/;"	f	file:
+i1	src/iidlinefile.h	/^	int i1;$/;"	m	struct:iidLine
+i1	src/iilinefile.h	/^	int i1;$/;"	m	struct:iiLine
+i1Max	src/iidlinefile.h	/^	int i1Max;$/;"	m	struct:iidLineFile
+i1Max	src/iilinefile.h	/^	int i1Max;$/;"	m	struct:iiLineFile
+i1Min	src/iidlinefile.h	/^	int i1Min;$/;"	m	struct:iidLineFile
+i1Min	src/iilinefile.h	/^	int i1Min;$/;"	m	struct:iiLineFile
+i1count	src/bip.c	/^	long *i1count;$/;"	m	struct:Bip_core_base	file:
+i1idNum	src/bip.c	/^	int i1idNum;$/;"	m	struct:Bip_core_base	file:
+i1ids	src/bip.c	/^	int **i1ids;$/;"	m	struct:Bip_core_base	file:
+i1maxId	src/bip.c	/^	int i1maxId;$/;"	m	struct:Bip_core_base	file:
+i1source	src/bip.c	/^	double *i1source;$/;"	m	struct:Bip_core_base	file:
+i2	src/iidlinefile.h	/^	int i2;$/;"	m	struct:iidLine
+i2	src/iilinefile.h	/^	int i2;$/;"	m	struct:iiLine
+i2Max	src/iidlinefile.h	/^	int i2Max;$/;"	m	struct:iidLineFile
+i2Max	src/iilinefile.h	/^	int i2Max;$/;"	m	struct:iiLineFile
+i2Min	src/iidlinefile.h	/^	int i2Min;$/;"	m	struct:iidLineFile
+i2Min	src/iilinefile.h	/^	int i2Min;$/;"	m	struct:iiLineFile
+i2count	src/bip.c	/^	long *i2count;$/;"	m	struct:Bip_core_base	file:
+i2idNum	src/bip.c	/^	int i2idNum;$/;"	m	struct:Bip_core_base	file:
+i2ids	src/bip.c	/^	int **i2ids;$/;"	m	struct:Bip_core_base	file:
+i2maxId	src/bip.c	/^	int i2maxId;$/;"	m	struct:Bip_core_base	file:
+i2source	src/bip.c	/^	double *i2source;$/;"	m	struct:Bip_core_base	file:
+id	src/bip.c	/^	int **id;$/;"	m	struct:Bip_core_test	file:
+id	src/bip.h	/^	int **id;$/;"	m	struct:Bip2
+idNum	src/bip.c	/^	int idNum;$/;"	m	struct:Bip_core_test	file:
+idNum	src/bip.h	/^	int idNum;$/;"	m	struct:Bip2
+iiLine	src/iilinefile.h	/^struct iiLine {$/;"	s
+iiLineFile	src/iilinefile.h	/^struct iiLineFile {$/;"	s
+iidLine	src/iidlinefile.h	/^struct iidLine{$/;"	s
+iidLineFile	src/iidlinefile.h	/^struct iidLineFile {$/;"	s
+iidNet	src/iidnet.h	/^struct iidNet{$/;"	s
+init_by_array	src/mt_random.c	/^void init_by_array(unsigned long init_key[], int key_length)$/;"	f
+init_genrand	src/mt_random.c	/^static void init_genrand(unsigned long s)$/;"	f	file:
+isError	src/error.c	/^void isError(const char * const errormsg)$/;"	f
+itemSim	src/bip.c	/^	struct iidNet *itemSim;$/;"	m	struct:Bip_core_param	typeref:struct:Bip_core_param::iidNet	file:
+knn	src/bip.c	/^	int *knn;$/;"	m	struct:Bip_core_param	file:
+lambda	src/bip.c	/^	double lambda;$/;"	m	struct:Bip_core_param	file:
+lines	src/iidlinefile.h	/^	struct iidLine *lines;$/;"	m	struct:iidLineFile	typeref:struct:iidLineFile::iidLine
+lines	src/iilinefile.h	/^	struct iiLine *lines;$/;"	m	struct:iiLineFile	typeref:struct:iiLineFile::iiLine
+linesNum	src/iidlinefile.h	/^	long linesNum;$/;"	m	struct:iidLineFile
+linesNum	src/iilinefile.h	/^	long linesNum;$/;"	m	struct:iiLineFile
+main	src/main/onion.c	/^int main(int argc, char **argv)$/;"	f
+mass_Bip_core	src/bip.c	/^static void mass_Bip_core(int i1, struct Bip_core_base *args) {$/;"	f	file:
+maxId	src/bip.c	/^	int maxId;$/;"	m	struct:Bip_core_test	file:
+maxId	src/bip.h	/^	int maxId;$/;"	m	struct:Bip2
+maxId	src/iidnet.h	/^	int maxId;$/;"	m	struct:iidNet
+memError	src/error.c	/^void memError(void *p, const char * const errormsg)$/;"	f
+metrics_Bip	src/bip.c	/^static void metrics_Bip(int i1, long *i1count, int i2idNum, struct Bip_core_test *testi1, int L, int *rank, double *R, double *PL) {$/;"	f	file:
+metrics_HL_Bip	src/bip.c	/^static double metrics_HL_Bip(int i1maxId, long *i1count, int i2maxId, int L, int *Hij) {$/;"	f	file:
+metrics_IL_Bip	src/bip.c	/^static double metrics_IL_Bip(int i1maxId, long *i1count, int i1idNum, int i2maxId, int L, int *Hij, struct iidNet *sim) {$/;"	f	file:
+metrics_NL_Bip	src/bip.c	/^static double metrics_NL_Bip(int i1maxId, long *i1count, int i1idNum, long *i2count, int L, int *Hij) {$/;"	f	file:
+minId	src/bip.h	/^	int minId;$/;"	m	struct:Bip2
+minId	src/iidnet.h	/^	int minId;$/;"	m	struct:iidNet
+mt	src/mt_random.c	/^static unsigned long mt[N]={$/;"	v	file:
+mti	src/mt_random.c	/^static int mti=624; \/\/ modified by rui, not need to init anymore $/;"	v	file:
+onion_mass_Bip2	src/bip.c	/^struct L_Bip *onion_mass_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double orate) {$/;"	f
+onion_probs_Bip_core	src/bip.c	/^static void onion_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, double orate) {$/;"	f	file:
+orate	src/bip.c	/^	double orate;$/;"	m	struct:Bip_core_param	file:
+print_iiLineFile	src/iilinefile.c	/^void print_iiLineFile(struct iiLineFile *file, char *filename) {$/;"	f
+print_iidLineFile	src/iidlinefile.c	/^void print_iidLineFile(struct iidLineFile *file, char *filename) {$/;"	f
+print_iidNet	src/iidnet.c	/^void print_iidNet(struct iidNet *net, char *filename) {$/;"	f
+print_time	src/main/onion.c	/^void print_time(void) {$/;"	f
+probs_Bip2	src/bip.c	/^struct L_Bip *probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim) {$/;"	f
+probs_bestkcut_Bip_core	src/bip.c	/^static void probs_bestkcut_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, double bestkcut) {$/;"	f	file:
+probs_knn_Bip2	src/bip.c	/^struct L_Bip *probs_knn_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *knn) {$/;"	f
+probs_knn_Bip_core	src/bip.c	/^static void probs_knn_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, int NK) {$/;"	f	file:
+probs_simcut_Bip2	src/bip.c	/^struct L_Bip *probs_simcut_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, double simcut) {$/;"	f
+probs_simcut_Bip_core	src/bip.c	/^static void probs_simcut_Bip_core(int uid, struct Bip_core_base *args, struct iidNet *userSim, double simcut) {$/;"	f	file:
+qsort_d_asc	src/sort.c	/^void qsort_d_asc(double s[], int l, int r)$/;"	f
+qsort_d_desc	src/sort.c	/^void qsort_d_desc(double s[], int l, int r)$/;"	f
+qsort_di_asc	src/sort.c	/^void qsort_di_asc(double s[], int l, int r, int in[])$/;"	f
+qsort_di_desc	src/sort.c	/^void qsort_di_desc(double s[], int l, int r, int in[])$/;"	f
+qsort_i3_asc	src/sort.c	/^void qsort_i3_asc(int s[], int l, int r, int in[], int in2[])$/;"	f
+qsort_i_asc	src/sort.c	/^void qsort_i_asc(int s[], int l, int r)$/;"	f
+qsort_id3_asc	src/sort.c	/^void qsort_id3_asc(int s[], int l, int r, double in[], double in1[], double in2[])$/;"	f
+qsort_ii_asc	src/sort.c	/^void qsort_ii_asc(int s[], int l, int r, int in[])$/;"	f
+qsort_ii_desc	src/sort.c	/^void qsort_ii_desc(int s[], int l, int r, int in[])$/;"	f
+qsort_iid_asc	src/sort.c	/^void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]) {$/;"	f
+recommend_Bip	src/bip.c	/^static struct L_Bip *recommend_Bip(int type, struct Bip_core_base *args, struct Bip_core_param *param, struct Bip_core_test *test) {$/;"	f	file:
+renew_Bip2	src/bip.c	/^static void renew_Bip2(struct Bip2 *bip) {$/;"	f	file:
+score	src/bip.c	/^	double *score;$/;"	m	struct:Bip_core_param	file:
+set_RandomSeed	src/main/onion.c	/^void set_RandomSeed(void) {$/;"	f
+simcut	src/bip.c	/^	double simcut;$/;"	m	struct:Bip_core_param	file:
+similarity_Bip2	src/bip.c	/^struct iidLineFile *similarity_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, int i1ori2) {$/;"	f
+sort_asc_iidNet	src/iidnet.c	/^void sort_asc_iidNet(struct iidNet *net) {$/;"	f
+sort_desc_iidNet	src/iidnet.c	/^void sort_desc_iidNet(struct iidNet *net) {$/;"	f
+test_ArgcArgv	src/main/onion.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
+theta	src/bip.c	/^	double theta;$/;"	m	struct:Bip_core_param	file:
+topL	src/bip.h	/^	int *topL;$/;"	m	struct:L_Bip
+topR	src/bip.c	/^	int topR;$/;"	m	struct:Bip_core_param	file:
+topR_probs_Bip2	src/bip.c	/^struct L_Bip *topR_probs_Bip2(struct Bip2 *bipi1, struct Bip2 *bipi2, struct Bip2 *testi1, struct Bip2 *testi2, struct iidNet *itemSim, struct iidNet *userSim, int topR) {$/;"	f
+topR_probs_Bip_core	src/bip.c	/^static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int topR) {$/;"	f	file:
+userSim	src/bip.c	/^	struct iidNet *userSim;$/;"	m	struct:Bip_core_param	typeref:struct:Bip_core_param::iidNet	file:
+verifyBip2	src/bip.c	/^void *verifyBip2(struct Bip2 *bipi1, struct Bip2 *bipi2) {$/;"	f
+vtsNum	src/iidnet.h	/^	int vtsNum;$/;"	m	struct:iidNet
