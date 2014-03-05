@@ -27,6 +27,30 @@ static Metrics_Bip *create_MetricsBip(void) {
 	return create_MetricsBipii();
 }
 
+struct Bip_recommend_param{
+	int i1;
+
+	double theta;
+	double eta;
+	double lambda;
+	double *score;
+	double epsilon;
+	double orate;
+	int topR;
+	int *knn;
+	struct iidNet *userSim;
+	struct iidNet *itemSim;
+	double simcut;
+	double bestkcut;
+
+	Bip *traini1;
+	Bip *traini2;
+	Bip *testi1;
+
+	double *i1source;
+	double *i2source;
+
+};
 
 struct Bip_core_param {
 	double theta;
@@ -503,16 +527,21 @@ static void onion_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidN
 	}
 }
 //three-step random walk of Probs
-static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int topR) {
+static void topR_probs_Bip_core(struct Bip_recommend_param *args) {
+//static void topR_probs_Bip_core(int i1, struct Bip_core_base *args, struct iidNet *userSim, int topR) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topR = args->topR;
 
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
-	int **i1ids = args->i1ids;
-	int **i2ids = args->i2ids; 
-	int i1maxId = args->i1maxId;
-	int i2maxId = args->i2maxId;
-	long *i1count = args->i1count;
-	long *i2count = args->i2count;
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
 
 	int i, j, neigh;
 	long degree;
@@ -742,27 +771,19 @@ static void probs_bestkcut_Bip_core(int uid, struct Bip_core_base *args, struct 
  *
  * all L is from this function. if you want to change, change the L below.
  */
-static Metrics_Bip *recommend_Bip(int type, Bip *traini1, Bip *traini2, struct Bip_core_param *param, Bip *test) {
-	double theta  = param->theta;
-	double eta    = param->eta;
-	double lambda = param->lambda;
-	double orate  = param->orate;
-	int topR      = param->topR;
-	int *knn      = param->knn;
-	struct iidNet *userSim = param->userSim;
-	struct iidNet *itemSim = param->itemSim;
-	double simcut = param->simcut;
-	double bestkcut = param->bestkcut;
+static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_param *), struct Bip_recommend_param *args) {
 
-	struct Bip_core_base args;
-	args.i1ids = traini1->id;
-	args.i2ids = traini2->id; 
-	int i1maxId      = args.i1maxId = traini1->maxId;
-	int i2maxId      = args.i2maxId = traini2->maxId;
-	int i1idNum      = args.i1idNum = traini1->idNum;
-	int i2idNum      = args.i2idNum = traini2->idNum;
-	long *i1count    = args.i1count = traini1->count;
-	long *i2count    = args.i2count = traini2->count;
+	struct Bip_core_base bargs;
+	bargs.i1ids = args->traini1->id;
+	bargs.i2ids = args->traini2->id; 
+	int i1maxId      = bargs.i1maxId = args->traini1->maxId;
+	int i2maxId      = bargs.i2maxId = args->traini2->maxId;
+	int i1idNum      = bargs.i1idNum = args->traini1->idNum;
+	int i2idNum      = bargs.i2idNum = args->traini2->idNum;
+	long *i1count    = bargs.i1count = args->traini1->count;
+	long *i2count    = bargs.i2count = args->traini2->count;
+
+	struct iidNet *itemSim = args->itemSim;
 
 	int L = 50;
 
@@ -773,8 +794,8 @@ static Metrics_Bip *recommend_Bip(int type, Bip *traini1, Bip *traini2, struct B
 	assert(i1source != NULL);
 	double *i2source = malloc((i2maxId + 1)*sizeof(double));
 	assert(i2source != NULL);
-	args.i1source = i1source;
-	args.i2source = i2source;
+	bargs.i1source = args->i1source = i1source;
+	bargs.i2source = args->i2source = i2source;
 
 	int *rank = malloc((i2maxId + 1)*sizeof(int));
 	assert(rank != NULL);
@@ -786,131 +807,21 @@ static Metrics_Bip *recommend_Bip(int type, Bip *traini1, Bip *traini2, struct B
 	assert(topL != NULL);
 
 
-	switch (type) {
-		case 1:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				if (i1count[i]) {
-					//get rank
-					mass_Bip_core(i, &args);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 2:
-			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
-				if (i1count[i1]) {
-					heats_Bip_core(i1, &args);
-					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
-					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 3:
-			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (i1count[i1]) {
-					HNBI_Bip_core(i1, &args, theta);
-					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
-					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 4:
-			assert(i2source != NULL);
-			double *i2sourceA = calloc((i2maxId + 1),sizeof(double));
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					RENBI_Bip_core(i, &args, i2sourceA, eta);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			free(i2sourceA);
-			break;
-		case 5:
-			for (i1 = 0; i1<i1maxId + 1; ++i1) { //each user
-				//if (i1%1000 ==0) {printf("%d\n", i1);fflush(stdout);}
-				if (i1count[i1]) {
-					hybrid_Bip_core(i1, &args, lambda);
-					Bip_core_common_part(i1, &args, i2id, rank, topL + i1*L, L);
-					metrics_R_PL_Bip(i1, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 7:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					onion_probs_Bip_core(i, &args, userSim, orate);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 8:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					topR_probs_Bip_core(i, &args, userSim, topR);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 9:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					probs_knn_Bip_core(i, &args, userSim, knn[i]);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 10:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					probs_simcut_Bip_core(i, &args, userSim, simcut);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
-		case 11:
-			for (i = 0; i<i1maxId + 1; ++i) { //each user
-				//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
-				//only compute the i in both i1 and test.
-				if (i1count[i]) {
-					//get rank
-					probs_bestkcut_Bip_core(i, &args, userSim, bestkcut);
-					Bip_core_common_part(i, &args, i2id, rank, topL + i*L, L);
-					//use rank to get metrics values
-					metrics_R_PL_Bip(i, i1count, i2idNum, test, L, rank, &R, &PL);
-				}
-			}
-			break;
+	for (i = 0; i<i1maxId + 1; ++i) { //each user
+		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+		//only compute the i in both i1 and test.
+		if (i1count[i]) {
+			//get rank
+			args->i1 = i;
+			recommend_core(args);
+			Bip_core_common_part(i, &bargs, i2id, rank, topL + i*L, L);
+			//use rank to get metrics values
+			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
+		}
 	}
-	R /= test->edgesNum;
-	PL /= test->idNum;
+
+	R /= args->testi1->edgesNum;
+	PL /= args->testi1->idNum;
 	HL = metrics_HL_Bip(i1maxId, i1count, i2maxId, L, topL);
 	IL = metrics_IL_Bip(i1maxId, i1count, i1idNum, i2maxId, L, topL, itemSim);
 	NL = metrics_NL_Bip(i1maxId, i1count, i1idNum, i2count, L, topL);
@@ -1571,11 +1482,16 @@ struct Metrics_Bipii *onion_mass_Bipii(struct Bipii *traini1, struct Bipii *trai
 }
 */
 struct Metrics_Bipii *topR_probs_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int topR) {
-	struct Bip_core_param param;
+	struct Bip_recommend_param param;
 	param.userSim = userSim;
 	param.topR = topR;
 	param.itemSim = itemSim;
-	return recommend_Bip(8, traini1, traini2, &param, testi1);
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(topR_probs_Bip_core, &param);
 }
 /*
 struct Metrics_Bipii *probs_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *knn) {
