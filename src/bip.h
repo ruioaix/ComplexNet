@@ -63,6 +63,7 @@ void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct 
 //if i1ori2 == 0, then calculate i2(item)'s similarity.
 struct iidLineFile *similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, int i1ori2);
 
+
 struct Metrics_Bipii {
 	double R;
 	double PL;
@@ -89,7 +90,6 @@ struct Metrics_Bipii *HNBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, s
 struct Metrics_Bipii *RENBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double RENBI_param);
 
 struct Metrics_Bipii *hybrid_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double hybrid_param);
-
 
 void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
 

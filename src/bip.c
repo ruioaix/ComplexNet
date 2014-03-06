@@ -662,6 +662,7 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 	//printf("hybrid:\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", R, PL, IL, HL, NL);
 	free(i1source);
 	free(i2source);
+	free(i2sourceA);
 	free(i2id);
 	free(rank);
 	return retn;

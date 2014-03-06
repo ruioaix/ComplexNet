@@ -19,15 +19,6 @@ common_inc = $(common_objs:.o=.d)
 all: onion reappearLLY
 
 
-include $(common_inc)
-
-
-obj/%.d: src/%.c
-	set -e; rm -f $@; \
-	$(CC) -MM  $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
-
 onion : $(common_objs) obj/main/onion.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -40,9 +31,17 @@ obj/%.o: src/%.c
 obj/main/%.o: src/main/%.c
 	$(CC) $(CFLAG) -I$(INCLUDE_DIR) -c $< -o $@
 
+include $(common_inc)
+
+obj/%.d: src/%.c
+	set -e; rm -f $@; \
+	$(CC) -MM  $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+
 main_objs = 	obj/main/onion.o\
 				obj/main/reappearLLY.o
-
 
 clean : 
 	$(RM) $(main_objs)
