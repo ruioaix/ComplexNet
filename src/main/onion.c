@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	get_ItemSimilarity(traini1, traini2, &itemSim);
 	
 	sort_desc_iidNet(userSim);
-	//experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
+	experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
 
 	//struct L_Bip *mass_result = probs_Bipii(traini1, traini2, testi1, testi2, itemSim);
 	//struct L_Bip *simcut_result = probs_simcut_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 		max_similaruer = max_similaruer>userSim->count[i]?max_similaruer:userSim->count[i];
 	}
 	for(i=1; i<max_similaruer+1; ++i) {
-		struct Metrics_Bipii *topR_result = topR_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, i);
+		struct Metrics_Bipii *topR_result = mass_topR_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, i);
 	//	double bestkcut = i*0.01+0.01;
 	//	struct Metrics_Bipii *bestkcut_result = bestkcut_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
 		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i);
