@@ -16,7 +16,7 @@ common_inc = $(common_objs:.o=.d)
 
 .PHONY : all clean
 
-all: onion reappearLLY
+all: onion 
 
 
 onion : $(common_objs) obj/main/onion.o

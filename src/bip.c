@@ -293,6 +293,9 @@ static void mass_recommend_topR_Bip(struct Bip_recommend_param *args) {
 				i2source[neigh] += source;
 			}
 		}
+		else {
+			break;
+		}
 	}
 }
 
@@ -638,10 +641,11 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 			//get rank
 			args->i1 = i;
 			recommend_core(args);
-			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
+			//Bip_core_common_part(args, i2id, rank, topL + i*L, L);
 			//use rank to get metrics values
-			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
+			//metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
 		}
+		printf("%d\t", i);fflush(stdout);
 	}
 
 	R /= args->testi1->edgesNum;

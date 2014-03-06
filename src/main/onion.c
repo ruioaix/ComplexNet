@@ -113,12 +113,14 @@ int main(int argc, char **argv)
 	for (i=0; i<userSim->maxId + 1; ++i) {
 		max_similaruer = max_similaruer>userSim->count[i]?max_similaruer:userSim->count[i];
 	}
+	print_time();
 	//for(i=1; i<max_similaruer+1; ++i) {
 	for(i=1; i<10; ++i) {
 		struct Metrics_Bipii *topR_result = mass_topR_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, i);
 	//	double bestkcut = i*0.01+0.01;
 	//	struct Metrics_Bipii *bestkcut_result = bestkcut_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
-		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i);
+		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i); fflush(stdout);
+		print_time();
 	//	printf("bestkcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, bestkcut: %f\n", bestkcut_result->R, bestkcut_result->PL, bestkcut_result->IL, bestkcut_result->HL, bestkcut_result->NL, bestkcut);
 		free_MetricsBipii(topR_result);
 	//	free_L_Bip(bestkcut_result);
