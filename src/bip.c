@@ -585,11 +585,11 @@ static void hybrid_recommend_Bip(struct Bip_recommend_param *args) {
  * type :
  * 1  -- mass (NONE arg)
  * 2  -- mass_topR (int mass_topR)
- * 3  -- heats (NONE arg)
- * 4  -- HNBI  (double HNBI_param)
- * 5  -- RENBI  (RENBI_param)
- * 6  -- hybrid (hybrid_param)
- * 7  -- bestk cut (under development)
+ * 3  -- mass_degreecut (under development)
+ * 4  -- heats (NONE arg)
+ * 5  -- HNBI  (double HNBI_param)
+ * 6  -- RENBI  (RENBI_param)
+ * 7  -- hybrid (hybrid_param)
  *
  * all L is from this function. if you want to change, change the L below.
  */
