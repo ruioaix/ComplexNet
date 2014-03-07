@@ -1,7 +1,7 @@
-#include "../../inc/utility/hashtable.h"
-#include "../../inc/utility/error.h"
-#include "../../inc/linefile/iilinefile.h"
-#include "../../inc/linefile/i4linefile.h"
+#include "hashtable.h"
+#include "error.h"
+#include "iilinefile.h"
+//#include "i4linefile.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -276,7 +276,7 @@ void *writeContinuousiiLineFileHT(void * arg) {
 	freeHashTable(ht);
 	return (void *)0;
 }
-
+/*
 void *writeContinuousi4LineFileHT(void * arg) {
 	struct i4LineFile *file = arg;
 	struct HashTable *ht = createHashTable(3000000);
@@ -302,8 +302,9 @@ void *writeContinuousi4LineFileHT(void * arg) {
 	//freeHashTable(ht_i4);
 	return (void *)0;
 }
+*/
 
-void wc_bip2_ii_HT(struct iiLineFile *file, char *filename) {
+void wc_ii_HT(struct iiLineFile *file, char *filename) {
 	struct HashTable *i1 = createHashTable(3000000);
 	struct HashTable *i2 = createHashTable(3000000);
 	long i;

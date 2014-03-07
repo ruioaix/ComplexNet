@@ -6,16 +6,12 @@
 #include <stdio.h>
 #include <assert.h>
 #include <time.h>
-//#include <math.h>
 #include <stdlib.h>
-//#include <string.h>
 #include "iilinefile.h"
-#include "iidlinefile.h"
 #include "bip.h"
 #include "mt_random.h"
 #include "error.h"
-//#include "statistics.h"
-//#include "hashtable.h"
+#include "hashtable.h"
 
 void print_time(void) {
 	time_t t=time(NULL); 
@@ -55,7 +51,8 @@ int main(int argc, char **argv)
 	int *selectedusers = calloc(neti1->maxId + 1, sizeof(int));	
 	assert(selectedusers != NULL);
 
-	FILE *fp = fopen("newdataset", "w");
+	FILE *fp = fopen("/tmp/newdataset", "w");
+	fileError(fp, "/tmp/newdataset");
 	
 	int randomuser =  genrand_int31()%(neti1->maxId + 1);
 	int num = 0;
@@ -78,9 +75,9 @@ int main(int argc, char **argv)
 	free(selectedusers);
 
 
-	//struct iiLineFile *file = create_iiLineFile("newdataset");
-	//wc_bip2_ii_HT(file, "subdataCon");
-	//free_iiLineFile(file);
+	struct iiLineFile *file = create_iiLineFile("/tmp/newdataset");
+	wc_ii_HT(file, "newdataset");
+	free_iiLineFile(file);
 
 	print_time();
 	return 0;

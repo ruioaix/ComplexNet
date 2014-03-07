@@ -8,7 +8,8 @@ common_objs = 	obj/error.o \
 				obj/iidnet.o \
 				obj/mt_random.o \
 				obj/sort.o \
-				obj/iilinefile.o
+				obj/iilinefile.o \
+				obj/hashtable.o
 
 
 common_inc = $(common_objs:.o=.d)
