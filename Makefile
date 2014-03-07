@@ -25,6 +25,9 @@ onion : $(common_objs) obj/main/onion.o
 reappearLLY: $(common_objs) obj/main/reappearLLY.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
+selectRandomUsers: $(common_objs) obj/main/selectRandomUsers.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 obj/%.o: src/%.c 
 	$(CC) $(CFLAG) -c $< -o $@
 
@@ -41,10 +44,11 @@ obj/%.d: src/%.c
 
 
 main_objs = 	obj/main/onion.o\
-				obj/main/reappearLLY.o
+				obj/main/reappearLLY.o\
+				obj/main/selectRandomUsers.o
 
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
 	$(RM) $(common_inc)
-	$(RM) onion reappearLLY
+	$(RM) onion reappearLLY selectRandomUsers
