@@ -167,14 +167,28 @@ static inline void Bip_core_common_part(struct Bip_recommend_param *args, int *i
 	//set selected item's source to -1
 	for (i=0; i<uidCount; ++i) {
 		i2source[uidId[i]] = -1;
+		//i2source[uidId[i]] = 0;
 	}
 	//set i2id and rank.
+	int j=0;
+	double dtmp;
 	for (i=0; i<i2maxId + 1; ++i) {
-		rank[i] = i + 1;
 		i2id[i] = i;
 		//set unexisted item's source to -2.
 		if (!i2count[i]) {
 			i2source[i] = -2;
+		}
+
+		if (i2source[i] > 0 ) {
+			dtmp = i2source[j];
+			i2source[j] = i2source[i];
+			i2source[i] = dtmp;
+
+			i2id[i] = i2id[j];
+			i2id[j] = i;
+
+			++j;
+			
 		}
 	}
 	//to this step, i2source contains four parts: 
@@ -184,7 +198,9 @@ static inline void Bip_core_common_part(struct Bip_recommend_param *args, int *i
 	//4, i2source[x] = -2, which x is the hole, x isn't selected by anyone.
 	//
 	//after qsort_di_desc, the id of the item with most source will be in i2id[0];
-	qsort_di_desc(i2source, 0, i2maxId, i2id);
+	//qsort_di_desc(i2source, 0, i2maxId, i2id);
+	//printf("%d\t%d\n", j, i2maxId);
+	qsort_di_desc(i2source, 0, j-1, i2id);
 	//copy the top L itemid into topL.
 	memcpy(topL_i1L, i2id, L*sizeof(int));
 	//get rank;
@@ -641,11 +657,11 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 			//get rank
 			args->i1 = i;
 			recommend_core(args);
-			//Bip_core_common_part(args, i2id, rank, topL + i*L, L);
+			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
 			//use rank to get metrics values
-			//metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
+			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
 		}
-		printf("%d\t", i);fflush(stdout);
+		//printf("%d\t", i);fflush(stdout);
 	}
 
 	R /= args->testi1->edgesNum;
@@ -1199,22 +1215,35 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 				args.mass_topR = j;
 				mass_recommend_topR_Bip(&args);
 
-				int i2maxId = traini2->maxId;
-				long *i2count = traini2->count;
-
+				
 				long ii;
 				for (ii=0; ii<traini1->count[i]; ++ii) {
 					i2source[traini1->id[i][ii]] = -1;
 				}
-				for (ii=0; ii<i2maxId + 1; ++ii) {
-					rank[ii] = ii + 1;
+				//set i2id and rank.
+				int jj=0;
+				double dtmp;
+				for (ii=0; ii<traini2->maxId + 1; ++ii) {
 					i2id[ii] = ii;
-					if (!i2count[ii]) {
+					//set unexisted item's source to -2.
+					if (!traini2->count[ii]) {
 						i2source[ii] = -2;
 					}
+
+					if (i2source[ii] > 0 ) {
+						dtmp = i2source[jj];
+						i2source[jj] = i2source[ii];
+						i2source[ii] = dtmp;
+
+						i2id[ii] = i2id[jj];
+						i2id[jj] = ii;
+
+						++jj;
+						
+					}
 				}
-				qsort_di_desc(i2source, 0, i2maxId, i2id);
-				for (ii=0; ii<i2maxId + 1; ++ii) {
+				qsort_di_desc(i2source, 0, jj-1, i2id);
+				for (ii=0; ii<traini2->maxId + 1; ++ii) {
 					rank[i2id[ii]] = ii+1;
 				}
 
