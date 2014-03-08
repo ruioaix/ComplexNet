@@ -12,7 +12,7 @@ common_objs = 	obj/error.o \
 				obj/hashtable.o
 
 
-common_inc = $(common_objs:.o=.d)
+#common_inc = $(common_objs:.o=.d)
 
 
 .PHONY : all clean
@@ -29,19 +29,19 @@ reappearLLY: $(common_objs) obj/main/reappearLLY.o
 selectRandomUsers: $(common_objs) obj/main/selectRandomUsers.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
-obj/%.o: src/%.c 
+obj/%.o: src/%.c src/%.h
 	$(CC) $(CFLAG) -c $< -o $@
 
 obj/main/%.o: src/main/%.c
 	$(CC) $(CFLAG) -I$(INCLUDE_DIR) -c $< -o $@
 
-include $(common_inc)
-
-obj/%.d: src/%.c
-	set -e; rm -f $@; \
-	$(CC) -MM  $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
+#include $(common_inc)
+#
+#obj/%.d: src/%.c
+#	set -e; rm -f $@; \
+#	$(CC) -MM  $< > $@.$$$$; \
+#	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+#	rm -f $@.$$$$
 
 
 main_objs = 	obj/main/onion.o\
@@ -51,5 +51,4 @@ main_objs = 	obj/main/onion.o\
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
-	$(RM) $(common_inc)
 	$(RM) onion reappearLLY selectRandomUsers
