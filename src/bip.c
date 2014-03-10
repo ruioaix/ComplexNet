@@ -322,6 +322,7 @@ static void mass_recommend_topR_Bip(struct Bip_recommend_param *args) {
 static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	int uid = args->i1;
     struct iidNet *userSim = args->userSim;
+	int mass_topR = args->mass_topR;
 	double mass_corK= args->mass_corK;
 	double *mass_corK_itemAveDre = args->mass_corK_itemAveDre;
 	double mass_corK_itemAveDreMax = args->mass_corK_itemAveDreMax;
@@ -361,8 +362,8 @@ static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	long k;
 	//long KI= floor(args->traini1->idNum * (double)i1count[uid]/args->traini1->countMax*mass_corK);
-	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
-	long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_corK_itemAveDre[uid]/((double)args->traini1->countMax*mass_corK_itemAveDreMax), mass_corK));
+	long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
+	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_corK_itemAveDre[uid]/((double)args->traini1->countMax*mass_corK_itemAveDreMax), mass_corK));
 	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_corK));
 	char sign = 0;
 	for (k=0; k<KI && k < userSim->count[uid]; ++k) {
@@ -1122,10 +1123,11 @@ struct Metrics_Bipii *mass_topR_Bipii(struct Bipii *traini1, struct Bipii *train
 	return recommend_Bip(mass_recommend_topR_Bip, &param);
 }
 
-struct Metrics_Bipii *mass_corK_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corK, double *mass_corK_itemAveDre, double mass_corK_itemAveDreMax) {
+struct Metrics_Bipii *mass_corK_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corK, double *mass_corK_itemAveDre, double mass_corK_itemAveDreMax, int mass_topR) {
 	struct Bip_recommend_param param;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
+	param.mass_topR = mass_topR;
 	param.mass_corK= mass_corK;
 	param.mass_corK_itemAveDre = mass_corK_itemAveDre;
 	param.mass_corK_itemAveDreMax= mass_corK_itemAveDreMax;
