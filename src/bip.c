@@ -31,13 +31,16 @@ struct Bip_recommend_param{
 	int i1;
 
 	int mass_topR;
-	double mass_degreecut;
+	double mass_corK;
+	double *mass_corK_itemAveDre;
+	double mass_corK_itemAveDreMax;
 
 	double HNBI_param;
 
 	double RENBI_param;
 
 	double hybrid_param;
+
 
 	struct iidNet *userSim;
 	struct iidNet *itemSim;
@@ -316,10 +319,12 @@ static void mass_recommend_topR_Bip(struct Bip_recommend_param *args) {
 }
 
 //three-step random walk of Probs, bestk cut.
-static void mass_recommend_degreecut_Bip(struct Bip_recommend_param *args) {
+static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	int uid = args->i1;
     struct iidNet *userSim = args->userSim;
-	double mass_degreecut = args->mass_degreecut;
+	double mass_corK= args->mass_corK;
+	double *mass_corK_itemAveDre = args->mass_corK_itemAveDre;
+	double mass_corK_itemAveDreMax = args->mass_corK_itemAveDreMax;
 
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
@@ -355,9 +360,12 @@ static void mass_recommend_degreecut_Bip(struct Bip_recommend_param *args) {
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	long k;
-	long bestk= floor(mass_degreecut * userSim->count[uid]);
+	//long KI= floor(args->traini1->idNum * (double)i1count[uid]/args->traini1->countMax*mass_corK);
+	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
+	long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_corK_itemAveDre[uid]/((double)args->traini1->countMax*mass_corK_itemAveDreMax), mass_corK));
+	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_corK));
 	char sign = 0;
-	for (k=0; k<bestk; ++k) {
+	for (k=0; k<KI && k < userSim->count[uid]; ++k) {
 		i = userSim->edges[uid][k];
 		degree = i1count[i];
 		source = (double)i1source[i]/(double)degree;
@@ -604,7 +612,7 @@ static void hybrid_recommend_Bip(struct Bip_recommend_param *args) {
  * type :
  * 1  -- mass (NONE arg)
  * 2  -- mass_topR (int mass_topR)
- * 3  -- mass_degreecut (under development)
+ * 3  -- mass_corK (under development)
  * 4  -- heats (NONE arg)
  * 5  -- HNBI  (double HNBI_param)
  * 6  -- RENBI  (RENBI_param)
@@ -1114,17 +1122,19 @@ struct Metrics_Bipii *mass_topR_Bipii(struct Bipii *traini1, struct Bipii *train
 	return recommend_Bip(mass_recommend_topR_Bip, &param);
 }
 
-struct Metrics_Bipii *mass_degreecut_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_degreecut) {
+struct Metrics_Bipii *mass_corK_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corK, double *mass_corK_itemAveDre, double mass_corK_itemAveDreMax) {
 	struct Bip_recommend_param param;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
-	param.mass_degreecut = mass_degreecut;
+	param.mass_corK= mass_corK;
+	param.mass_corK_itemAveDre = mass_corK_itemAveDre;
+	param.mass_corK_itemAveDreMax= mass_corK_itemAveDreMax;
 
 	param.traini1 = traini1;
 	param.traini2 = traini2;
 	param.testi1 = testi1;
 
-	return recommend_Bip(mass_recommend_degreecut_Bip, &param);
+	return recommend_Bip(mass_recommend_corK_Bip, &param);
 }
 
 struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {

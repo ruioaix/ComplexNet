@@ -1,7 +1,7 @@
 MAKEROOT := $(shell pwd)
 INCLUDE_DIR := $(MAKEROOT)/src
 CC := gcc
-CFLAG :=  -Wall -Wunused 
+CFLAG :=  -g -Wall -Wunused 
 common_objs = 	obj/error.o \
 				obj/bip.o \
 				obj/iidlinefile.o \

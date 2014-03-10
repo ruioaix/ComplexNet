@@ -76,12 +76,12 @@ void test_ArgcArgv(int argc, char **argv, char **netfilename) {
 	if (argc == 1) {
 		*netfilename = "data/delicious/delicious_2c_sub1000";
 		//*netfilename = "data/movielens/movielens_2c";
-		//bestkcut = 0.2;	
+		//*colK = 0.2;	
 	}
 	else if (argc == 2) {
 		*netfilename = argv[1];
 		//char *p;
-		//bestkcut = strtod(argv[2], &p);
+		//*colK = strtod(argv[2], &p);
 	}
 	else {
 		isError("wrong argc, argv.\n");
@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 	//set_RandomSeed();
 
 	char *netfilename;
-	test_ArgcArgv(argc, argv, &netfilename);
+	double colK;
+	test_ArgcArgv(argc, argv, &netfilename); 
 
 	struct Bipii *traini1, *traini2, *testi1, *testi2;
 	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2);
@@ -104,12 +105,13 @@ int main(int argc, char **argv)
 	get_ItemSimilarity(traini1, traini2, &itemSim);
 	
 	sort_desc_iidNet(userSim);
-	experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
+	//experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
 
 	//struct L_Bip *mass_result = probs_Bipii(traini1, traini2, testi1, testi2, itemSim);
 	//struct L_Bip *simcut_result = probs_simcut_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
 	
 	int i;
+	/*
 	long max_similaruer = 0;
 	for (i=0; i<userSim->maxId + 1; ++i) {
 		max_similaruer = max_similaruer>userSim->count[i]?max_similaruer:userSim->count[i];
@@ -117,15 +119,40 @@ int main(int argc, char **argv)
 	printf("%ld\n", max_similaruer);
 	print_time();
 	for(i=1; i<max_similaruer+1; ++i) {
-	//for(i=1; i<10; ++i) {
 		struct Metrics_Bipii *topR_result = mass_topR_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, i);
-	//	double bestkcut = i*0.01+0.01;
-	//	struct Metrics_Bipii *bestkcut_result = bestkcut_probs_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, bestkcut);
 		printf("topR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL, i);
-		//print_time();
-	//	printf("bestkcut\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, bestkcut: %f\n", bestkcut_result->R, bestkcut_result->PL, bestkcut_result->IL, bestkcut_result->HL, bestkcut_result->NL, bestkcut);
 		free_MetricsBipii(topR_result);
-	//	free_L_Bip(bestkcut_result);
+
+	}
+	*/
+
+	double *item_ave = malloc((traini1->maxId+1)*sizeof(double));
+	long k;
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		if (traini1->count[i]) {
+			long aveitemdegree=0;
+			for (k=0; k<traini1->count[i]; ++k) {
+				aveitemdegree += traini2->count[traini1->id[i][k]];	
+			}
+			item_ave[i] = (double)aveitemdegree/traini1->count[i];
+		}
+		else {
+			item_ave[i] = 0;
+		}
+	}
+	double maxitemave = -1;
+	for (i=0; i<traini1->maxId + 1; ++i) {
+		maxitemave = maxitemave>item_ave[i]?maxitemave:item_ave[i];
+	}
+
+	struct Metrics_Bipii *mass_result = mass_Bipii(traini1, traini2, testi1, testi2, itemSim);
+	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
+	free_MetricsBipii(mass_result);
+	for (i=0; i<50; ++i) {
+		colK = i*0.1;
+		struct Metrics_Bipii *corK_result = mass_corK_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, colK, item_ave, maxitemave);
+		printf("corK\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, corK: %f\n", corK_result->R, corK_result->PL, corK_result->IL, corK_result->HL, corK_result->NL, colK);
+		free_MetricsBipii(corK_result);
 	}
 
 	//printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
