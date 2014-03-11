@@ -150,14 +150,18 @@ int main(int argc, char **argv)
 	free_MetricsBipii(mass_result);
 	int j;
 	int kk=0;
-	for (i=1; i<max_similaruer; ++i) {
-		for (j=0; j<20; ++j) {
+	char fname[200];
+	FILE *fp;
+	for (i=1; i<max_similaruer; i+=50) {
+		sprintf(fname, "temp/topR_corK/rym_2000_topR_%d", i); 
+		fp = fopen(fname, "w");
+		for (j=0; j<50; ++j) {
 			colK = j*0.1;
 			struct Metrics_Bipii *corK_result = mass_corK_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, colK, item_ave, maxitemave, i);
-			printf("corK\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d, corK: %f, n: %d\n", corK_result->R, corK_result->PL, corK_result->IL, corK_result->HL, corK_result->NL, i, colK, kk++);
-			fflush(stdout);
+			fprintf(fp, "corK\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, topR: %d, corK: %f, n: %d\n", corK_result->R, corK_result->PL, corK_result->IL, corK_result->HL, corK_result->NL, i, colK, kk++);
 			free_MetricsBipii(corK_result);
 		}
+		fclose(fp);
 	}
 
 	//printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
