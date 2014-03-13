@@ -658,6 +658,7 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
 	assert(topL != NULL);
 
+	double tmp;
 
 	for (i = 0; i<i1maxId + 1; ++i) { //each user
 		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
@@ -665,10 +666,19 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 		if (i1count[i]) {
 			//get rank
 			args->i1 = i;
+			//if (recommend_core != mass_recommend_Bip || (recommend_core == mass_recommend_Bip && args->userSim->count[i])) {
 			recommend_core(args);
 			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
 			//use rank to get metrics values
+			//tmp = R;
+			//if (args->userSim->count[i]) 
 			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
+			//}
+			//if (R - tmp > 0.0000000001) {
+			//	//printf("%d\t%f\n", i, R-tmp);fflush(stdout);
+			//	//printf("%d\t%f\t%ld\t%ld\n", i, R-tmp, args->traini1->count[i], args->testi1->count[i]);fflush(stdout);
+			//}
+
 		}
 		//printf("%d\t", i);fflush(stdout);
 	}
@@ -1215,6 +1225,9 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 	int bestRK;
 	double realR = 0, realR2 = 0;
 	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+		//if (i==723) {
+		//	printf("%d\t%ld\t%ld%ld\n", i, traini1->count[i], testi1->count[i], userSim->count[i]);fflush(stdout);
+		//}
 		//only compute user in testset.
 		if (userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
@@ -1270,6 +1283,7 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 			}
 			realR += bestR;
 			realR2 += R;
+			//printf("%d\t%f\t%ld\t%ld\n", i, R, traini1->count[i], testi1->count[i]);fflush(stdout);
 
 			int k;
 			long aveitemdegree=0;
@@ -1280,15 +1294,29 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 
 			if (userSim->count[i]) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
-				printf("%d\t%d\t%ld\t%f\t%ld\t%f\n", i, bestRK, userSim->count[i], (double)bestRK/userSim->count[i], traini1->count[i], avei);fflush(stdout);
+				printf("%d\t%d\t%ld\t%ld\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], traini1->count[i], avei, bestR, R, bestR/traini1->count[i], R/traini1->count[i]);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");
 			}
 		}
 		else {
+			//if (!userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
+			//	int k;
+			//	long aveitemdegree=0;
+			//	for (k=0; k<traini1->count[i]; ++k) {
+			//		aveitemdegree += traini2->count[traini1->id[i][k]];	
+			//	}
+			//	double avei = (double)aveitemdegree/traini1->count[i];
+			//	R=PL=0;
+			//	metrics_R_PL_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
+			//	realR += bestR;
+			//	realR2 += R;
+			//	printf("%d\t%d\t%ld\t%ld\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], traini1->count[i], avei, bestR, R, bestR/traini1->count[i], R/traini1->count[i]);fflush(stdout);
+			//}
 			//this doesn't affect RankScore and Precision, but it does affect the other metrics.
 		}
+
 	}
 	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);
 
