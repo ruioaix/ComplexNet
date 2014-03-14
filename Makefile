@@ -18,6 +18,12 @@ common_objs = 	obj/error.o \
 
 
 #################################################################
+onion_topS : $(common_objs) obj/main/onion_topS.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+similarity : $(common_objs) obj/main/similarity.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion : $(common_objs) obj/main/onion.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
