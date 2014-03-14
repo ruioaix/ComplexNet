@@ -666,18 +666,9 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 		if (i1count[i]) {
 			//get rank
 			args->i1 = i;
-			//if (recommend_core != mass_recommend_Bip || (recommend_core == mass_recommend_Bip && args->userSim->count[i])) {
 			recommend_core(args);
 			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
-			//use rank to get metrics values
-			//tmp = R;
-			//if (args->userSim->count[i]) 
-			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
-			//}
-			//if (R - tmp > 0.0000000001) {
-			//	//printf("%d\t%f\n", i, R-tmp);fflush(stdout);
-			//	//printf("%d\t%f\t%ld\t%ld\n", i, R-tmp, args->traini1->count[i], args->testi1->count[i]);fflush(stdout);
-			//}
+			metrics_R_PL_Bip(i, i1count, args->traini1->maxId, args->testi1, L, rank, &R, &PL);
 
 		}
 		//printf("%d\t", i);fflush(stdout);

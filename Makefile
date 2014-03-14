@@ -1,5 +1,5 @@
 MAKEROOT := $(shell pwd)
-INCLUDE_DIR := $(MAKEROOT)/src
+INCLUDE_DIR := -I$(MAKEROOT)/src # -I$(MAKEROOT)/src/main
 CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 common_objs = 	obj/error.o \
@@ -9,16 +9,19 @@ common_objs = 	obj/error.o \
 				obj/mt_random.o \
 				obj/sort.o \
 				obj/iilinefile.o \
-				obj/hashtable.o
+				obj/hashtable.o\
+				obj/recommend.o
 
-
-#common_inc = $(common_objs:.o=.d)
 
 
 .PHONY : all clean
 
-all: onion 
 
+#################################################################
+bip : $(common_objs) obj/main/bip.o 
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+all: bip onion reappearLLY selectRandomUsers
 
 onion : $(common_objs) obj/main/onion.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
@@ -28,27 +31,31 @@ reappearLLY: $(common_objs) obj/main/reappearLLY.o
 
 selectRandomUsers: $(common_objs) obj/main/selectRandomUsers.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
+#################################################################
 
+
+
+#################################################################
 obj/%.o: src/%.c src/%.h
 	$(CC) $(CFLAG) -c $< -o $@
 
-obj/main/%.o: src/main/%.c
-	$(CC) $(CFLAG) -I$(INCLUDE_DIR) -c $< -o $@
-
-#include $(common_inc)
-#
-#obj/%.d: src/%.c
-#	set -e; rm -f $@; \
-#	$(CC) -MM  $< > $@.$$$$; \
-#	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
-#	rm -f $@.$$$$
+obj/main/%.o: main/%.c
+	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
+#################################################################
 
 
+
+#################################################################
 main_objs = 	obj/main/onion.o\
 				obj/main/reappearLLY.o\
-				obj/main/selectRandomUsers.o
-
+				obj/main/selectRandomUsers.o\
+				obj/main/bip.o
+main_exec = onion\
+			reappearLLY\
+			selectRandomUsers\
+			bip
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
-	$(RM) onion reappearLLY selectRandomUsers
+	$(RM) $(main_exec)
+#################################################################
