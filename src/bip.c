@@ -365,19 +365,8 @@ static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
 	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_corK_itemAveDre[uid]/((double)args->traini1->countMax*mass_corK_itemAveDreMax), mass_corK));
 	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_corK));
-	char sign = 0;
-	for (k=0; k<KI && k < userSim->count[uid]; ++k) {
-		i = userSim->edges[uid][k];
-		degree = i1count[i];
-		source = (double)i1source[i]/(double)degree;
-		for (j=0; j<degree; ++j) {
-			neigh = i1ids[i][j];
-			i2source[neigh] += source;
-		}
-		sign = 1;
-	}
-	if (!sign) {
-		for (k=0; k<userSim->count[uid]; ++k) {
+	for (k=0; k < userSim->count[uid]; ++k) {
+		if ( k<KI) {
 			i = userSim->edges[uid][k];
 			degree = i1count[i];
 			source = (double)i1source[i]/(double)degree;
@@ -668,7 +657,7 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 			args->i1 = i;
 			recommend_core(args);
 			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
-			metrics_R_PL_Bip(i, i1count, args->traini1->maxId, args->testi1, L, rank, &R, &PL);
+			metrics_R_PL_Bip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
 
 		}
 		//printf("%d\t", i);fflush(stdout);
@@ -1220,17 +1209,19 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 		//	printf("%d\t%ld\t%ld%ld\n", i, traini1->count[i], testi1->count[i], userSim->count[i]);fflush(stdout);
 		//}
 		//only compute user in testset.
-		if (userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
+		//if (userSim->count[i] &&  i<testi1->maxId + 1 && testi1->count[i]) {
+		if (i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
 			bestR = LONG_MAX;
 			bestRK = -1;
-			for (j=1; j<= userSim->count[i]; ++j) {
+			for (j=1; j<= userSim->count[i] || (j ==1 && userSim->count[i] == 0); ++j) {
 
 				//probs_knn_Bip_core(i, &args, userSim, j);
 				args.i1 = i;
 				args.mass_topR = j;
 				mass_recommend_topR_Bip(&args);
 
+				
 				
 				long ii;
 				for (ii=0; ii<traini1->count[i]; ++ii) {
@@ -1262,7 +1253,9 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 				for (ii=0; ii<traini2->maxId + 1; ++ii) {
 					rank[i2id[ii]] = ii+1;
 				}
+				
 
+				//Bip_core_common_part(&args, i2id, rank, topL + i*L, L);
 				R=PL=0;
 				metrics_R_PL_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
 				//printf("%d, %d, %f\n", i, j, R);
@@ -1274,7 +1267,7 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 			}
 			realR += bestR;
 			realR2 += R;
-			//printf("%d\t%f\t%ld\t%ld\n", i, R, traini1->count[i], testi1->count[i]);fflush(stdout);
+			printf("%d\t%f\t%ld\t%ld\n", i, R, traini1->count[i], testi1->count[i]);fflush(stdout);
 
 			int k;
 			long aveitemdegree=0;
@@ -1285,7 +1278,7 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 
 			if (userSim->count[i]) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
-				printf("%d\t%d\t%ld\t%ld\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], traini1->count[i], avei, bestR, R, bestR/traini1->count[i], R/traini1->count[i]);fflush(stdout);
+				//printf("%d\t%d\t%ld\t%ld\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], traini1->count[i], avei, bestR, R, bestR/traini1->count[i], R/traini1->count[i]);fflush(stdout);
 			}
 			else {
 				printf("xxxxxxxxxxxxx\n");

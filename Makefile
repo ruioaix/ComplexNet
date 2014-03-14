@@ -18,13 +18,13 @@ common_objs = 	obj/error.o \
 
 
 #################################################################
+onion : $(common_objs) obj/main/onion.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 bip : $(common_objs) obj/main/bip.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
 all: bip onion reappearLLY selectRandomUsers
-
-onion : $(common_objs) obj/main/onion.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
 
 reappearLLY: $(common_objs) obj/main/reappearLLY.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
