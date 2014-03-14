@@ -32,6 +32,7 @@ struct Bip_recommend_param{
 
 	int mass_topR;
 	double mass_topS;
+	double mass_corR;
 	double mass_corK;
 	double *mass_corK_itemAveDre;
 	double mass_corK_itemAveDreMax;
@@ -374,6 +375,59 @@ static void mass_recommend_topS_Bip(struct Bip_recommend_param *args) {
 		}
 		else {
 			break;
+		}
+	}
+}
+
+//three-step random walk of Probs
+static void mass_recommend_corR_Bip(struct Bip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	double corR = args->mass_corR;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	int KI = floor(userSim->count[i1]*corR);
+	for (k=0; k<KI; ++k) {
+		i = userSim->edges[i1][k];
+		degree = i1count[i];
+		source = (double)i1source[i]/(double)degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i1ids[i][j];
+			i2source[neigh] += source;
 		}
 	}
 }
@@ -1185,6 +1239,19 @@ struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *train
 	param.testi1 = testi1;
 
 	return recommend_Bip(mass_recommend_topS_Bip, &param);
+}
+
+struct Metrics_Bipii *mass_corR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corR) {
+	struct Bip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_corR = mass_corR;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(mass_recommend_corR_Bip, &param);
 }
 
 struct Metrics_Bipii *mass_corK_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corK, double *mass_corK_itemAveDre, double mass_corK_itemAveDreMax, int mass_topR) {
