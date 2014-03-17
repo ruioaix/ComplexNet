@@ -34,9 +34,7 @@ struct Bip_recommend_param{
 	double mass_topS;
 	double mass_corR;
 	double mass_corS;
-	double mass_corK;
-	double *mass_corK_itemAveDre;
-	double mass_corK_itemAveDreMax;
+	double mass_expR;
 
 	double HNBI_param;
 
@@ -496,13 +494,11 @@ static void mass_recommend_corS_Bip(struct Bip_recommend_param *args) {
 }
 
 //three-step random walk of Probs, bestk cut.
-static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
+static void mass_recommend_expR_Bip(struct Bip_recommend_param *args) {
 	int uid = args->i1;
     struct iidNet *userSim = args->userSim;
-	int mass_topR = args->mass_topR;
-	double mass_corK= args->mass_corK;
-	double *mass_corK_itemAveDre = args->mass_corK_itemAveDre;
-	double mass_corK_itemAveDreMax = args->mass_corK_itemAveDreMax;
+	//int mass_topR = args->mass_topR;
+	double mass_expR= args->mass_expR;
 
 	double * i1source = args->i1source;
 	double *i2source = args->i2source;
@@ -512,7 +508,6 @@ static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	int i2maxId = args->traini2->maxId;
 	long *i1count = args->traini1->count;
 	long *i2count = args->traini2->count;
-
 
 	int i, j, neigh;
 	long degree;
@@ -538,11 +533,11 @@ static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
 	long k;
-	//long KI= floor(args->traini1->idNum * (double)i1count[uid]/args->traini1->countMax*mass_corK);
-	long KI= floor((args->traini1->maxId+1) * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
-	//long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_corK));
-	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_corK_itemAveDre[uid]/((double)args->traini1->countMax*mass_corK_itemAveDreMax), mass_corK));
-	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_corK));
+	//long KI= floor(args->traini1->idNum * (double)i1count[uid]/args->traini1->countMax*mass_expR);
+	long KI= floor((args->traini1->maxId+1) * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
+	//long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
+	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_expR_itemAveDre[uid]/((double)args->traini1->countMax*mass_expR_itemAveDreMax), mass_expR));
+	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_expR));
 	for (k=0; k < userSim->count[uid]; ++k) {
 		if ( k<KI) {
 			i = userSim->edges[uid][k];
@@ -552,6 +547,9 @@ static void mass_recommend_corK_Bip(struct Bip_recommend_param *args) {
 				neigh = i1ids[i][j];
 				i2source[neigh] += source;
 			}
+		}
+		else {
+			break;
 		}
 	}
 }
@@ -824,8 +822,6 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 	int i;
 	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
 	assert(topL != NULL);
-
-	double tmp;
 
 	for (i = 0; i<i1maxId + 1; ++i) { //each user
 		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
@@ -1330,20 +1326,17 @@ struct Metrics_Bipii *mass_corS_Bipii(struct Bipii *traini1, struct Bipii *train
 	return recommend_Bip(mass_recommend_corS_Bip, &param);
 }
 
-struct Metrics_Bipii *mass_corK_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corK, double *mass_corK_itemAveDre, double mass_corK_itemAveDreMax, int mass_topR) {
+struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR) {
 	struct Bip_recommend_param param;
 	param.userSim = userSim;
 	param.itemSim = itemSim;
-	param.mass_topR = mass_topR;
-	param.mass_corK= mass_corK;
-	param.mass_corK_itemAveDre = mass_corK_itemAveDre;
-	param.mass_corK_itemAveDreMax= mass_corK_itemAveDreMax;
+	param.mass_expR= mass_expR;
 
 	param.traini1 = traini1;
 	param.traini2 = traini2;
 	param.testi1 = testi1;
 
-	return recommend_Bip(mass_recommend_corK_Bip, &param);
+	return recommend_Bip(mass_recommend_expR_Bip, &param);
 }
 
 struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {
@@ -1446,12 +1439,12 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 			realR2 += R;
 			//printf("%d\t%f\t%ld\t%ld\n", i, R, traini1->count[i], testi1->count[i]);fflush(stdout);
 
-			int k;
-			long aveitemdegree=0;
-			for (k=0; k<traini1->count[i]; ++k) {
-				aveitemdegree += traini2->count[traini1->id[i][k]];	
-			}
-			double avei = (double)aveitemdegree/traini1->count[i];
+			//int k;
+			//long aveitemdegree=0;
+			//for (k=0; k<traini1->count[i]; ++k) {
+			//	aveitemdegree += traini2->count[traini1->id[i][k]];	
+			//}
+			//double avei = (double)aveitemdegree/traini1->count[i];
 
 			if (userSim->count[i] && i%1 == 0) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);

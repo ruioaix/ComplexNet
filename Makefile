@@ -18,6 +18,9 @@ common_objs = 	obj/error.o \
 
 
 #################################################################
+onion_expR : $(common_objs) obj/main/onion_expR.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion_corS : $(common_objs) obj/main/onion_corS.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -64,18 +67,24 @@ obj/main/%.o: main/%.c
 main_objs = 	obj/main/onion.o\
 				obj/main/reappearLLY.o\
 				obj/main/selectRandomUsers.o\
+				obj/main/similarity.o\
 				obj/main/bip.o\
 				obj/main/onion_topR.o\
 				obj/main/onion_corR.o\
-				obj/main/onion_topS.o
+				obj/main/onion_topS.o\
+				obj/main/onion_corS.o\
+				obj/main/onion_expR.o
 
 main_exec = onion\
 			reappearLLY\
 			selectRandomUsers\
+			similarity\
 			bip\
 			onion_topR\
 			onion_corR\
-			onion_topS
+			onion_topS\
+			onion_corS\
+			onion_expR
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
