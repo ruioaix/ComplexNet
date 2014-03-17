@@ -85,6 +85,7 @@ struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *train
 struct Metrics_Bipii *mass_corR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corR);
 struct Metrics_Bipii *mass_corS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corS);
 struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR);
+struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR);
 
 struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim);
 
@@ -94,6 +95,7 @@ struct Metrics_Bipii *RENBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, 
 
 struct Metrics_Bipii *hybrid_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double hybrid_param);
 
+int *mass_GetBestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
 void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
 
 

@@ -35,6 +35,7 @@ struct Bip_recommend_param{
 	double mass_corR;
 	double mass_corS;
 	double mass_expR;
+	int *mass_bestR;
 
 	double HNBI_param;
 
@@ -538,6 +539,65 @@ static void mass_recommend_expR_Bip(struct Bip_recommend_param *args) {
 	//long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
 	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_expR_itemAveDre[uid]/((double)args->traini1->countMax*mass_expR_itemAveDreMax), mass_expR));
 	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_expR));
+	for (k=0; k < userSim->count[uid]; ++k) {
+		if ( k<KI) {
+			i = userSim->edges[uid][k];
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
+
+//three-step random walk of Probs, bestk cut.
+static void mass_recommend_bestR_Bip(struct Bip_recommend_param *args) {
+	int uid = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int *mass_bestR= args->mass_bestR;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[uid]; ++j) {
+		neigh = i1ids[uid][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	long KI = mass_bestR[uid];
+	if (KI == -1) {
+		KI = userSim->count[uid];
+	}
 	for (k=0; k < userSim->count[uid]; ++k) {
 		if ( k<KI) {
 			i = userSim->edges[uid][k];
@@ -1339,6 +1399,19 @@ struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *train
 	return recommend_Bip(mass_recommend_expR_Bip, &param);
 }
 
+struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR) {
+	struct Bip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_bestR= mass_bestR;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(mass_recommend_bestR_Bip, &param);
+}
+
 struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {
 	struct Bip_recommend_param param;
 	param.itemSim = itemSim;
@@ -1384,6 +1457,76 @@ struct Metrics_Bipii *hybrid_Bipii(struct Bipii *traini1, struct Bipii *traini2,
 	param.testi1 = testi1;
 
 	return recommend_Bip(hybrid_recommend_Bip, &param);
+}
+
+int *mass_GetBestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {
+	printf("get bestR begin......");fflush(stdout);
+
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+
+	double R, PL;
+
+	struct Bip_recommend_param args;
+	args.traini1 = traini1;
+	args.traini2 = traini2;
+	args.testi1 = testi1;
+	args.i1source = i1source;
+	args.i2source = i2source;
+	args.userSim = userSim;
+
+	int i;
+    int j;
+	int L = 50;
+	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
+	double bestR;
+	int bestRK;
+	int *bestK = malloc((traini1->maxId + 1)*sizeof(int));
+	double realR = 0, realR2 = 0;
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+		if (i<testi1->maxId + 1 && testi1->count[i]) {
+			//just to make sure bestR is enough big.
+			bestR = LONG_MAX;
+			bestRK = -1;
+			//to make realR2 is same with mass.
+			for (j=1; j<= userSim->count[i] || (j ==1 && userSim->count[i] == 0); ++j) {
+
+				//probs_knn_Bip_core(i, &args, userSim, j);
+				args.i1 = i;
+				args.mass_topR = j;
+				mass_recommend_topR_Bip(&args);
+
+				
+				Bip_core_common_part(&args, i2id, rank, topL + i*L, L);
+
+				R=PL=0;
+				metrics_R_PL_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
+				//R will never be 0, because i is in testi1.
+				if (bestR > R) {
+					bestR = R;
+					bestRK = j;
+				}
+			}
+			realR += bestR;
+			realR2 += R;
+
+			bestK[i] = bestRK;
+
+		}
+		else {
+			bestK[i] = -1;
+		}
+	}
+	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);
+
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("get bestR done.\n\n");fflush(stdout);
+	return bestK;
 }
 
 void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {
