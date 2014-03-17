@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 		fileError(fp, "print_iidNet");
 		int i;
 		long j;
-		for (i=0; i<net->maxId + 1; i+=5) {
+		for (i=0; i<net->maxId + 1; i+=1) {
 			if (net->count[i] > 0) {
 				for (j=0; j<net->count[i]; ++j) {
 					if (i < net->edges[i][j]) {
