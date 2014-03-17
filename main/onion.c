@@ -110,12 +110,13 @@ int main(int argc, char **argv)
 	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL);
 	free_MetricsBipii(mass_result);
 
-	//experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
+	experiment_knn_Bipii(traini1, traini2, testi1, testi2, userSim);
 
 	//struct L_Bip *mass_result = probs_Bipii(traini1, traini2, testi1, testi2, itemSim);
 	//struct L_Bip *simcut_result = probs_simcut_Bipii(traini1, traini2, testi1, testi2, itemSim, userSim, simcut);
 	
 
+	/*
 	int i;
 	long max_similaruer = 0;
 	for (i=0; i<userSim->maxId + 1; ++i) {
@@ -132,6 +133,7 @@ int main(int argc, char **argv)
 
 	}
 	
+	*/
 	
 	
 	/*

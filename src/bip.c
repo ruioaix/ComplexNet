@@ -1456,7 +1456,7 @@ void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct B
 			if (userSim->count[i] && i%5 == 0) {
 				//printf("%d\t%d\t%ld\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], bestR, R, R-bestR, userSim->d3[i][0], userSim->d3[i][bestRK-1], userSim->d3[i][j-2], userSim->d3[i][bestRK-1]/userSim->d3[i][0]);fflush(stdout);
 				//printf("%d\t%d\t%ld\t%ld\t%f\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->count[i], traini1->count[i], avei, bestR, R, bestR/traini1->count[i], R/traini1->count[i]);fflush(stdout);
-				printf("%d\t%d\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->d3[i][bestRK-1], (double)traini1->count[i]/traini1->countMax, userSim->d3[i][bestRK-1]/userSim->d3[i][0], (double)bestRK/userSim->count[i]);
+				printf("%d\t%d\t%f\t%f\t%f\t%f\n", i, bestRK, userSim->d3[i][bestRK-1], (double)traini1->count[i]/traini1->countMax, userSim->d3[i][bestRK-1]/userSim->d3[i][0], (double)bestRK/userSim->count[i]);fflush(stdout);
 			}
 			else {
 			//	printf("xxxxxxxxxxxxx\n");
