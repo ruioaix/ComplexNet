@@ -76,7 +76,8 @@ main_objs = 	obj/main/onion.o\
 				obj/main/onion_corR.o\
 				obj/main/onion_topS.o\
 				obj/main/onion_corS.o\
-				obj/main/onion_expR.o
+				obj/main/onion_expR.o\
+				obj/main/onion_3parts.o
 
 main_exec = onion\
 			reappearLLY\
@@ -87,7 +88,8 @@ main_exec = onion\
 			onion_corR\
 			onion_topS\
 			onion_corS\
-			onion_expR
+			onion_expR\
+			onion_3parts
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)

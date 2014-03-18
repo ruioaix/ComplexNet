@@ -115,27 +115,32 @@ int main(int argc, char **argv)
 	get_UserSimilarity(A1, A2, &AuserSim);
 	get_ItemSimilarity(A1, A2, &AitemSim);
 	sort_desc_iidNet(AuserSim);
-	int *ABbestR = mass_GetBestR_Bipii(A1, A2, B1, B2, AuserSim);
-	print_bestR(ABbestR, A1->maxId + 1, "ABbestR");
 
 	//C is train set in A, D is test set in A.
 	struct Bipii *C1, *C2, *D1, *D2;
-	create_2dataset(A1, A2, 0.1, &C1, &C2, &D1, &D2);
+	create_2dataset(A1, A2, 0.13, &C1, &C2, &D1, &D2);
 	struct iidNet *CuserSim, *CitemSim=NULL;
 	get_UserSimilarity(C1, C2, &CuserSim);
 	get_ItemSimilarity(C1, C2, &CitemSim);
 	sort_desc_iidNet(CuserSim);
+
+	//int *ADbestR = mass_GetBestR_Bipii(A1, A2, D1, D2, AuserSim);
+	//print_bestR(ADbestR, A1->maxId + 1, "ADbestR");
 	int *CDbestR = mass_GetBestR_Bipii(C1, C2, D1, D2, CuserSim);
 	print_bestR(CDbestR, C1->maxId + 1, "CDbestR");
 	int *CBbestR = mass_GetBestR_Bipii(C1, C2, B1, B2, CuserSim);
 	print_bestR(CBbestR, C1->maxId + 1, "CBbestR");
+	//int *ABbestR = mass_GetBestR_Bipii(A1, A2, B1, B2, AuserSim);
+	//print_bestR(ABbestR, A1->maxId + 1, "ABbestR");
 
-	struct Metrics_Bipii *bestR_result = mass_bestR_Bipii(C1, C2, B1, B2, CitemSim, CuserSim, CDbestR);
-	printf("bestR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
+
+	struct Metrics_Bipii *bestR_result;
 	bestR_result = mass_bestR_Bipii(C1, C2, B1, B2, CitemSim, CuserSim, CBbestR);
-	printf("bestR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
-	bestR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, ABbestR);
-	printf("bestR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
+	printf("bestR-cb,best\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
+    bestR_result = mass_bestR_Bipii(C1, C2, B1, B2, CitemSim, CuserSim, CDbestR);
+	printf("bestR-cb,cdbest\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
+	bestR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, CDbestR);
+	printf("bestR-ab,cdbest\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", bestR_result->R, bestR_result->PL, bestR_result->IL, bestR_result->HL, bestR_result->NL);
 	free_MetricsBipii(bestR_result);
 
 	free_Bipii(A1);
