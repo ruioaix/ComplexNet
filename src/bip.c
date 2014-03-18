@@ -1529,6 +1529,62 @@ int *mass_GetBestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bi
 	return bestK;
 }
 
+int mass_GetTopR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {
+	printf("get TopR begin......\n");fflush(stdout);
+
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+
+	double R, PL;
+
+	struct Bip_recommend_param args;
+	args.traini1 = traini1;
+	args.traini2 = traini2;
+	args.testi1 = testi1;
+	args.i1source = i1source;
+	args.i2source = i2source;
+	args.userSim = userSim;
+
+	int i;
+    int j;
+	int L = 50;
+	double bestR = LONG_MAX;
+	int bestK = -1;
+	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
+	for (j = 1; j< userSim->countMax; ++j ) {
+	//for (j = 1; j< 300; ++j ) {
+		args.mass_topR = j;
+		R=0;
+		for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+			if (i<testi1->maxId + 1 && testi1->count[i]) {
+				args.i1 = i;
+				mass_recommend_topR_Bip(&args);
+				Bip_core_common_part(&args, i2id, rank, topL + i*L, L);
+				double r = 0;
+				metrics_R_PL_Bip(i, traini1->count, traini2->idNum, testi1, L, rank, &r, &PL);
+				R += r;
+			}
+		}
+		if (R != 0 && bestR > R) {
+			bestR = R;
+			bestK = j;
+		}
+
+		//printf("%d, %f\n", j, R/testi1->edgesNum);fflush(stdout);
+	}
+
+	printf("best topR: %d, RS: %f\n", bestK, bestR/testi1->edgesNum);
+	
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("get TopR done.\n\n");fflush(stdout);
+	return bestK;
+}
+
 void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {
 	printf("\nexperiment_knn_Bipii begin....\n");fflush(stdout);
 
