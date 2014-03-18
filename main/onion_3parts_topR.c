@@ -91,6 +91,7 @@ int main(int argc, char **argv)
 	char *netfilename;
 	test_ArgcArgv(argc, argv, &netfilename); 
 
+	/*******************prepare A B C D from netfilename*********************************************************/
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
 	struct Bipii *neti1 = create_Bipii(netfile, 1);
 	struct Bipii *neti2 = create_Bipii(netfile, 0);
@@ -100,7 +101,6 @@ int main(int argc, char **argv)
 	create_2dataset(neti1, neti2, 0.1, &A1, &A2, &B1, &B2);
 	free_Bipii(neti1);
 	free_Bipii(neti2);
-
 	struct iidNet *AuserSim, *AitemSim=NULL;
 	get_UserSimilarity(A1, A2, &AuserSim);
 	get_ItemSimilarity(A1, A2, &AitemSim);
@@ -113,7 +113,13 @@ int main(int argc, char **argv)
 	get_UserSimilarity(C1, C2, &CuserSim);
 	get_ItemSimilarity(C1, C2, &CitemSim);
 	sort_desc_iidNet(CuserSim);
+	/***********************************************************************************************************/
 
+	//TODO  lucky: A and C have same length! get one c&d, get one a&b, get a R; then get next c&d, next a&b, get a R.
+	//TODO  get a user into c, at the same time, get a user into d/a/b.
+	//TODO  decide divide into N parts, get a variables means how long a subset will be, divide C&D, A&B into cn&dn, an&bn.
+	//TODO  A,B,C,D will keep unchange. I need to clone a A,B,C,D, and use this four as a,b,c,d.
+	//TODO  decide N, decide L(length), sub a user from C to c, A to a, B to b, D to d.
 
 	struct Metrics_Bipii *topR_result;
 
