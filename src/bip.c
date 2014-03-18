@@ -1190,6 +1190,32 @@ void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct 
 	printf("divide_Bipii done:\n\trate: %f\n\tfile1: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n\tfile2: linesNum: %ld, i1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", rate, line1, i1Max, i1Min, i2Max, i2Min, line2, _i1Max, _i1Min, _i2Max, _i2Min);fflush(stdout);
 }
 
+struct Bipii * clone_Bipii(struct Bipii *bip) {
+	struct Bipii *new = malloc(sizeof(struct Bipii));
+	new->count = malloc((bip->maxId + 1)*sizeof(long));
+	new->id = malloc((bip->maxId + 1)*sizeof(void *));
+	memcpy(new->count, bip->count, (bip->maxId + 1)*sizeof(long));
+	int i;
+	for (i=0; i<bip->maxId +1 ; ++i) {
+		if (new->count[i]) {
+			new->id[i] = malloc(new->count[i]*sizeof(int));
+			memcpy(new->id[i], bip->id[i], new->count[i]*sizeof(int));
+		}
+		else {
+			new->id[i] = NULL;
+		}
+	}
+
+	new->maxId = bip->maxId;
+	new->minId = bip->minId;
+	new->idNum = bip->idNum;
+	new->countMax = bip->countMax;
+	new->countMin = bip->countMin;
+	new->edgesNum = bip->edgesNum;
+
+	return new;
+}
+
 void *verifyBipii(struct Bipii *bipi1, struct Bipii *bipi2) {
 	long i;
 	int j,k;
@@ -1581,6 +1607,7 @@ int mass_GetTopR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipi
 	free(i2source);
 	free(rank);
 	free(i2id);
+	free(topL);
 	printf("get TopR done.\n\n");fflush(stdout);
 	return bestK;
 }

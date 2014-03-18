@@ -52,6 +52,7 @@ struct Bipii {
 //if i1toi2 is zero, means column 2 is the index.
 struct Bipii *create_Bipii(const struct iiLineFile * const file, int i1toi2);
 void free_Bipii(struct Bipii *bip);
+struct Bipii * clone_Bipii(struct Bipii *bip);
 
 //the dividation will guarantee that: 
 //	for each available user(degree of this user is at least one), at least there will be a link in big part.

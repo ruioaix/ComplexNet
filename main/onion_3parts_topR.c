@@ -22,14 +22,15 @@
 
 #include <assert.h>
 #include <time.h>
-//#include <math.h>
+#include <math.h>
 #include <stdlib.h>
-//#include <string.h>
+#include <string.h>
 #include "iilinefile.h"
 #include "iidlinefile.h"
 #include "bip.h"
 #include "error.h"
 #include "mt_random.h"
+#include "sort.h"
 
 void set_RandomSeed(void) {
 	time_t t=time(NULL);
@@ -67,16 +68,17 @@ void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iid
 	free_iidLineFile(itemSimilarityfile);
 }
 
-void test_ArgcArgv(int argc, char **argv, char **netfilename) {
+void test_ArgcArgv(int argc, char **argv, char **netfilename, int *N) {
 	if (argc == 1) {
-		*netfilename = "data/delicious/delicious_2c_sub1000";
-		//*netfilename = "data/movielens/movielens_2c";
+		*netfilename = "data/movielens/movielens_2c";
 		//*colK = 0.2;	
+		*N = 2;
 	}
-	else if (argc == 2) {
+	else if (argc == 3) {
 		*netfilename = argv[1];
-		//char *p;
-		//*colK = strtod(argv[2], &p);
+		char *p;
+		*N = strtol(argv[2], &p, 10);
+
 	}
 	else {
 		isError("wrong argc, argv.\n");
@@ -86,10 +88,11 @@ void test_ArgcArgv(int argc, char **argv, char **netfilename) {
 int main(int argc, char **argv)
 {
 	print_time();
-	set_RandomSeed();
+	//set_RandomSeed();
 
+	int N = 2;
 	char *netfilename;
-	test_ArgcArgv(argc, argv, &netfilename); 
+	test_ArgcArgv(argc, argv, &netfilename, &N); 
 
 	/*******************prepare A B C D from netfilename*********************************************************/
 	struct iiLineFile *netfile = create_iiLineFile(netfilename);
@@ -121,6 +124,88 @@ int main(int argc, char **argv)
 	//TODO  A,B,C,D will keep unchange. I need to clone a A,B,C,D, and use this four as a,b,c,d.
 	//TODO  decide N, decide L(length), sub a user from C to c, A to a, B to b, D to d.
 
+
+	/***********************************************************************************************************/
+	struct Bipii *a1 = clone_Bipii(A1);
+	struct Bipii *a2 = clone_Bipii(A2);
+	struct Bipii *b1 = clone_Bipii(B1);
+	struct Bipii *b2 = clone_Bipii(B2);
+	struct Bipii *c1 = clone_Bipii(C1);
+	struct Bipii *c2 = clone_Bipii(C2);
+	struct Bipii *d1 = clone_Bipii(D1);
+	struct Bipii *d2 = clone_Bipii(D2);
+
+	//A1->maxId == C1->maxId, always for sure.
+	int *NACcount = malloc((A1->maxId + 1)*sizeof(int));
+	int *NACuid = malloc((A1->maxId + 1)*sizeof(int));
+	int i;
+	for (i=0; i<A1->maxId + 1; ++i) {
+		NACcount[i] = C1->count[i];
+		NACuid[i] = i;
+	}
+	qsort_ii_desc(NACcount, 0, C1->maxId, NACuid);
+	int Length = ceil((double)(C1->maxId + 1)/N);
+	double RealR = 0;
+	for (i=0; i<N; ++i) {
+		int begin = Length*i;
+		int end   = Length*(i+1);
+		memset(c1->count, 0, (c1->maxId + 1)*sizeof(long));
+		memset(d1->count, 0, (d1->maxId + 1)*sizeof(long));
+		memset(a1->count, 0, (a1->maxId + 1)*sizeof(long));
+		memset(b1->count, 0, (b1->maxId + 1)*sizeof(long));
+		memset(c2->count, 0, (c2->maxId + 1)*sizeof(long));
+		memset(d2->count, 0, (d2->maxId + 1)*sizeof(long));
+		memset(a2->count, 0, (a2->maxId + 1)*sizeof(long));
+		memset(b2->count, 0, (b2->maxId + 1)*sizeof(long));
+		d1->edgesNum = 0;
+		b1->edgesNum = 0;
+		int j;
+		for (j=begin; j<end && j<C1->maxId + 1; ++j) {
+			int id = NACuid[j];
+			c1->count[id] = C1->count[id];
+			int k;
+			for (k=0; k<c1->count[id]; ++k) {
+				int itemid = c1->id[id][k];
+				c2->id[itemid][c2->count[itemid]++] = id;
+			}
+			if (id < d1->maxId + 1) {
+				d1->count[id] = D1->count[id];
+				d1->edgesNum += D1->count[id];
+			}
+			a1->count[id] = A1->count[id];
+			for (k=0; k<a1->count[id]; ++k) {
+				int itemid = a1->id[id][k];
+				a2->id[itemid][a2->count[itemid]++] = id;
+			}
+			if (id < b1->maxId + 1) {
+				b1->count[id] = B1->count[id];
+				b1->edgesNum += B1->count[id];
+			}
+		}
+		struct iidNet *auserSim, *aitemSim=NULL;
+		get_UserSimilarity(a1, a2, &auserSim);
+		get_ItemSimilarity(a1, a2, &aitemSim);
+		sort_desc_iidNet(auserSim);
+		struct iidNet *cuserSim, *citemSim=NULL;
+		get_UserSimilarity(c1, c2, &cuserSim);
+		get_ItemSimilarity(c1, c2, &citemSim);
+		sort_desc_iidNet(cuserSim);
+		int cdbestTopR = mass_GetTopR_Bipii(c1, c2, d1, d2, cuserSim);
+		struct Metrics_Bipii *topR_result = mass_topR_Bipii(a1, a2, b1, b2, aitemSim, auserSim, cdbestTopR);
+		RealR += topR_result->R*b1->edgesNum;
+		free_MetricsBipii(topR_result);
+		printf("edgesNum: %ld\n", b1->edgesNum);
+		free_iidNet(auserSim);
+		free_iidNet(cuserSim);
+		free_iidNet(aitemSim);
+		free_iidNet(citemSim);
+	}
+	RealR /= B1->edgesNum;
+	printf("N: %d, R: %f\n", N, RealR);
+	/***********************************************************************************************************/
+
+
+	/*
 	struct Metrics_Bipii *topR_result;
 
 	int CDbestTopR = mass_GetTopR_Bipii(C1, C2, D1, D2, CuserSim);
@@ -132,7 +217,18 @@ int main(int argc, char **argv)
 	topR_result = mass_topR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, ABbestTopR);
 	printf("best topR AB ,using ABbest\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL);
 	free_MetricsBipii(topR_result);
+	*/
 
+	free(NACcount);
+	free(NACuid);
+	memcpy(c1->count, C1->count, (c1->maxId + 1)*sizeof(long));
+	memcpy(d1->count, D1->count, (d1->maxId + 1)*sizeof(long));
+	memcpy(a1->count, A1->count, (a1->maxId + 1)*sizeof(long));
+	memcpy(b1->count, B1->count, (b1->maxId + 1)*sizeof(long));
+	memcpy(c2->count, C2->count, (c2->maxId + 1)*sizeof(long));
+	memcpy(d2->count, D2->count, (d2->maxId + 1)*sizeof(long));
+	memcpy(a2->count, A2->count, (a2->maxId + 1)*sizeof(long));
+	memcpy(b2->count, B2->count, (b2->maxId + 1)*sizeof(long));
 	free_Bipii(A1);
 	free_Bipii(A2);
 	free_Bipii(B1);
@@ -141,6 +237,14 @@ int main(int argc, char **argv)
 	free_Bipii(C2);
 	free_Bipii(D1);
 	free_Bipii(D2);
+	free_Bipii(a1);
+	free_Bipii(a2);
+	free_Bipii(b1);
+	free_Bipii(b2);
+	free_Bipii(c1);
+	free_Bipii(c2);
+	free_Bipii(d1);
+	free_Bipii(d2);
 
 	free_iidNet(AuserSim);
 	free_iidNet(AitemSim);
