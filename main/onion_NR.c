@@ -111,14 +111,14 @@ int main(int argc, char **argv)
 
 	/***********************************************************************************************************/
 
-	//TODO  lucky: A and C have same length! get one c&d, get one a&b, get a R; then get next c&d, next a&b, get a R.
-	//TODO  get a user into c, at the same time, get a user into d/a/b.
-	//TODO  decide divide into N parts, get a variables means how long a subset will be, divide C&D, A&B into cn&dn, an&bn.
-	//TODO  A,B,C,D will keep unchange. I need to clone a A,B,C,D, and use this four as a,b,c,d.
-	//TODO  decide N, decide L(length), sub a user from C to c, A to a, B to b, D to d.
-
 
 	/***********************************************************************************************************/
+	int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
+	struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
+	printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
+	free_MetricsBipii(NR_result);
+	free(NR);
+
 	int i;
 	for (i=1; i<=A1->maxId + 1; i*=2) {
 		int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, i);
@@ -128,11 +128,6 @@ int main(int argc, char **argv)
 		free(NR);
 	}
 
-	int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
-	struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
-	printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
-	free_MetricsBipii(NR_result);
-	free(NR);
 	/***********************************************************************************************************/
 
 
