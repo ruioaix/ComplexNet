@@ -18,6 +18,9 @@ common_objs = 	obj/error.o \
 
 
 #################################################################
+onion_topR_bestR: $(common_objs) obj/main/onion_topR_bestR.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion_3parts_topR: $(common_objs) obj/main/onion_3parts_topR.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -81,7 +84,8 @@ main_objs = 	obj/main/onion.o\
 				obj/main/onion_corS.o\
 				obj/main/onion_expR.o\
 				obj/main/onion_3parts_bestR.o\
-				obj/main/onion_3parts_topR.o
+				obj/main/onion_3parts_topR.o\
+				obj/main/onion_topR_bestR.o
 
 main_exec = onion\
 			reappearLLY\
@@ -94,7 +98,8 @@ main_exec = onion\
 			onion_corS\
 			onion_expR\
 			onion_3parts_bestR\
-			onion_3parts_topR
+			onion_3parts_topR\
+			onion_topR_bestR
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
