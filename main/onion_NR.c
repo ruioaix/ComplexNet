@@ -120,10 +120,10 @@ int main(int argc, char **argv)
 	free(NR);
 
 	int i;
-	for (i=1; i<=A1->maxId + 1; i*=2) {
+	for (i=1; i<=(A1->maxId + 1)/2+1; ++i) {
 		int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, i);
 		struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
-		printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, N);
+		printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, i);
 		free_MetricsBipii(NR_result);
 		free(NR);
 	}
