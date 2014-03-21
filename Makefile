@@ -10,7 +10,8 @@ common_objs = 	obj/error.o \
 				obj/sort.o \
 				obj/iilinefile.o \
 				obj/hashtable.o\
-				obj/recommend.o
+				obj/recommend.o\
+				obj/iinet.o
 
 
 

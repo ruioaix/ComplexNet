@@ -14,6 +14,8 @@ CN_HASHTABLE_H	src/hashtable.h	2;"	d
 CN_IIDLINEFILE_H	src/iidlinefile.h	2;"	d
 CN_IIDNET_H	src/iidnet.h	2;"	d
 CN_IILINEFILE_H	src/iilinefile.h	2;"	d
+CN_IINET_H	src/iinet.h	2;"	d
+CN_ILINEFILE_H	src/ilinefile.h	2;"	d
 CN_MT_RANDOM_H	src/mt_random.h	2;"	d
 CN_RECOMMEND_H	src/recommend.h	2;"	d
 CN_SORT_H	src/sort.h	2;"	d
@@ -28,8 +30,10 @@ IL	src/bip.h	/^    double IL;$/;"	m	struct:Metrics_Bipii
 L	src/bip.h	/^	int L;$/;"	m	struct:Metrics_Bipii
 LINES_LENGTH_EACH	src/iidlinefile.c	17;"	d	file:
 LINES_LENGTH_EACH	src/iilinefile.c	18;"	d	file:
+LINES_LENGTH_EACH	src/ilinefile.c	17;"	d	file:
 LINE_LENGTH_MAX	src/iidlinefile.c	10;"	d	file:
 LINE_LENGTH_MAX	src/iilinefile.c	11;"	d	file:
+LINE_LENGTH_MAX	src/ilinefile.c	10;"	d	file:
 LOWER_MASK	src/mt_random.c	9;"	d	file:
 M	src/mt_random.c	6;"	d	file:
 MATRIX_A	src/mt_random.c	7;"	d	file:
@@ -45,14 +49,20 @@ RENBI_param	src/bip.c	/^	double RENBI_param;$/;"	m	struct:Bip_recommend_param	fi
 RENBI_recommend_Bip	src/bip.c	/^static void RENBI_recommend_Bip(struct Bip_recommend_param *args) {$/;"	f	file:
 UPPER_MASK	src/mt_random.c	8;"	d	file:
 clean_MetricsBipii	src/bip.c	/^void clean_MetricsBipii(struct Metrics_Bipii *lp) {$/;"	f
+clone_Bipii	src/bip.c	/^struct Bipii * clone_Bipii(struct Bipii *bip) {$/;"	f
 count	src/bip.h	/^	long *count;$/;"	m	struct:Bipii
 count	src/iidnet.h	/^	long *count;$/;"	m	struct:iidNet
+count	src/iinet.h	/^	long *count;$/;"	m	struct:iiNet
 countMax	src/bip.h	/^	long countMax;$/;"	m	struct:Bipii
 countMax	src/iidnet.h	/^	long countMax;$/;"	m	struct:iidNet
+countMax	src/iinet.h	/^	long countMax;$/;"	m	struct:iiNet
 countMin	src/bip.h	/^	long countMin;$/;"	m	struct:Bipii
+countMin	src/iinet.h	/^	long countMin;$/;"	m	struct:iiNet
 createHashTable	src/hashtable.c	/^struct HashTable *createHashTable(int length)$/;"	f
 create_2dataset	main/onion.c	/^void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **traini2, struct Bipii **testi1, struct Bipii **testi2) {$/;"	f
-create_2dataset	main/onion_3parts.c	/^void create_2dataset(struct Bipii *neti1, struct Bipii *neti2, double rate, struct Bipii **A1, struct Bipii **A2, struct Bipii **B1, struct Bipii **B2) {$/;"	f
+create_2dataset	main/onion_3parts_bestR.c	/^void create_2dataset(struct Bipii *neti1, struct Bipii *neti2, double rate, struct Bipii **A1, struct Bipii **A2, struct Bipii **B1, struct Bipii **B2) {$/;"	f
+create_2dataset	main/onion_3parts_topR.c	/^void create_2dataset(struct Bipii *neti1, struct Bipii *neti2, double rate, struct Bipii **A1, struct Bipii **A2, struct Bipii **B1, struct Bipii **B2) {$/;"	f
+create_2dataset	main/onion_NR.c	/^void create_2dataset(struct Bipii *neti1, struct Bipii *neti2, double rate, struct Bipii **A1, struct Bipii **A2, struct Bipii **B1, struct Bipii **B2) {$/;"	f
 create_2dataset	main/onion_corR.c	/^void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **traini2, struct Bipii **testi1, struct Bipii **testi2) {$/;"	f
 create_2dataset	main/onion_corS.c	/^void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **traini2, struct Bipii **testi1, struct Bipii **testi2) {$/;"	f
 create_2dataset	main/onion_expR.c	/^void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **traini2, struct Bipii **testi1, struct Bipii **testi2) {$/;"	f
@@ -63,7 +73,9 @@ create_2dataset	src/recommend.c	/^static void create_2dataset(const char * const
 create_Bipii	src/bip.c	/^struct Bipii *create_Bipii(const struct iiLineFile * const file, int i1toi2) {$/;"	f
 create_MetricsBip	src/bip.c	/^static Metrics_Bip *create_MetricsBip(void) {$/;"	f	file:
 create_MetricsBipii	src/bip.c	/^struct Metrics_Bipii *create_MetricsBipii(void) {$/;"	f
+create_iLineFile	src/ilinefile.c	/^struct iLineFile *create_iLineFile(const char * const filename) {$/;"	f
 create_iiLineFile	src/iilinefile.c	/^struct iiLineFile *create_iiLineFile(const char * const filename)$/;"	f
+create_iiNet	src/iinet.c	/^struct iiNet *create_iiNet(const struct iiLineFile * const file) {$/;"	f
 create_iidLineFile	src/iidlinefile.c	/^struct iidLineFile *create_iidLineFile(const char * const filename)$/;"	f
 create_iidNet	src/iidnet.c	/^struct iidNet *create_iidNet(const struct iidLineFile * const file) {$/;"	f
 d3	src/iidlinefile.h	/^	double d3;$/;"	m	struct:iidLine
@@ -72,8 +84,10 @@ deleteHEfromHT	src/hashtable.c	/^void deleteHEfromHT(struct HashTable *ht, long 
 divide_Bipii	src/bip.c	/^void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct iiLineFile **small, struct iiLineFile **big) {$/;"	f
 divide_iiLineFile	src/iilinefile.c	/^void divide_iiLineFile(struct iiLineFile *file, double rate, struct iiLineFile **first, struct iiLineFile **second) {$/;"	f
 edges	src/iidnet.h	/^	int **edges;$/;"	m	struct:iidNet
+edges	src/iinet.h	/^	int **edges;$/;"	m	struct:iiNet
 edgesNum	src/bip.h	/^	long edgesNum;$/;"	m	struct:Bipii
 edgesNum	src/iidnet.h	/^	long edgesNum;$/;"	m	struct:iidNet
+edgesNum	src/iinet.h	/^	long edgesNum;$/;"	m	struct:iiNet
 element	src/hashtable.h	/^	long element;$/;"	m	struct:HashElement
 elementNum	src/hashtable.h	/^	int *elementNum;$/;"	m	struct:HashTable
 elementNumBackHT	src/hashtable.c	/^static void elementNumBackHT(struct HashTable *ht)$/;"	f	file:
@@ -81,6 +95,7 @@ elementNumSumHT	src/hashtable.c	/^static void elementNumSumHT(struct HashTable *
 elementSumNum	src/hashtable.h	/^	int elementSumNum;$/;"	m	struct:HashTable
 experiment_knn_Bipii	src/bip.c	/^void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {$/;"	f
 fileError	src/error.c	/^void fileError(FILE *fp, const char * const filename)$/;"	f
+fill_iLine	src/ilinefile.c	/^static void fill_iLine(char *line, struct iLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, long filelineNum)$/;"	f	file:
 fill_iiLine	src/iilinefile.c	/^static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
 fill_iidLine	src/iidlinefile.c	/^static void fill_iidLine(char *line, struct iidLine *LI_origin,  long *lNum, int each, int *vtMaxId, int *vtMinId, int *_vtMaxId, int *_vtMinId, long filelineNum)$/;"	f	file:
 freeHashElement	src/hashtable.c	/^static void freeHashElement(struct HashElement *he)$/;"	f	file:
@@ -88,7 +103,9 @@ freeHashTable	src/hashtable.c	/^void freeHashTable(struct HashTable *ht)$/;"	f
 free_2_iiLineFile	src/iilinefile.c	/^void free_2_iiLineFile(struct iiLineFile *twofile) {$/;"	f
 free_Bipii	src/bip.c	/^void free_Bipii(struct Bipii *Bip) {$/;"	f
 free_MetricsBipii	src/bip.c	/^void free_MetricsBipii(struct Metrics_Bipii *lp) {$/;"	f
+free_iLineFile	src/ilinefile.c	/^void free_iLineFile(struct iLineFile *file) {$/;"	f
 free_iiLineFile	src/iilinefile.c	/^void free_iiLineFile(struct iiLineFile *file) {$/;"	f
+free_iiNet	src/iinet.c	/^void free_iiNet(struct iiNet *net) {$/;"	f
 free_iidLineFile	src/iidlinefile.c	/^void free_iidLineFile(struct iidLineFile *file) {$/;"	f
 free_iidNet	src/iidnet.c	/^void free_iidNet(struct iidNet *net) {$/;"	f
 genrand_int31	src/mt_random.c	/^long genrand_int31(void)$/;"	f
@@ -98,7 +115,9 @@ genrand_real2	src/mt_random.c	/^double genrand_real2(void)$/;"	f
 genrand_real3	src/mt_random.c	/^double genrand_real3(void)$/;"	f
 genrand_res53	src/mt_random.c	/^double genrand_res53(void) $/;"	f
 get_ItemSimilarity	main/onion.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
-get_ItemSimilarity	main/onion_3parts.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
+get_ItemSimilarity	main/onion_3parts_bestR.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
+get_ItemSimilarity	main/onion_3parts_topR.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
+get_ItemSimilarity	main/onion_NR.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
 get_ItemSimilarity	main/onion_corR.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
 get_ItemSimilarity	main/onion_corS.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
 get_ItemSimilarity	main/onion_expR.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
@@ -107,7 +126,9 @@ get_ItemSimilarity	main/onion_topS.c	/^void get_ItemSimilarity(struct Bipii *tra
 get_ItemSimilarity	main/similarity.c	/^void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f
 get_ItemSimilarity	src/recommend.c	/^static void get_ItemSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **itemSim) {$/;"	f	file:
 get_UserSimilarity	main/onion.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
-get_UserSimilarity	main/onion_3parts.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
+get_UserSimilarity	main/onion_3parts_bestR.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
+get_UserSimilarity	main/onion_3parts_topR.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
+get_UserSimilarity	main/onion_NR.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
 get_UserSimilarity	main/onion_corR.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
 get_UserSimilarity	main/onion_corS.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
 get_UserSimilarity	main/onion_expR.c	/^void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {$/;"	f
@@ -129,10 +150,13 @@ hybrid_recommend_Bip	src/bip.c	/^static void hybrid_recommend_Bip(struct Bip_rec
 i1	src/bip.c	/^	int i1;$/;"	m	struct:Bip_recommend_param	file:
 i1	src/iidlinefile.h	/^	int i1;$/;"	m	struct:iidLine
 i1	src/iilinefile.h	/^	int i1;$/;"	m	struct:iiLine
+i1	src/ilinefile.h	/^	int i1;$/;"	m	struct:iLine
 i1Max	src/iidlinefile.h	/^	int i1Max;$/;"	m	struct:iidLineFile
 i1Max	src/iilinefile.h	/^	int i1Max;$/;"	m	struct:iiLineFile
+i1Max	src/ilinefile.h	/^	int i1Max;$/;"	m	struct:iLineFile
 i1Min	src/iidlinefile.h	/^	int i1Min;$/;"	m	struct:iidLineFile
 i1Min	src/iilinefile.h	/^	int i1Min;$/;"	m	struct:iiLineFile
+i1Min	src/ilinefile.h	/^	int i1Min;$/;"	m	struct:iLineFile
 i1source	src/bip.c	/^	double *i1source;$/;"	m	struct:Bip_recommend_param	file:
 i2	src/iidlinefile.h	/^	int i2;$/;"	m	struct:iidLine
 i2	src/iilinefile.h	/^	int i2;$/;"	m	struct:iiLine
@@ -142,10 +166,14 @@ i2Min	src/iidlinefile.h	/^	int i2Min;$/;"	m	struct:iidLineFile
 i2Min	src/iilinefile.h	/^	int i2Min;$/;"	m	struct:iiLineFile
 i2source	src/bip.c	/^	double *i2source;$/;"	m	struct:Bip_recommend_param	file:
 i2sourceA	src/bip.c	/^	double *i2sourceA;$/;"	m	struct:Bip_recommend_param	file:
+iLine	src/ilinefile.h	/^struct iLine {$/;"	s
+iLineFile	src/ilinefile.h	/^struct iLineFile {$/;"	s
 id	src/bip.h	/^	int **id;$/;"	m	struct:Bipii
 idNum	src/bip.h	/^	int idNum;$/;"	m	struct:Bipii
+idNum	src/iinet.h	/^	int idNum;$/;"	m	struct:iiNet
 iiLine	src/iilinefile.h	/^struct iiLine {$/;"	s
 iiLineFile	src/iilinefile.h	/^struct iiLineFile {$/;"	s
+iiNet	src/iinet.h	/^struct iiNet{$/;"	s
 iidLine	src/iidlinefile.h	/^struct iidLine{$/;"	s
 iidLineFile	src/iidlinefile.h	/^struct iidLineFile {$/;"	s
 iidNet	src/iidnet.h	/^struct iidNet{$/;"	s
@@ -159,11 +187,18 @@ itemSim	src/bip.c	/^	struct iidNet *itemSim;$/;"	m	struct:Bip_recommend_param	ty
 length	src/hashtable.h	/^	int length;$/;"	m	struct:HashTable
 lines	src/iidlinefile.h	/^	struct iidLine *lines;$/;"	m	struct:iidLineFile	typeref:struct:iidLineFile::iidLine
 lines	src/iilinefile.h	/^	struct iiLine *lines;$/;"	m	struct:iiLineFile	typeref:struct:iiLineFile::iiLine
+lines	src/ilinefile.h	/^	struct iLine *lines;$/;"	m	struct:iLineFile	typeref:struct:iLineFile::iLine
 linesNum	src/iidlinefile.h	/^	long linesNum;$/;"	m	struct:iidLineFile
 linesNum	src/iilinefile.h	/^	long linesNum;$/;"	m	struct:iiLineFile
+linesNum	src/ilinefile.h	/^	long linesNum;$/;"	m	struct:iLineFile
 main	main/bip.c	/^int main(int argc, char **argv)$/;"	f
+main	main/generatenet_AN.c	/^int main(int argc, char **argv)$/;"	f
+main	main/generatenet_T.c	/^int main(int argc, char **argv)$/;"	f
+main	main/generatenet_initNet.c	/^int main(int argc, char **argv)$/;"	f
 main	main/onion.c	/^int main(int argc, char **argv)$/;"	f
-main	main/onion_3parts.c	/^int main(int argc, char **argv)$/;"	f
+main	main/onion_3parts_bestR.c	/^int main(int argc, char **argv)$/;"	f
+main	main/onion_3parts_topR.c	/^int main(int argc, char **argv)$/;"	f
+main	main/onion_NR.c	/^int main(int argc, char **argv)$/;"	f
 main	main/onion_corR.c	/^int main(int argc, char **argv)$/;"	f
 main	main/onion_corS.c	/^int main(int argc, char **argv)$/;"	f
 main	main/onion_expR.c	/^int main(int argc, char **argv)$/;"	f
@@ -175,6 +210,8 @@ main	main/similarity.c	/^int main(int argc, char **argv)$/;"	f
 mass	src/recommend.c	/^int mass(const char * const netfilename) {$/;"	f
 mass_Bipii	src/bip.c	/^struct Metrics_Bipii *mass_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {$/;"	f
 mass_GetBestR_Bipii	src/bip.c	/^int *mass_GetBestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {$/;"	f
+mass_GetNR_Bipii	src/bip.c	/^int *mass_GetNR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim, int N) {$/;"	f
+mass_GetTopR_Bipii	src/bip.c	/^int mass_GetTopR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim) {$/;"	f
 mass_bestR	src/bip.c	/^	int *mass_bestR;$/;"	m	struct:Bip_recommend_param	file:
 mass_bestR_Bipii	src/bip.c	/^struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR) {$/;"	f
 mass_corR	src/bip.c	/^	double mass_corR;$/;"	m	struct:Bip_recommend_param	file:
@@ -196,6 +233,7 @@ mass_topS	src/bip.c	/^	double mass_topS;$/;"	m	struct:Bip_recommend_param	file:
 mass_topS_Bipii	src/bip.c	/^struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_topS) {$/;"	f
 maxId	src/bip.h	/^	int maxId;$/;"	m	struct:Bipii
 maxId	src/iidnet.h	/^	int maxId;$/;"	m	struct:iidNet
+maxId	src/iinet.h	/^	int maxId;$/;"	m	struct:iiNet
 memError	src/error.c	/^void memError(void *p, const char * const errormsg)$/;"	f
 metrics_HL_Bip	src/bip.c	/^static double metrics_HL_Bip(int i1maxId, long *i1count, int i2maxId, int L, int *Hij) {$/;"	f	file:
 metrics_IL_Bip	src/bip.c	/^static double metrics_IL_Bip(int i1maxId, long *i1count, int i1idNum, int i2maxId, int L, int *Hij, struct iidNet *sim) {$/;"	f	file:
@@ -203,16 +241,24 @@ metrics_NL_Bip	src/bip.c	/^static double metrics_NL_Bip(int i1maxId, long *i1cou
 metrics_R_PL_Bip	src/bip.c	/^static void metrics_R_PL_Bip(int i1, long *i1count, int i2idNum, Bip *testi1, int L, int *rank, double *R, double *PL) {$/;"	f	file:
 minId	src/bip.h	/^	int minId;$/;"	m	struct:Bipii
 minId	src/iidnet.h	/^	int minId;$/;"	m	struct:iidNet
+minId	src/iinet.h	/^	int minId;$/;"	m	struct:iiNet
 mt	src/mt_random.c	/^static unsigned long mt[N]={$/;"	v	file:
 mti	src/mt_random.c	/^static int mti=624; \/\/ modified by rui, not need to init anymore $/;"	v	file:
 next	src/hashtable.h	/^	struct HashElement *next;$/;"	m	struct:HashElement	typeref:struct:HashElement::HashElement
-print_bestR	main/onion_3parts.c	/^void print_bestR(int *bestR, int length, char *filename) {$/;"	f
+print_bestR	main/onion_3parts_bestR.c	/^void print_bestR(int *bestR, int length, char *filename) {$/;"	f
+print_iLineFile	src/ilinefile.c	/^void print_iLineFile(struct iLineFile *file, char *filename) {$/;"	f
 print_iiLineFile	src/iilinefile.c	/^void print_iiLineFile(struct iiLineFile *file, char *filename) {$/;"	f
+print_iiNet	src/iinet.c	/^void print_iiNet(struct iiNet *net, char *filename) {$/;"	f
 print_iidLineFile	src/iidlinefile.c	/^void print_iidLineFile(struct iidLineFile *file, char *filename) {$/;"	f
 print_iidNet	src/iidnet.c	/^void print_iidNet(struct iidNet *net, char *filename) {$/;"	f
 print_time	main/bip.c	/^void print_time(void) {$/;"	f
+print_time	main/generatenet_AN.c	/^void print_time(void) {$/;"	f
+print_time	main/generatenet_T.c	/^void print_time(void) {$/;"	f
+print_time	main/generatenet_initNet.c	/^void print_time(void) {$/;"	f
 print_time	main/onion.c	/^void print_time(void) {$/;"	f
-print_time	main/onion_3parts.c	/^void print_time(void) {$/;"	f
+print_time	main/onion_3parts_bestR.c	/^void print_time(void) {$/;"	f
+print_time	main/onion_3parts_topR.c	/^void print_time(void) {$/;"	f
+print_time	main/onion_NR.c	/^void print_time(void) {$/;"	f
 print_time	main/onion_corR.c	/^void print_time(void) {$/;"	f
 print_time	main/onion_corS.c	/^void print_time(void) {$/;"	f
 print_time	main/onion_expR.c	/^void print_time(void) {$/;"	f
@@ -234,7 +280,9 @@ qsort_ii_desc	src/sort.c	/^void qsort_ii_desc(int s[], int l, int r, int in[])$/
 qsort_iid_asc	src/sort.c	/^void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]) {$/;"	f
 recommend_Bip	src/bip.c	/^static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_param *), struct Bip_recommend_param *args) {$/;"	f	file:
 set_RandomSeed	main/onion.c	/^void set_RandomSeed(void) {$/;"	f
-set_RandomSeed	main/onion_3parts.c	/^void set_RandomSeed(void) {$/;"	f
+set_RandomSeed	main/onion_3parts_bestR.c	/^void set_RandomSeed(void) {$/;"	f
+set_RandomSeed	main/onion_3parts_topR.c	/^void set_RandomSeed(void) {$/;"	f
+set_RandomSeed	main/onion_NR.c	/^void set_RandomSeed(void) {$/;"	f
 set_RandomSeed	main/onion_corR.c	/^void set_RandomSeed(void) {$/;"	f
 set_RandomSeed	main/onion_corS.c	/^void set_RandomSeed(void) {$/;"	f
 set_RandomSeed	main/onion_expR.c	/^void set_RandomSeed(void) {$/;"	f
@@ -249,7 +297,9 @@ sort_asc_iidNet	src/iidnet.c	/^void sort_asc_iidNet(struct iidNet *net) {$/;"	f
 sort_desc_iidNet	src/iidnet.c	/^void sort_desc_iidNet(struct iidNet *net) {$/;"	f
 sumSign	src/hashtable.h	/^	char sumSign;$/;"	m	struct:HashTable
 test_ArgcArgv	main/onion.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
-test_ArgcArgv	main/onion_3parts.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
+test_ArgcArgv	main/onion_3parts_bestR.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
+test_ArgcArgv	main/onion_3parts_topR.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename, int *N) {$/;"	f
+test_ArgcArgv	main/onion_NR.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename, int *N) {$/;"	f
 test_ArgcArgv	main/onion_corR.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
 test_ArgcArgv	main/onion_corS.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
 test_ArgcArgv	main/onion_expR.c	/^void test_ArgcArgv(int argc, char **argv, char **netfilename) {$/;"	f
@@ -262,6 +312,7 @@ traini1	src/bip.c	/^	Bip *traini1;$/;"	m	struct:Bip_recommend_param	file:
 traini2	src/bip.c	/^	Bip *traini2;$/;"	m	struct:Bip_recommend_param	file:
 userSim	src/bip.c	/^	struct iidNet *userSim;$/;"	m	struct:Bip_recommend_param	typeref:struct:Bip_recommend_param::iidNet	file:
 verifyBipii	src/bip.c	/^void *verifyBipii(struct Bipii *bipi1, struct Bipii *bipi2) {$/;"	f
+verify_iiNet	src/iinet.c	/^void *verify_iiNet(void *arg) {$/;"	f
 vtsNum	src/iidnet.h	/^	int vtsNum;$/;"	m	struct:iidNet
 wc_ii_HT	src/hashtable.c	/^void wc_ii_HT(struct iiLineFile *file, char *filename) {$/;"	f
 writeContinuousiiLineFileHT	src/hashtable.c	/^void *writeContinuousiiLineFileHT(void * arg) {$/;"	f
