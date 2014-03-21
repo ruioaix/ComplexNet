@@ -18,6 +18,15 @@ common_objs = 	obj/error.o \
 
 
 #################################################################
+generatenet_T: $(common_objs) obj/main/generatenet_T.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+generatenet_AN: $(common_objs) obj/main/generatenet_AN.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+generatenet_initNet: $(common_objs) obj/main/generatenet_initNet.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion_NR: $(common_objs) obj/main/onion_NR.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -85,7 +94,10 @@ main_objs = 	obj/main/onion.o\
 				obj/main/onion_expR.o\
 				obj/main/onion_3parts_bestR.o\
 				obj/main/onion_3parts_topR.o\
-				obj/main/onion_NR.o
+				obj/main/onion_NR.o\
+				obj/main/generatenet_initNet.o\
+				obj/main/generatenet_AN.o\
+				obj/main/generatenet_T.o
 
 main_exec = onion\
 			reappearLLY\
@@ -99,7 +111,10 @@ main_exec = onion\
 			onion_expR\
 			onion_3parts_bestR\
 			onion_3parts_topR\
-			onion_NR
+			onion_NR\
+			generatenet_initNet\
+			generatenet_AN\
+			generatenet_T
 clean : 
 	$(RM) $(main_objs)
 	$(RM) $(common_objs)
