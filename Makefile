@@ -30,6 +30,9 @@ onion_3parts_bestR: $(common_objs) obj/main/onion_3parts_bestR.o
 onion_expR : $(common_objs) obj/main/onion_expR.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
+onion_expRI : $(common_objs) obj/main/onion_expRI.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion_corS : $(common_objs) obj/main/onion_corS.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -83,6 +86,7 @@ main_objs = 	obj/main/onion.o\
 				obj/main/onion_topS.o\
 				obj/main/onion_corS.o\
 				obj/main/onion_expR.o\
+				obj/main/onion_expRI.o\
 				obj/main/onion_3parts_bestR.o\
 				obj/main/onion_3parts_topR.o\
 				obj/main/onion_NR.o
@@ -97,6 +101,7 @@ main_exec = onion\
 			onion_topS\
 			onion_corS\
 			onion_expR\
+			onion_expRI\
 			onion_3parts_bestR\
 			onion_3parts_topR\
 			onion_NR

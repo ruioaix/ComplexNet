@@ -61,7 +61,8 @@ void create_2dataset(char *netfilename, struct Bipii **traini1, struct Bipii **t
 }
 
 void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {
-	struct iidLineFile *userSimilarityfile = similarity_Bipii(traini1, traini2, 1);
+	//struct iidLineFile *userSimilarityfile = similarity_Bipii(traini1, traini2, 1);
+	struct iidLineFile *userSimilarityfile = mass_similarity_Bipii(traini1, traini2 );
 	*userSim = create_iidNet(userSimilarityfile);
 	free_iidLineFile(userSimilarityfile);
 }

@@ -46,3 +46,5 @@ onion_topR_bestR
 onion_NR
 *_output
 backup
+movielens_*
+onion_*

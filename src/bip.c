@@ -35,6 +35,8 @@ struct Bip_recommend_param{
 	double mass_corR;
 	double mass_corS;
 	double mass_expR;
+	double mass_expRI_itemAveDreMax;
+	double *mass_expRI_itemAveDre;
 	int *mass_bestR;
 
 	double HNBI_param;
@@ -536,9 +538,67 @@ static void mass_recommend_expR_Bip(struct Bip_recommend_param *args) {
 	long k;
 	//long KI= floor(args->traini1->idNum * (double)i1count[uid]/args->traini1->countMax*mass_expR);
 	long KI= floor((args->traini1->maxId+1) * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
-	//long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
 	//long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_expR_itemAveDre[uid]/((double)args->traini1->countMax*mass_expR_itemAveDreMax), mass_expR));
+	//long KI= floor(mass_topR * pow((double)i1count[uid]/((double)args->traini1->countMax), mass_expR));
 	//printf("%ld\t%ld\t%f\n", args->traini1->countMax, i1count[uid], pow((double)i1count[uid]/args->traini1->countMax, mass_expR));
+	for (k=0; k < userSim->count[uid]; ++k) {
+		if ( k<KI) {
+			i = userSim->edges[uid][k];
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
+
+//three-step random walk of Probs, bestk cut.
+static void mass_recommend_expRI_Bip(struct Bip_recommend_param *args) {
+	int uid = args->i1;
+    struct iidNet *userSim = args->userSim;
+	double mass_expR= args->mass_expR;
+	double mass_expRI_itemAveDreMax = args->mass_expRI_itemAveDreMax;
+	double *mass_expRI_itemAveDre = args->mass_expRI_itemAveDre;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[uid]; ++j) {
+		neigh = i1ids[uid][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	long KI= floor(args->traini1->idNum * pow((double)i1count[uid]*mass_expRI_itemAveDre[uid]/((double)args->traini1->countMax*mass_expRI_itemAveDreMax), mass_expR));
 	for (k=0; k < userSim->count[uid]; ++k) {
 		if ( k<KI) {
 			i = userSim->edges[uid][k];
@@ -1349,6 +1409,83 @@ struct iidLineFile *similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, i
 	return simfile;
 }
 
+//if i1ori2 == 1, then calculate i1(user)'s similarity.
+//if i1ori2 == 0, then calculate i2(item)'s similarity.
+struct iidLineFile *mass_similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2) {
+
+
+	struct iidLineFile *simfile = malloc(sizeof(struct iidLineFile));
+	int con = 1000000;
+	struct iidLine *lines = malloc(con*sizeof(struct iidLine));
+	long linesNum = 0;
+
+	double *i2source = malloc((bipi2->maxId + 1)*sizeof(double));
+	double *i1source = malloc((bipi1->maxId + 1)*sizeof(double));
+
+	int i, j, neigh;
+	long degree;
+	double source;
+
+	int i1Max=-1;
+	int i1Min=INT_MAX;
+	int i2Max=-1;
+	int i2Min=INT_MAX;
+
+	int k;
+	for (k=0; k<bipi1->maxId + 1; ++k) {
+		if (bipi1->count[k]) {
+			memset(i2source, 0, (bipi2->maxId+1)*sizeof(double));
+			for (j=0; j<bipi1->count[k]; ++j) {
+				neigh = bipi1->id[k][j];
+				i2source[neigh] = 1.0;
+			}
+			memset(i1source, 0, (bipi1->maxId+1)*sizeof(double));
+			for (i=0; i<bipi2->maxId + 1; ++i) {
+				if (i2source[i]) {
+					degree = bipi2->count[i];
+					source = i2source[i]/(double)degree;
+					for (j=0; j<degree; ++j) {
+						neigh = bipi2->id[i][j];
+						i1source[neigh] += source;
+					}
+				}
+			}
+			for (i=0; i<bipi1->maxId + 1; ++i) {
+				if (i1source[i] && i!=k) {
+					i1Min = i1Min<k?i1Min:k;
+					i1Max = k;
+
+					i2Min = i2Min<i?i2Min:i;
+					i2Max = i2Max>i?i2Max:i;
+
+					lines[linesNum].i1 = k;
+					lines[linesNum].i2 = i;
+					lines[linesNum].d3 = i1source[i];
+					++linesNum;
+
+					if (linesNum == con) {
+						con += 1000000;
+						struct iidLine *temp = realloc(lines, con*sizeof(struct iidLine));
+						assert(temp != NULL);
+						lines = temp;
+					}
+				}
+			}
+		}
+	}
+
+	simfile->i1Max = i1Max;
+	simfile->i2Max = i2Max;
+	simfile->i1Min = i1Min;
+	simfile->i2Min = i2Min;
+	simfile->linesNum = linesNum;
+	simfile->lines = lines;
+	printf("calculate mass similarity done.\n");
+	free(i1source);
+	free(i2source);
+	return simfile;
+}
+
 struct Metrics_Bipii *mass_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim) {
 	struct Bip_recommend_param param;
 	param.itemSim = itemSim;
@@ -1423,6 +1560,21 @@ struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *train
 	param.testi1 = testi1;
 
 	return recommend_Bip(mass_recommend_expR_Bip, &param);
+}
+
+struct Metrics_Bipii *mass_expRI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR, double *mass_expRI_itemAveDre, double mass_expRI_itemAveDreMax) {
+	struct Bip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_expR= mass_expR;
+	param.mass_expRI_itemAveDreMax = mass_expRI_itemAveDreMax;
+	param.mass_expRI_itemAveDre = mass_expRI_itemAveDre;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(mass_recommend_expRI_Bip, &param);
 }
 
 struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR) {

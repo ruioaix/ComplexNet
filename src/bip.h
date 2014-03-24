@@ -63,6 +63,7 @@ void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct 
 //if i1ori2 == 1, then calculate i1(user)'s similarity.
 //if i1ori2 == 0, then calculate i2(item)'s similarity.
 struct iidLineFile *similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, int i1ori2);
+struct iidLineFile *mass_similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2);
 
 
 struct Metrics_Bipii {
@@ -86,6 +87,7 @@ struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *train
 struct Metrics_Bipii *mass_corR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corR);
 struct Metrics_Bipii *mass_corS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corS);
 struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR);
+struct Metrics_Bipii *mass_expRI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR, double *mass_expRI_itemAveDre, double mass_expRI_itemAveDreMax);
 struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR);
 
 struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim);

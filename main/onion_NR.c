@@ -57,7 +57,10 @@ void create_2dataset(struct Bipii *neti1, struct Bipii *neti2, double rate, stru
 }
 
 void get_UserSimilarity(struct Bipii *traini1, struct Bipii *traini2, struct iidNet **userSim) {
-	struct iidLineFile *userSimilarityfile = similarity_Bipii(traini1, traini2, 1);
+	//struct iidLineFile *userSimilarityfile = similarity_Bipii(traini1, traini2, 1);
+	struct iidLineFile *userSimilarityfile = mass_similarity_Bipii(traini1, traini2);
+	print_iidLineFile(userSimilarityfile, "simfile");
+
 	*userSim = create_iidNet(userSimilarityfile);
 	free_iidLineFile(userSimilarityfile);
 }
@@ -113,43 +116,42 @@ int main(int argc, char **argv)
 
 
 	/***********************************************************************************************************/
-	//int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
-	//struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
-	//printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
-	//free_MetricsBipii(NR_result);
-	//free(NR);
+	struct Metrics_Bipii *mass_result = mass_Bipii(A1, A2, B1, B2, AitemSim);
+	printf("mass\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", mass_result->R, mass_result->PL, mass_result->IL, mass_result->HL, mass_result->NL, 1);
+	free_MetricsBipii(mass_result);
 
-	int i;
-	int lastLength = -1;
-	for (i=1; i<=A1->maxId+1; ++i) {
-		int Length = ceil((double)(A1->maxId + 1)/N);
-		if (lastLength == Length) {
-			continue;
-		}
-		lastLength = Length;
-		int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, i);
-		struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
-		printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, i);
-		free_MetricsBipii(NR_result);
-		free(NR);
-	}
+	int *NR;
+	struct Metrics_Bipii *NR_result;
+
+	//NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, 1);
+	//NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
+	//printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, 1);
+
+	NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
+	NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
+	printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
+
+	free_MetricsBipii(NR_result);
+	free(NR);
+
+
+	//int i;
+	//int lastLength = -1;
+	//for (i=1; i<=A1->maxId+1; ++i) {
+	//	int Length = ceil((double)(A1->maxId + 1)/i);
+	//	if (lastLength == Length) {
+	//		continue;
+	//	}
+	//	lastLength = Length;
+	//	int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, i);
+	//	struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
+	//	printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, i);fflush(stdout);
+	//	free_MetricsBipii(NR_result);
+	//	free(NR);
+	//}
 
 	/***********************************************************************************************************/
 
-
-	/*
-	struct Metrics_Bipii *topR_result;
-
-	int CDbestTopR = mass_GetTopR_Bipii(C1, C2, D1, D2, CuserSim);
-	topR_result = mass_topR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, CDbestTopR);
-	printf("best topR AB ,using CDbest\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL);
-	free_MetricsBipii(topR_result);
-
-	int ABbestTopR = mass_GetTopR_Bipii(A1, A2, B1, B2, AuserSim);
-	topR_result = mass_topR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, ABbestTopR);
-	printf("best topR AB ,using ABbest\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", topR_result->R, topR_result->PL, topR_result->IL, topR_result->HL, topR_result->NL);
-	free_MetricsBipii(topR_result);
-	*/
 
 	free_Bipii(A1);
 	free_Bipii(A2);
