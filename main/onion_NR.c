@@ -113,14 +113,20 @@ int main(int argc, char **argv)
 
 
 	/***********************************************************************************************************/
-	int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
-	struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
-	printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
-	free_MetricsBipii(NR_result);
-	free(NR);
+	//int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, A1->maxId + 1);
+	//struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
+	//printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, A1->maxId + 1);
+	//free_MetricsBipii(NR_result);
+	//free(NR);
 
 	int i;
-	for (i=1; i<=(A1->maxId + 1)/2+1; ++i) {
+	int lastLength = -1;
+	for (i=1; i<=A1->maxId+1; ++i) {
+		int Length = ceil((double)(A1->maxId + 1)/N);
+		if (lastLength == Length) {
+			continue;
+		}
+		lastLength = Length;
 		int *NR = mass_GetNR_Bipii(A1, A2, B1, B2, AuserSim, i);
 		struct Metrics_Bipii *NR_result = mass_bestR_Bipii(A1, A2, B1, B2, AitemSim, AuserSim, NR);
 		printf("NR\tR: %f, PL: %f, IL: %f, HL: %f, NL: %f, N: %d\n", NR_result->R, NR_result->PL, NR_result->IL, NR_result->HL, NR_result->NL, i);
