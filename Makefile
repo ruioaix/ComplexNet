@@ -42,6 +42,12 @@ onion_corR : $(common_objs) obj/main/onion_corR.o
 onion_topR : $(common_objs) obj/main/onion_topR.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
+onion_topR5 : $(common_objs) obj/main/onion_topR5.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+onion_topR5RE : $(common_objs) obj/main/onion_topR5RE.o
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 onion_topS : $(common_objs) obj/main/onion_topS.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
@@ -82,6 +88,8 @@ main_objs = 	obj/main/onion.o\
 				obj/main/similarity.o\
 				obj/main/bip.o\
 				obj/main/onion_topR.o\
+				obj/main/onion_topR5.o\
+				obj/main/onion_topR5RE.o\
 				obj/main/onion_corR.o\
 				obj/main/onion_topS.o\
 				obj/main/onion_corS.o\
@@ -97,6 +105,8 @@ main_exec = onion\
 			similarity\
 			bip\
 			onion_topR\
+			onion_topR5\
+			onion_topR5RE\
 			onion_corR\
 			onion_topS\
 			onion_corS\

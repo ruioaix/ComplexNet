@@ -31,6 +31,8 @@ struct Bip_recommend_param{
 	int i1;
 
 	int mass_topR;
+	int mass_topR5;
+	int mass_topR5RE;
 	double mass_topS;
 	double mass_corR;
 	double mass_corS;
@@ -55,6 +57,8 @@ struct Bip_recommend_param{
 
 	double *i1source;
 	double *i2source;
+	int *i1id;
+	int *i2id;
 	double *i2sourceA;
 
 };
@@ -320,6 +324,238 @@ static void mass_recommend_topR_Bip(struct Bip_recommend_param *args) {
 			break;
 		}
 	}
+}
+
+//three-step random walk of Probs
+static void mass_recommend_topR5_Bip(struct Bip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topR5 = args->mass_topR5;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	int *i2id = args->i2id;
+	int *i1id = args->i1id;
+
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k < topR5) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+
+
+	int id = 0;
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			i2source[id] = i2source[i];
+			i2id[id] = i;
+			++id;
+		}
+	}
+	if (id<1) {
+		memset(i2source, 0, (i2maxId+1)*sizeof(double));
+		return;
+	}
+
+	qsort_di_desc(i2source, 0, id -1 , i2id);
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1 && i < topR5 && i<id; ++i) {
+		id = i2id[i];
+		degree = i2count[id];
+		source = (double)i2source[i]/degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i2ids[id][j];
+			i1source[neigh] += source;
+		}
+	}
+	id = 0;
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			i1source[id] = i1source[i];
+			i1id[id] = i;
+			++id;
+		}
+	}
+	if (id<1) {
+		memset(i2source, 0, (i2maxId+1)*sizeof(double));
+		return;
+	}
+
+	qsort_di_desc(i1source, 0, id - 1, i1id);
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1 && i<topR5 && i<id; ++i) {
+		id = i1id[i];
+		degree = i1count[id];
+		source = (double)i1source[i]/degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i1ids[id][j];
+			i2source[neigh] += source;
+		}
+	}
+	/*
+	*/
+}
+
+//three-step random walk of Probs
+static void mass_recommend_topR5RE_Bip(struct Bip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topR5RE = args->mass_topR5RE;
+	double RENBI_param = args->RENBI_param;
+
+
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+	double *i2sourceA = args->i2sourceA;
+	int *i2id = args->i2id;
+	int *i1id = args->i1id;
+
+	int **i1ids = args->traini1->id;
+	int **i2ids = args->traini2->id; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k < topR5RE) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+
+	memcpy(i2sourceA, i2source, (i2maxId + 1)*sizeof(double));
+
+	int id = 0;
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			i2source[id] = i2source[i];
+			i2id[id] = i;
+			++id;
+		}
+	}
+	if (id<1) {
+		memset(i2source, 0, (i2maxId+1)*sizeof(double));
+		return;
+	}
+
+	qsort_di_desc(i2source, 0, id -1 , i2id);
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1 && i < topR5RE && i<id; ++i) {
+		id = i2id[i];
+		degree = i2count[id];
+		source = (double)i2source[i]/degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i2ids[id][j];
+			i1source[neigh] += source;
+		}
+	}
+	id = 0;
+	for (i=0; i<i1maxId + 1; ++i) {
+		if (i1source[i]) {
+			i1source[id] = i1source[i];
+			i1id[id] = i;
+			++id;
+		}
+	}
+	if (id<1) {
+		memset(i2source, 0, (i2maxId+1)*sizeof(double));
+		return;
+	}
+
+	qsort_di_desc(i1source, 0, id - 1, i1id);
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (i=0; i<i1maxId + 1 && i<topR5RE && i<id; ++i) {
+		id = i1id[i];
+		degree = i1count[id];
+		source = (double)i1source[i]/degree;
+		for (j=0; j<degree; ++j) {
+			neigh = i1ids[id][j];
+			i2source[neigh] += source;
+		}
+	}
+	/*
+	*/
+	for (i=0; i<i2maxId + 1; ++i) {
+		i2sourceA[i] += RENBI_param*i2source[i];
+	}
+
+	memcpy(i2source, i2sourceA, (i2maxId + 1)*sizeof(double));
 }
 
 //three-step random walk of Probs
@@ -936,8 +1172,12 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 
 	int *rank = malloc((i2maxId + 1)*sizeof(int));
 	assert(rank != NULL);
+	int *i1id =  malloc((i1maxId + 1)*sizeof(int));
+	assert(i1id != NULL);
 	int *i2id =  malloc((i2maxId + 1)*sizeof(int));
 	assert(i2id != NULL);
+	args->i1id = i1id;
+	args->i2id = i2id;
 
 	int i;
 	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
@@ -976,6 +1216,7 @@ static Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recommend_pa
 	free(i1source);
 	free(i2source);
 	free(i2sourceA);
+	free(i1id);
 	free(i2id);
 	free(rank);
 	return retn;
@@ -1508,6 +1749,33 @@ struct Metrics_Bipii *mass_topR_Bipii(struct Bipii *traini1, struct Bipii *train
 	param.testi1 = testi1;
 
 	return recommend_Bip(mass_recommend_topR_Bip, &param);
+}
+
+struct Metrics_Bipii *mass_topR5_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int mass_topR5) {
+	struct Bip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_topR5 = mass_topR5;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(mass_recommend_topR5_Bip, &param);
+}
+
+struct Metrics_Bipii *mass_topR5RE_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int mass_topR5RE, double RENBI_param) {
+	struct Bip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_topR5RE = mass_topR5RE;
+	param.RENBI_param = RENBI_param;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_Bip(mass_recommend_topR5RE_Bip, &param);
 }
 
 struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_topS) {
