@@ -1,79 +1,54 @@
-MAKEROOT := $(shell pwd)
-INCLUDE_DIR := -I$(MAKEROOT)/src # -I$(MAKEROOT)/src/main
+
+#prerequisite: no src/*/*/*.c
+#get all source file name in src, include pathname.
+#get all obj file name in obj.
+#get all directory name in src.
+SRC_SRC = $(wildcard src/*.c) $(wildcard src/*/*c)
+SRC_DIR = $(sort $(dir $(SRC_SRC)))
+SRC_OBJ = $(patsubst %.c, obj/%.o, $(SRC_SRC))
+
+#prerequisite: no main/*/*/*.c
+#get all source file name in main, include pathname.
+#get all obj file name in obj.
+#get all directory name in main.
+MAIN_SRC = $(wildcard main/*.c) $(wildcard main/*/*.c)
+MAIN_DIR = $(sort $(dir $(MAIN_SRC)))
+MAIN_OBJ = $(patsubst %.c, obj/%.o, $(MAIN_SRC))
+
+#include dir
+INCLUDE_DIR := $(patsubst %, -I%, $(SRC_DIR) $(MAIN_DIR))
+
 CC := gcc
 CFLAG :=  -g -Wall -Wunused 
-common_objs = 	obj/error.o \
-				obj/bip.o \
-				obj/iidlinefile.o \
-				obj/iidnet.o \
-				obj/mt_random.o \
-				obj/sort.o \
-				obj/iilinefile.o \
-				obj/hashtable.o\
-				obj/recommend.o
 
-
+#get all exec name, if onion/bip.c, then exec name is onion-bip.
+#if similarity.c, then exec name is similarity.
+MAIN_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_SRC)))
 
 .PHONY : all clean
 
+all: 
+	@echo $(SRC_DIR)
+	@echo $(MAIN_DIR)
+	@echo $(src_obj)
+	@echo $(INCLUDE_DIR)
+
 
 #################################################################
-onion_NR: $(common_objs) obj/main/onion_NR.o
+onion_%: $(common_objs) obj/main/onion_%.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
-onion_3parts_topR: $(common_objs) obj/main/onion_3parts_topR.o
+$(main_exec) : $(src_obj) obj/main/%.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
-onion_3parts_bestR: $(common_objs) obj/main/onion_3parts_bestR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_expR : $(common_objs) obj/main/onion_expR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_expRI : $(common_objs) obj/main/onion_expRI.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_corS : $(common_objs) obj/main/onion_corS.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_corR : $(common_objs) obj/main/onion_corR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_topR : $(common_objs) obj/main/onion_topR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_topR5 : $(common_objs) obj/main/onion_topR5.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_topR5RE : $(common_objs) obj/main/onion_topR5RE.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_topS : $(common_objs) obj/main/onion_topS.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-similarity : $(common_objs) obj/main/similarity.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion : $(common_objs) obj/main/onion.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-bip : $(common_objs) obj/main/bip.o 
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-all: bip onion reappearLLY selectRandomUsers
-
-reappearLLY: $(common_objs) obj/main/reappearLLY.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-selectRandomUsers: $(common_objs) obj/main/selectRandomUsers.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
 #################################################################
 
 
 
 #################################################################
-obj/%.o: src/%.c src/%.h
-	$(CC) $(CFLAG) -c $< -o $@
+$(SRC_DIR)%.o : 
+obj/src/%.o: src/%.c src/%.h
+	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 obj/main/%.o: main/%.c
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
@@ -87,36 +62,11 @@ main_objs = 	obj/main/onion.o\
 				obj/main/selectRandomUsers.o\
 				obj/main/similarity.o\
 				obj/main/bip.o\
-				obj/main/onion_topR.o\
-				obj/main/onion_topR5.o\
-				obj/main/onion_topR5RE.o\
-				obj/main/onion_corR.o\
-				obj/main/onion_topS.o\
-				obj/main/onion_corS.o\
-				obj/main/onion_expR.o\
-				obj/main/onion_expRI.o\
-				obj/main/onion_3parts_bestR.o\
-				obj/main/onion_3parts_topR.o\
-				obj/main/onion_NR.o
+				$(wildcard obj/main/onion_*.o)
 
-main_exec = onion\
-			reappearLLY\
-			selectRandomUsers\
-			similarity\
-			bip\
-			onion_topR\
-			onion_topR5\
-			onion_topR5RE\
-			onion_corR\
-			onion_topS\
-			onion_corS\
-			onion_expR\
-			onion_expRI\
-			onion_3parts_bestR\
-			onion_3parts_topR\
-			onion_NR
+
 clean : 
 	$(RM) $(main_objs)
-	$(RM) $(common_objs)
+	$(RM) $(src_obj)
 	$(RM) $(main_exec)
 #################################################################
