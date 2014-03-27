@@ -29,7 +29,6 @@ onion_*
 
 temp/*
 backup/*
-data/*
 
 output_*
 *_output

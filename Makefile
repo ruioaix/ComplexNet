@@ -26,7 +26,7 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : all clean
 
-all: $(OBJ_DIR) $(MAIN_ALL_EXEC)
+all: $(OBJ_DIR) 
 
 #################################################################
 MAIN_ONION_SRC = $(wildcard main/onion/*.c)
