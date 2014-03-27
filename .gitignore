@@ -26,6 +26,7 @@ reappearLLY
 selectRandomUsers
 similarity
 onion_*
+generatenet-*
 
 temp/*
 backup/*
@@ -33,6 +34,5 @@ obj/*
 
 output_*
 *_output
-generatenet_*
 
 tags
