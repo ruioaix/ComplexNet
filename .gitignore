@@ -34,3 +34,5 @@ obj/*
 output_*
 *_output
 generatenet_*
+
+tags

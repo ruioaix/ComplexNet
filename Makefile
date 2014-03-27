@@ -15,7 +15,7 @@ MAIN_ALL_DIR = $(sort $(dir $(MAIN_ALL_SRC)))
 MAIN_ALL_OBJ = $(patsubst %.c, obj/%.o, $(MAIN_ALL_SRC))
 MAIN_ALL_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ALL_SRC)))
 
-OBJ_DIR = $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR))
+OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR))
 
 #include dir
 INCLUDE_DIR := $(patsubst %, -I%, $(SRC_DIR) $(MAIN_ALL_DIR))
@@ -24,9 +24,11 @@ CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 
 
-.PHONY : all clean
+.PHONY : dir all clean
 
-all: $(OBJ_DIR) 
+all: dir $(MAIN_ALL_EXEC)
+
+dir: $(OBJ_DIR)
 
 #################################################################
 MAIN_ONION_SRC = $(wildcard main/onion/*.c)
@@ -65,4 +67,5 @@ clean :
 	$(RM) $(MAIN_ALL_OBJ)
 	$(RM) $(SRC_OBJ)
 	$(RM) $(MAIN_ALL_EXEC)
+	$(RM) -r $(OBJ_DIR)
 #################################################################
