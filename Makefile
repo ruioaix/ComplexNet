@@ -28,35 +28,6 @@ CFLAG :=  -g -Wall -Wunused
 all: $(MAIN_ALL_EXEC)
 
 #################################################################
-generatenet_T: $(common_objs) obj/main/generatenet_T.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-generatenet_AN: $(common_objs) obj/main/generatenet_AN.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-generatenet_initNet: $(common_objs) obj/main/generatenet_initNet.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_NR: $(common_objs) obj/main/onion_NR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_3parts_topR: $(common_objs) obj/main/onion_3parts_topR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_3parts_bestR: $(common_objs) obj/main/onion_3parts_bestR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_expR : $(common_objs) obj/main/onion_expR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_corS : $(common_objs) obj/main/onion_corS.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
-onion_corR : $(common_objs) obj/main/onion_corR.o
-	$(CC) $(CFLAG) -lm $^ -o $@ 
->>>>>>> GenerateNet
-
-#################################################################
 MAIN_ONION_SRC = $(wildcard main/onion/*.c)
 MAIN_ONION_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ONION_SRC)))
 $(MAIN_ONION_EXEC) : onion-% : $(SRC_OBJ) obj/main/onion/%.o
