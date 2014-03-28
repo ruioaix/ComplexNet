@@ -79,7 +79,7 @@ struct iiNet *create_iiNet(const struct iiLineFile * const file) {
 	net->countMin=countMin;
 	net->count=count;
 	net->edges=edges;
-	printf("build net:\n\tMax: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
+	printf("build net:\tMax: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
 	return net;
 }
 

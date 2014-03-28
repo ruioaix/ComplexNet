@@ -62,14 +62,14 @@ int *generate_AN(int N, int max, char *ANName) {
 	return AN;
 }
 
-double *get_aveDegreeN(int N, struct iiNet *net, struct community *comN) {
+double *get_aveDegreeN(int N, int *netdegree, struct community *comN) {
 	double *aveDegreeN = malloc(N*sizeof(double));
 	int i,j;
 	for (i=0; i<N; ++i) {
 		int sumDegree = 0;
 		for (j=0; j<comN[i].idNum; ++j) {
 			int id = comN[i].id[j];
-			sumDegree += net->count[id];
+			sumDegree += netdegree[id];
 		}
 		aveDegreeN[i] = (double)sumDegree/comN[i].idNum;
 	}
@@ -110,37 +110,43 @@ struct distribN {
 	int *id;
 	int *nline;
 	int idNum;
+	int begin;
+	int end;
 };
 
 void set_distribN(int N, int M, int L, int *AN, struct distribN *distribN, double *aveDegreeN, int maxId) {
 	int i,j;
-	int accuracy = (N-1)*1000;
 	for (i=0; i<N; ++i) {
 		distribN[i].idNum = 0;
 	}
+	int accuracy = (N-1)*1000;
 	for (i=0; i<N; ++i) {
+		//get the distrubtion of the average degree of the other communities(N-1).
 		int *chooseN = set_chooseN(i, N, aveDegreeN, &accuracy);
+		distribN[i].begin = distribN[i].idNum;
 		for (j=0; j<AN[i]; ++j) {
 			++maxId;
 			distribN[i].id[distribN[i].idNum] = maxId;
 			distribN[i].nline[distribN[i].idNum] = L;
 			++distribN[i].idNum;
+			//random choose another community.
 			int Nid = chooseN[genrand_int31()%accuracy];
 			distribN[Nid].id[distribN[Nid].idNum] = maxId;
 			distribN[Nid].nline[distribN[Nid].idNum] = M-L;
 			++distribN[Nid].idNum;
 		}
+		distribN[i].end = distribN[i].idNum;
 		free(chooseN);
 	}
 }
 
 
-void set_choosem0(int i, struct community *comN, struct iiNet *net, int *choosem0, int *accuracy) {
+void set_choosem0(int i, struct community *comN, int *netdegree, int *choosem0, int *accuracy) {
 	int *degree = malloc(comN[i].idNum*sizeof(int));
 	int j,k;
 	for (j=0; j<comN[i].idNum; ++j) {
 		int id = comN[i].id[j];
-		degree[j] = net->count[id];
+		degree[j] = netdegree[id];
 	}
 	int sumDegree = 0;
 	for (j=0; j<comN[i].idNum; ++j) {
@@ -191,14 +197,17 @@ void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFile *lf) 
 	}
 }
 
-void add_links(int N, struct distribN *distribN, struct community *comN, struct iiNet *net, struct iiLineFile *lf) {
+void add_links(int N, struct distribN *distribN, struct community *comN, int *netdegree, struct iiLineFile *lf) {
 	int i,j;
+
+	//choosem0 is the place holding the distribution of user's degree in each community.
 	int comN_maxidNum = -1;
 	for (i=0; i<N; ++i) {
 		comN_maxidNum = comN_maxidNum > comN[i].idNum ? comN_maxidNum : comN[i].idNum;
 	}
 	int accuracy = comN_maxidNum * 1000;
 	int *choosem0 = malloc(accuracy*sizeof(int));
+
 	for (i=0; i<N; ++i) {
 		int sumnline = 0;
 		for (j=0; j<distribN[i].idNum; ++j) {
@@ -206,12 +215,16 @@ void add_links(int N, struct distribN *distribN, struct community *comN, struct 
 		}
 		int *id1 = malloc(sumnline * sizeof(int));
 		int *id2 = malloc(sumnline * sizeof(int));
-		set_choosem0(i, comN, net, choosem0, &accuracy);
+		//set choosem0
+		set_choosem0(i, comN, netdegree, choosem0, &accuracy);
+		//insert new user to comN.
 		int s = 0;
 		for (j=0; j<distribN[i].idNum; ++j) {
 			int id = distribN[i].id[j];
 			int ML = distribN[i].nline[j];
-			insert_id_to_comN(i, id, comN);
+			if (j>=distribN[i].begin && j<distribN[i].end) {
+				insert_id_to_comN(i, id, comN);
+			}
 			int k=0;
 			for (k=0; k<ML; ++k) {
 				id1[s] = id;
@@ -219,11 +232,28 @@ void add_links(int N, struct distribN *distribN, struct community *comN, struct 
 				++s;
 			}
 		}
+		//insert new links to lf, new net will be generated from the new lf.
+		//old net will be freed.
 		insert_link_to_lf(id1, id2, sumnline, lf);
 		free(id1);
 		free(id2);
 	}
 	free(choosem0);
+}
+
+
+int *create_netdegree(struct iiLineFile *file) {
+
+	int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
+	long linesNum=file->linesNum;
+
+	int *count=calloc(maxId+1, sizeof(int));
+	int i;
+	for(i=0; i<linesNum; ++i) {
+		++count[file->lines[i].i1];
+		++count[file->lines[i].i2];
+	}
+	return count;
 }
 
 int main(int argc, char **argv)
@@ -248,46 +278,58 @@ int main(int argc, char **argv)
 		L = strtol(argv[6], &p, 10);
 	}
 	else {
-		isError("wrong args: ./generatenet-enmcs N m0 max T");
+		isError("wrong args: ./generatenet-enmcs N m0 max T M L");
 	}
 
-	if (N<2) {
+	if (N<2 || m0 <2 || max <0 || T<1 || M<1 || M<L ) {
 		isError("not proper args");
 	}
-
+	if (N>1 ) {
+	};
 
 	/************************************************************************************************/
 	char *initNetName = "output_initNet";
+	//comN is each community's information
 	struct community *comN = generate_initNet(N, m0, initNetName);
+	//netlf is the place holding all links.
 	struct iiLineFile *netlf = create_iiLineFile(initNetName);
-	struct iiNet *net = create_iiNet(netlf);
 
 	char *ANName = "output_AN";
+	//AN is a1,a2,...,ar.
 	int *AN = generate_AN(N, max, ANName);
+	//sumAN is the number of all new users.
 	int sumAN=0;
 	int i;
 	for (i=0; i<N; ++i) {
 		sumAN += AN[i];
 	}
+	//distribN is the place holding all new users and all new links' information.
 	struct distribN *distribN = malloc(N*sizeof(struct distribN));
 	for (i=0; i<N; ++i) {
 		distribN[i].id = malloc(sumAN*sizeof(int));
 		distribN[i].nline = malloc(sumAN*sizeof(int));
 	}
-	printf("part 1 done\n");fflush(stdout);
 	/************************************************************************************************/
 
-	for (i=0; i<T; ++i) {
-		double *aveDegreeN = get_aveDegreeN(N, net, comN);
-		set_distribN(N, M, L, AN, distribN, aveDegreeN, net->maxId);
-		add_links(N, distribN, comN, net, netlf);
-		free_iiNet(net);
-		net = create_iiNet(netlf);
 
+	/************************************************************************************************/
+	for (i=0; i<T; ++i) {
+		//get all users' degree. 
+		int *netdegree = create_netdegree(netlf);
+		//get all community's average degree.
+		double *aveDegreeN = get_aveDegreeN(N, netdegree, comN);
+		//get information: the community each user will link to and the number of the links.
+		int maxId=netlf->i1Max>netlf->i2Max?netlf->i1Max:netlf->i2Max;
+		set_distribN(N, M, L, AN, distribN, aveDegreeN, maxId);
+		//add links to netlf.
+		add_links(N, distribN, comN, netdegree, netlf);
+
+		free(netdegree);
 		free(aveDegreeN);
 	}
+	/************************************************************************************************/
 
-	free_iiNet(net);
+	//free_iiNet(net);
 	free_iiLineFile(netlf);
 	for (i=0; i<N; ++i) {
 		free(comN[i].id);
