@@ -66,7 +66,7 @@ static void fill_iiLine(char *line, struct iiLine *LI_origin,  long *lNum, int e
 
 struct iiLineFile *create_iiLineFile(const char * const filename)
 {
-	printf("read iiLineFile %s: \n", filename);
+	//printf("read iiLineFile %s: \n", filename);
 	//open file
 	FILE *fp=fopen(filename,"r");
 	fileError(fp, filename);
@@ -100,7 +100,7 @@ struct iiLineFile *create_iiLineFile(const char * const filename)
 		}
 	}
 	linesNum+=(each-1)*LINES_LENGTH_EACH;
-	printf("\tread valid lines: %ld, file lines: %ld\n\ti1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", linesNum, filelineNum, maxId, minId, _maxId, _minId); fflush(stdout);
+	//printf("\tread valid lines: %ld, file lines: %ld\n\ti1Max: %d, i1Min: %d, i2Max: %d, i2Min: %d\n", linesNum, filelineNum, maxId, minId, _maxId, _minId); fflush(stdout);
 	fclose(fp);
 
 	struct iiLineFile *file=malloc(sizeof(struct iiLineFile));

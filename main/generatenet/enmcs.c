@@ -1,18 +1,17 @@
-#include "error.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include "error.h"
 #include "mt_random.h"
 #include "iilinefile.h"
-#include "iinet.h"
 
 int INITVALUE = 100000;
 int STEP = 10000;
 
 void print_time(void) {
 	time_t t=time(NULL); 
-	printf("%s\n", ctime(&t)); 
+	printf("%s", ctime(&t)); 
 	fflush(stdout);
 }
 
@@ -178,13 +177,6 @@ void insert_id_to_comN(int i, int id, struct community *comN) {
 }
 
 void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFile *lf) {
-	struct iiLine * tmp = realloc(lf->lines, (lf->linesNum+sumnline)*sizeof(struct iiLine));
-	if (tmp != NULL) {
-		lf->lines = tmp;	
-	}
-	else {
-		isError("insert_link_to_lf");
-	}
 	int i;
 	for (i=0; i<sumnline; ++i) {
 		lf->lines[lf->linesNum].i1 = id1[i];
@@ -270,11 +262,11 @@ int main(int argc, char **argv)
 	int N, m0, max, T, M, L;
 	if (argc == 1) {
 		N = 20;
-		m0 = 100;
+		m0 = 40;
 		max = 200;
 		T = 200;
-		M = 50;
-		L = 10;
+		M = 20;
+		L = 11;
 	}
 	else if (argc == 7) {
 		char *p;
@@ -292,15 +284,10 @@ int main(int argc, char **argv)
 	if (!(N>1 && m0>= M && M >= L)) {
 		isError("N,m0,max,T,M,L has unacceptable combination");
 	};
+	printf("N: %d, m0: %d, max: %d, T: %d, M: %d, L: %d\n", N, m0, max, T, M, L);fflush(stdout);
 
 
 	/************************************************************************************************/
-	char *initNetName = "output_initNet";
-	//comN is each community's information
-	struct community *comN = generate_initNet(N, m0, initNetName);
-	//netlf is the place holding all links.
-	struct iiLineFile *netlf = create_iiLineFile(initNetName);
-
 	char *ANName = "output_AN";
 	//AN is a1,a2,...,ar.
 	int *AN = generate_AN(N, max, ANName);
@@ -316,12 +303,26 @@ int main(int argc, char **argv)
 		distribN[i].id = malloc(sumAN*sizeof(int));
 		distribN[i].nline = malloc(sumAN*sizeof(int));
 	}
+
+	char *initNetName = "output_initNet";
+	//comN is each community's information
+	struct community *comN = generate_initNet(N, m0, initNetName);
+	//netlf is the place holding all links.
+	struct iiLineFile *netlf = create_iiLineFile(initNetName);
+	long netlfmend = netlf->linesNum + sumAN * M * T;
+	struct iiLine * tmp = realloc(netlf->lines, (netlfmend)*sizeof(struct iiLine));
+	if (tmp != NULL) {
+		netlf->lines = tmp;
+	}
+	else {
+		isError("Toooo big sumAN * M * T.");
+	}
+	//printf("%ld\n", netlf->linesNum + sumAN * M * T);	
 	/************************************************************************************************/
 
 
 	/************************************************************************************************/
 	for (i=0; i<T; ++i) {
-		printf("complete: %.2f%%\r", (double)i*100/T);fflush(stdout);
 		//get all users' degree. 
 		int *netdegree = create_netdegree(netlf);
 		//get all community's average degree.
@@ -329,29 +330,40 @@ int main(int argc, char **argv)
 		//get information: the community each user will link to and the number of the links.
 		int maxId=netlf->i1Max>netlf->i2Max?netlf->i1Max:netlf->i2Max;
 		set_distribN(N, M, L, AN, distribN, aveDegreeN, maxId);
+		time_t t=time(NULL); 
+		printf("T: %5d\tnodesNum: %10d\tedgesNum: %10ld\ttime: %s", i, maxId + 1, netlf->linesNum, ctime(&t));fflush(stdout);
 		//add links to netlf.
 		add_links(N, distribN, comN, netdegree, netlf);
 
 		free(netdegree);
 		free(aveDegreeN);
 	}
+	int maxId=netlf->i1Max>netlf->i2Max?netlf->i1Max:netlf->i2Max;
+	time_t t=time(NULL); 
+	printf("T: %d\tnodesNum: %d\tedgesNum: %ld\ttime: %s", i, maxId + 1, netlf->linesNum, ctime(&t));fflush(stdout);
 	/************************************************************************************************/
 
-	struct iiNet *net = create_iiNet(netlf);
-	int *distribD = calloc((net->countMax+1), sizeof(int));
-	for (i=0; i<net->maxId + 1; ++i) {
-		int degree = net->count[i];
+	int *netdegree = create_netdegree(netlf);
+	int countMax = -1;
+	for (i=0; i<maxId + 1; ++i) {
+		countMax = countMax > netdegree[i] ? countMax : netdegree[i];
+	}
+	int *distribD = calloc(countMax+1, sizeof(int));
+	for (i=0; i<maxId + 1; ++i) {
+		int degree = netdegree[i];
 		distribD[degree]++;
 	}
 	FILE *fp = fopen("output_degreeDistribution", "w");
-	for (i=0; i<net->countMax+1; ++i) {
+	fprintf(fp, "#N: %d, m0: %d, max: %d, T: %d, M: %d, L: %d\n", N, m0, max, T, M, L);
+	for (i=0; i<countMax+1; ++i) {
 		if (distribD[i]) {
 			fprintf(fp,"%d\t%d\n", i, distribD[i]);
 		}
 	}
-	free_iiNet(net);
+	free(netdegree);
+	free(distribD);
+	fclose(fp);
 
-	//free_iiNet(net);
 	free_iiLineFile(netlf);
 	for (i=0; i<N; ++i) {
 		free(comN[i].id);
