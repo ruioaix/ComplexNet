@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 		netlf->lines = tmp;
 	}
 	else {
-		isError("Toooo big sumAN * M * T.");
+		isError("memory not enough, toooo big sumAN * M * T....");
 	}
 	//printf("%ld\n", netlf->linesNum + sumAN * M * T);	
 	/************************************************************************************************/
