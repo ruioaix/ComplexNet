@@ -256,15 +256,23 @@ int *create_netdegree(struct iiLineFile *file) {
 	return count;
 }
 
+void set_RandomSeed(void) {
+	time_t t=time(NULL);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
+}
+
+
 int main(int argc, char **argv)
 {
 	print_time();
+	set_RandomSeed();
 	int N, m0, max, T, M, L;
 	if (argc == 1) {
 		N = 20;
 		m0 = 100;
 		max = 200;
-		T = 20;
+		T = 200;
 		M = 50;
 		L = 10;
 	}
@@ -281,11 +289,10 @@ int main(int argc, char **argv)
 		isError("wrong args: ./generatenet-enmcs N m0 max T M L");
 	}
 
-	if (N<2 || m0 <2 || max <0 || T<1 || M<1 || M<L ) {
-		isError("not proper args");
-	}
-	if (N>1 ) {
+	if (!(N>1 && m0>= M && M >= L)) {
+		isError("N,m0,max,T,M,L has unacceptable combination");
 	};
+
 
 	/************************************************************************************************/
 	char *initNetName = "output_initNet";
@@ -314,6 +321,7 @@ int main(int argc, char **argv)
 
 	/************************************************************************************************/
 	for (i=0; i<T; ++i) {
+		printf("complete: %.2f%%\r", (double)i*100/T);fflush(stdout);
 		//get all users' degree. 
 		int *netdegree = create_netdegree(netlf);
 		//get all community's average degree.
@@ -328,6 +336,20 @@ int main(int argc, char **argv)
 		free(aveDegreeN);
 	}
 	/************************************************************************************************/
+
+	struct iiNet *net = create_iiNet(netlf);
+	int *distribD = calloc((net->countMax+1), sizeof(int));
+	for (i=0; i<net->maxId + 1; ++i) {
+		int degree = net->count[i];
+		distribD[degree]++;
+	}
+	FILE *fp = fopen("output_degreeDistribution", "w");
+	for (i=0; i<net->countMax+1; ++i) {
+		if (distribD[i]) {
+			fprintf(fp,"%d\t%d\n", i, distribD[i]);
+		}
+	}
+	free_iiNet(net);
 
 	//free_iiNet(net);
 	free_iiLineFile(netlf);
