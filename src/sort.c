@@ -1,5 +1,28 @@
 #include "sort.h"
 
+void qsort_i_desc(int s[], int l, int r)
+{
+	if (l < r)
+	{
+		int i = l, j = r, x = s[l];
+		while (i < j)
+		{
+			while(i < j && s[j] < x)
+				j--; 
+			if(i < j)
+				s[i++] = s[j];
+
+			while(i < j && s[i] >= x)
+				i++; 
+			if(i < j)
+				s[j--] = s[i];
+		}
+		s[i] = x;
+		qsort_i_asc(s, l, i - 1);
+		qsort_i_asc(s, i + 1, r);
+	}
+}
+
 void qsort_i_asc(int s[], int l, int r)
 {
 	if (l < r)

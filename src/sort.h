@@ -1,6 +1,7 @@
 #ifndef CN_SORT_H
 #define CN_SORT_H
 
+void qsort_i_desc(int s[], int l, int r);
 void qsort_i_asc(int s[], int l, int r);
 void qsort_ii_asc(int s[], int l, int r, int in[]);
 void qsort_ii_desc(int s[], int l, int r, int in[]);

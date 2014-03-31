@@ -23,5 +23,7 @@ void print_iiNet(struct iiNet *net, char *filename);
 //of course, you can use this in the main thread.
 void *verify_iiNet(void *arg);
 
+int *shortestpath_1A_iiNet(struct iiNet *net, int id);
+int *get_ALLSP_iiNet(struct iiNet *net);
 
 #endif

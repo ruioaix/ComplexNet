@@ -147,3 +147,80 @@ void print_iiNet(struct iiNet *net, char *filename) {
 	fclose(fp);
 	printf("print_iiNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
 }
+
+static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, int *STEP_END) {
+	int i,j;
+	int STEP = 0;
+	while (*lNum || STEP == *STEP_END) {
+		++STEP;
+		*rNum = 0;
+		for (i=0; i<*lNum; ++i) {
+			int id = (*left)[i];
+			for (j=0; j<net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (!sp[neigh]) {
+					sp[neigh] = STEP;
+					(*right)[(*rNum)++] = neigh;
+				}
+			}
+		}
+		int *tmp = *left;
+		*left = *right;
+		*right = tmp;
+		*lNum = *rNum;
+	}
+	*STEP_END = STEP;
+}
+
+int *shortestpath_1A_iiNet(struct iiNet *net, int originId) {
+	if (originId<net->minId || originId>net->maxId) {
+		return NULL;
+	}
+	int *sp = calloc(net->maxId + 1, sizeof(int));
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	int lNum, rNum;
+	lNum = 1;
+	left[0] = originId;
+	sp[originId] = -1;
+	int STEP_END = -1;
+	shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+	free(left);
+	free(right);
+	return sp;	
+}
+
+int *get_ALLSP_iiNet(struct iiNet *net) {
+	int *sp = malloc((net->maxId + 1)*sizeof(int));
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	int lNum, rNum;
+
+	int *distribSP = calloc(net->maxId + 1, sizeof(int));
+
+	int i,j;
+	int STEP_END = -1;
+	for (i=0; i<net->maxId + 1; ++i) {
+		printf("complete: %.2f%%\r", (double)i*100/(net->maxId + 1));
+		lNum = 1;
+		left[0] = i;
+		sp[i] = -1;
+		for (j=0; j<=i; ++j) {
+			sp[i] = -1;
+		}
+		for (j=i+1; j<net->maxId + 1; ++j) {
+			sp[i] = 0;
+		}
+		shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+		for (j=0; j<net->maxId + 1; ++j) {
+			if (sp[j] > 0) {
+				++distribSP[sp[j]];
+			}
+		}
+	}
+
+	free(left);
+	free(right);
+	free(sp);
+	return distribSP;
+}

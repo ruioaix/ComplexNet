@@ -26,7 +26,7 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: generatenet-enmcs
+all: dir tdpotn
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
