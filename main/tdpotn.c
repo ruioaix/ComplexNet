@@ -2,6 +2,7 @@
 #include "iinet.h"
 #include "error.h"
 #include "sort.h"
+#include "mt_random.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -11,6 +12,12 @@ static void print_time(void) {
 	time_t t=time(NULL); 
 	printf("%s", ctime(&t)); 
 	fflush(stdout);
+}
+
+void set_RandomSeed(void) {
+	time_t t=time(NULL);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
 }
 
 static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_alld, double alpha) {
@@ -24,7 +31,7 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 	}
 	*alld = malloc(N*sizeof(int));
 	*alldNum = 0;
-	for (i=0; i<N; ++i) {
+	for (i=2; i<N; ++i) {
 		if (ddis[i]) {
 			(*alld)[(*alldNum)++] = i;
 		}
@@ -42,29 +49,43 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 	for (i=0; i<*alldNum; ++i) {
 		(*p_alld)[i] /= total;
 	}
+	for (i=1; i<*alldNum; ++i) {
+		(*p_alld)[i] += (*p_alld)[i-1];
+	}
 }
 
-static int *set_choose(int alldNum, int *alld, double *aveDegreeN, int *accuracy) {
-	int *chooseN = malloc((*accuracy)*sizeof(int));
-	int i,j;
-	int begin;
-	int end = 0;
-	for (i=0; i<alldNum; ++i) {
-		begin = end;
-		end += (int)(aveDegreeN[i]*(*accuracy));
-		for (j=begin; j<end; ++j) {
-			chooseN[j] = alld[i];
-		}
+static void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFile *lf) {
+	int i;
+	for (i=0; i<sumnline; ++i) {
+		lf->lines[lf->linesNum].i1 = id1[i];
+		lf->lines[lf->linesNum].i2 = id2[i];
+		lf->i1Max = lf->i1Max > id1[i]?lf->i1Max:id1[i];
+		lf->i1Min = lf->i1Min < id1[i]?lf->i1Min:id1[i];
+		lf->i2Max = lf->i2Max > id2[i]?lf->i2Max:id2[i];
+		lf->i2Min = lf->i2Min < id2[i]?lf->i2Min:id2[i];
+		lf->linesNum++;
 	}
-	*accuracy = end;
-	return chooseN;
 }
 
 int main (int argc, char **argv) {
 	print_time();
+	set_RandomSeed();
 
-	int L = 10;
-	double alpha = 1.0;
+	int L;
+	double alpha;
+	if (argc == 3) {
+		char *p;
+		L = strtol(argv[1], &p, 10);
+		alpha = strtol(argv[2], &p, 10);
+	}
+	else if (argc == 1) {
+		L = 50;
+		alpha = 2;
+	}
+	else {
+		isError("wrong args");
+	}
+
 	enum CICLENET cc = non_cycle;
 	struct iiLineFile *file = generateNet_2D(L, cc);
 	//struct iiLineFile *file = generateNet_1D(L, cc);
@@ -75,26 +96,79 @@ int main (int argc, char **argv) {
 	int *alld, alldNum;
 	double *p_alld;
 	get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
-	int accuracy = alldNum * 10000;
-	int *choose = set_choose(alldNum, alld, p_alld, &accuracy);
+	//int i;
+	//for (i=0; i<alldNum; ++i) {
+	//	printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
+	//}
+
+	int *id1 = malloc(L*sizeof(int));
+	int *id2 = malloc(L*sizeof(int));
+	int *hash = calloc((net->maxId + 1)*2, sizeof(int));
+	int idNum = 0;
+
+	int totalL = 0;
+	while (1) {
+		double chooseSPL = genrand_real3();
+		int splength = 0;
+		int i;
+		for (i=0; i<alldNum; ++i) {
+			if (p_alld[i] > chooseSPL) {
+				splength = alld[i];
+				break;
+			}
+		}
+		int tmp = totalL + splength;
+		//printf("out: %d\n", splength);
+		if (tmp > L) {
+			break;
+		}
+		int i1 = genrand_int31()%(net->maxId + 1);
+		int lNum;
+		int *left = shortestpath_1A_S_iiNet(net, i1, splength, &lNum);
+
+		if (lNum > 0) {
+			int random = genrand_int31()%lNum;
+			int i2 = left[random];
+			if (hash[i1 + i2]) {
+				printf("not lucky, drop on same positon. try again.\n");
+				continue;
+			}
+			//printf("ini: %d, %d\n", splength, totalL);
+			id1[idNum] = i1;
+			id2[idNum] = i2;
+			++idNum;
+			totalL += splength;
+		}
+		free(left);
+	}
+	free(hash);
+
+	long newLen = file->linesNum + idNum;
+	struct iiLine * tmp = realloc(file->lines, (newLen)*sizeof(struct iiLine));
+	if (tmp != NULL) {
+		file->lines = tmp;
+	}
+	else {
+		isError("very bad luck.");
+	}
+	insert_link_to_lf(id1, id2, idNum, file);
+	free(id1);
+	free(id2);
 
 
-//	int i;
-//	for (i=0; i<alldNum; ++i) {
-//		printf("%d\t%f\n", i, p_alld[i]);
-//	}
-//	for (i=0; i<accuracy; ++i) {
-//		printf("%d\t%d\n", i, choose[i]);
-//	}
+	free_iiNet(net);
+	net = create_iiNet(file);
+	int *dis = get_ALLSP_iiNet(net);
+
+	//int i;
+	//for (i=0; i<idNum; ++i) {
+	//	printf("%d\t%d\t%d\n", i, id1[i], id2[i]);
+	//}
 
 
-	
-	
-
-
-
+	free(dis);
 	free(p_alld);
-	free(choose);
+	//free(choose);
 	free(alld);
 	free(sp);
 	free_iiNet(net);

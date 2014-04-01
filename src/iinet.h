@@ -28,4 +28,6 @@ int *get_ALLSP_iiNet(struct iiNet *net);
 
 int **shortestpath_AA_FW_iiNet(struct iiNet *net);
 
+int *shortestpath_1A_S_iiNet(struct iiNet *net, int id, int step, int *lNum);
+
 #endif

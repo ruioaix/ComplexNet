@@ -151,7 +151,7 @@ void print_iiNet(struct iiNet *net, char *filename) {
 static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, int *STEP_END) {
 	int i,j;
 	int STEP = 0;
-	while (*lNum || STEP == *STEP_END) {
+	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
 		for (i=0; i<*lNum; ++i) {
@@ -201,7 +201,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 	int i,j;
 	int STEP_END = -1;
 	for (i=0; i<net->maxId + 1; ++i) {
-		printf("complete: %.2f%%\r", (double)i*100/(net->maxId + 1));
+		printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		lNum = 1;
 		left[0] = i;
 		for (j=0; j<net->maxId + 1; ++j) {
@@ -251,4 +251,23 @@ int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
 		}
 	}
 	return apsp;
+}
+
+int *shortestpath_1A_S_iiNet(struct iiNet *net, int originId, int step, int *Num) {
+	if (originId<net->minId || originId>net->maxId) {
+		return NULL;
+	}
+	int *sp = calloc(net->maxId + 1, sizeof(int));
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	int lNum, rNum;
+	lNum = 1;
+	left[0] = originId;
+	sp[originId] = -1;
+	int STEP_END = step;
+	shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+	free(sp);
+	free(right);
+	*Num = lNum;
+	return left;	
 }
