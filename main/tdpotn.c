@@ -160,10 +160,18 @@ int main (int argc, char **argv) {
 	net = create_iiNet(file);
 	int *dis = get_ALLSP_iiNet(net);
 
-	//int i;
-	//for (i=0; i<idNum; ++i) {
-	//	printf("%d\t%d\t%d\n", i, id1[i], id2[i]);
-	//}
+	int i;
+	double aveSP = 0;
+	long spNum = 0;
+	for (i=0; i<net->maxId + 1; ++i) {
+		if (dis[i]) {
+			aveSP += (double)dis[i]*i;
+			spNum += dis[i];
+		}
+	}
+	aveSP /= spNum;
+
+	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
 
 
 	free(dis);
