@@ -204,13 +204,10 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 		printf("complete: %.2f%%\r", (double)i*100/(net->maxId + 1));
 		lNum = 1;
 		left[0] = i;
+		for (j=0; j<net->maxId + 1; ++j) {
+			sp[j] = 0;
+		}
 		sp[i] = -1;
-		for (j=0; j<=i; ++j) {
-			sp[i] = -1;
-		}
-		for (j=i+1; j<net->maxId + 1; ++j) {
-			sp[i] = 0;
-		}
 		shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
 		for (j=0; j<net->maxId + 1; ++j) {
 			if (sp[j] > 0) {
@@ -223,4 +220,35 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 	free(right);
 	free(sp);
 	return distribSP;
+}
+
+int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
+	int **apsp = malloc((net->maxId + 1)*sizeof(void *));
+	int i,j,k;
+	for (i=0; i<net->maxId + 1; ++i) {
+		apsp[i] = calloc((net->maxId + 1), sizeof(int));
+	}
+	for (i=0; i<net->maxId + 1; ++i) {
+		for (j=0; j<net->count[i]; ++j) {
+			int id = net->edges[i][j];
+			apsp[i][id] = 1;
+		}
+	}
+	for (i=0; i<net->maxId + 1; ++i) {
+		for (j=0; j<net->maxId + 1; ++j) {
+			if (!apsp[i][j]) {
+				apsp[i][j] = INT_MAX;
+			}
+		}
+	}
+	for (i=0; i<net->maxId + 1; ++i) {
+		printf("%.2f%%\r", i*100.0/net->maxId);fflush(stdout);
+		for (j=0; j<net->maxId + 1; ++j) {
+			for (k=0; k<net->maxId + 1; ++k) {
+				int havek = apsp[i][k] + apsp[k][j];
+				apsp[i][j] = havek < apsp[i][j] ? havek : apsp[i][j];
+			}
+		}
+	}
+	return apsp;
 }
