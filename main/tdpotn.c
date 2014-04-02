@@ -76,7 +76,7 @@ int main (int argc, char **argv) {
 	if (argc == 3) {
 		char *p;
 		L = strtol(argv[1], &p, 10);
-		alpha = strtol(argv[2], &p, 10);
+		alpha = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
 		L = 50;
