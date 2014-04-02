@@ -101,12 +101,13 @@ int main (int argc, char **argv) {
 	//	printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
 	//}
 
-	int *id1 = malloc(L*sizeof(int));
-	int *id2 = malloc(L*sizeof(int));
+	int *id1 = malloc(L*L*sizeof(int));
+	int *id2 = malloc(L*L*sizeof(int));
 	int *hash = calloc((net->maxId + 1)*2, sizeof(int));
 	int idNum = 0;
 
-	int totalL = 0;
+	long totalL = 0;
+	long limit = (long)L*L;
 	while (1) {
 		double chooseSPL = genrand_real3();
 		int splength = 0;
@@ -117,9 +118,9 @@ int main (int argc, char **argv) {
 				break;
 			}
 		}
-		int tmp = totalL + splength;
+		long tmp = totalL + splength;
 		//printf("out: %d\n", splength);
-		if (tmp > L) {
+		if (tmp > limit) {
 			break;
 		}
 		int i1 = genrand_int31()%(net->maxId + 1);
@@ -131,9 +132,10 @@ int main (int argc, char **argv) {
 			int i2 = left[random];
 			if (hash[i1 + i2]) {
 				printf("not lucky, drop on same positon. try again.\n");
+				free(left);
 				continue;
 			}
-			//printf("ini: %d, %d\n", splength, totalL);
+			printf("%.4f%%\r", (double)totalL*100/limit);
 			id1[idNum] = i1;
 			id2[idNum] = i2;
 			++idNum;
