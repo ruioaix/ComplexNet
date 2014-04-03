@@ -87,7 +87,7 @@ int main (int argc, char **argv) {
 		isError("wrong args");
 	}
 
-	enum CICLENET cc = non_cycle;
+	enum CICLENET cc = cycle;
 	struct iiLineFile *file = generateNet_2D(L, cc);
 	//print_iiLineFile(file, "result/iilinefile");
 	//struct iiLineFile *file = generateNet_1D(L, cc);
