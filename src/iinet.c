@@ -208,7 +208,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 	int i,j;
 	int STEP_END = -1;
 	for (i=0; i<net->maxId + 1; ++i) {
-		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		lNum = 1;
 		left[0] = i;
 		for (j=0; j<net->maxId + 1; ++j) {

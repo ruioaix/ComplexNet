@@ -3,9 +3,10 @@
 #include <stdlib.h>
 
 struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
+	if (L<2) isError("generateNet_2D L too small");
 	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
 	long linesNum = (L-1)*L*2;
-	if (cc == cycle) {
+	if (cc == cycle && L != 2) {
 		linesNum += 2*L;
 	}
 
@@ -31,7 +32,7 @@ struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
 		lines[k].i2 = i*L-L;
 		++k;
 	}
-	if (cc == cycle) {
+	if (cc == cycle && L != 2) {
 		for (i=1; i<L; ++i) {
 			lines[k].i1 = i;
 			lines[k].i2 = i+(L-1)*L;
@@ -51,7 +52,7 @@ struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
 		printf("%ld\t%ld\n", linesNum, k);
 		isError("generateNet_2D");
 	}
-		printf("%ld\t%ld\n", linesNum, k);
+	//printf("%ld\t%ld\n", linesNum, k);
 	file->lines = lines;
 	file->linesNum = linesNum;
 	file->i1Max = L*L - 1;

@@ -89,7 +89,7 @@ int main (int argc, char **argv) {
 
 	enum CICLENET cc = cycle;
 	struct iiLineFile *file = generateNet_2D(L, cc);
-	//print_iiLineFile(file, "result/iilinefile");
+	print_iiLineFile(file, "iilf");
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
 	struct iiNet *net = create_iiNet(file);
@@ -100,17 +100,18 @@ int main (int argc, char **argv) {
 	double *p_alld;
 	get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
 	int i;
-	//for (i=0; i<alldNum; ++i) {
-	//	printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
-	//}
+	for (i=0; i<alldNum; ++i) {
+		//printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
+	}
 	//return 0;
 
 	//printf("%d\n", INT_MAX);
 	int *id1 = malloc(L*L*sizeof(int));
 	int *id2 = malloc(L*L*sizeof(int));
-	int *hash = calloc((net->maxId + 1)*2, sizeof(int));
+	int *hash = calloc((net->maxId + 1)*3, sizeof(int));
 	int idNum = 0;
 
+	int badluck = 0;
 	long totalL = 0;
 	long limit = (long)L*L;
 	while (1) {
@@ -135,11 +136,15 @@ int main (int argc, char **argv) {
 		if (lNum > 0) {
 			int random = genrand_int31()%lNum;
 			int i2 = left[random];
-			if (hash[i1 + i2]) {
-				printf("not lucky, drop on same positon. try again.\n");
+			int min = i1 < i2 ? i1 : i2;
+			int max = i1 > i2 ? i1 : i2;
+			if (hash[min + 2*max]) {
+				//printf("not lucky, drop on same positon. try again.\n");
+				badluck ++;
 				free(left);
 				continue;
 			}
+			hash[min + 2*max] = 1;
 			//printf("%.4f%%\r", (double)totalL*100/limit);
 			//printf("out: %d, i1: %d, i2: %d\n", splength, i1, i2);
 			id1[idNum] = i1;
@@ -150,6 +155,7 @@ int main (int argc, char **argv) {
 		free(left);
 	}
 	free(hash);
+	printf("badluck: %d, NumofAddedLinks: %d\n", badluck, idNum);
 
 	long newLen = file->linesNum + idNum;
 	struct iiLine * tmp = realloc(file->lines, (newLen)*sizeof(struct iiLine));
@@ -160,12 +166,16 @@ int main (int argc, char **argv) {
 		isError("very bad luck.");
 	}
 	insert_link_to_lf(id1, id2, idNum, file);
+	//print_iiLineFile(file, "iilf");
+
 	free(id1);
 	free(id2);
 
 
 	free_iiNet(net);
 	net = create_iiNet(file);
+	//verify_iiNet(net);
+	//return 0;
 	int *dis = get_ALLSP_iiNet(net);
 
 	double aveSP = 0;
@@ -177,6 +187,7 @@ int main (int argc, char **argv) {
 			//printf("%d\t%d\n", i, dis[i]);
 		}
 	}
+	printf("\nspNum : %ld\n", spNum);
 	aveSP /= spNum;
 
 	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
