@@ -151,11 +151,17 @@ void print_iiNet(struct iiNet *net, char *filename) {
 static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, int *STEP_END) {
 	int i,j;
 	int STEP = 0;
+//	int sign = 0;
+//	if ((*left)[0] == 8) {
+//		sign = 1;
+//	}
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
+		
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
+			//if (sign) printf("left: %d\t%d\t%d\t%ld\n", *lNum, i, id, net->count[id]);
 			for (j=0; j<net->count[id]; ++j) {
 				int neigh = net->edges[id][j];
 				if (!sp[neigh]) {
@@ -168,8 +174,9 @@ static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum,
 		*left = *right;
 		*right = tmp;
 		*lNum = *rNum;
+		//printf("rNum: %d, lNum: %d, STEP_END: %d, STEP: %d\n", *rNum, *lNum, *STEP_END, STEP);
 	}
-	*STEP_END = STEP;
+	//*STEP_END = STEP;
 }
 
 int *shortestpath_1A_iiNet(struct iiNet *net, int originId) {
@@ -201,7 +208,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 	int i,j;
 	int STEP_END = -1;
 	for (i=0; i<net->maxId + 1; ++i) {
-		printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		lNum = 1;
 		left[0] = i;
 		for (j=0; j<net->maxId + 1; ++j) {
@@ -211,6 +218,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 		shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
 		for (j=0; j<net->maxId + 1; ++j) {
 			if (sp[j] > 0) {
+				//printf("sp: %d\t%d\t%d\n", i, j, sp[j]);
 				++distribSP[sp[j]];
 			}
 		}

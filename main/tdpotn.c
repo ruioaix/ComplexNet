@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <limits.h>
 
 static void print_time(void) {
 	time_t t=time(NULL); 
@@ -69,7 +70,7 @@ static void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFil
 
 int main (int argc, char **argv) {
 	print_time();
-	set_RandomSeed();
+	//set_RandomSeed();
 
 	int L;
 	double alpha;
@@ -79,7 +80,7 @@ int main (int argc, char **argv) {
 		alpha = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
-		L = 50;
+		L = 512;
 		alpha = 2;
 	}
 	else {
@@ -88,19 +89,23 @@ int main (int argc, char **argv) {
 
 	enum CICLENET cc = non_cycle;
 	struct iiLineFile *file = generateNet_2D(L, cc);
+	//print_iiLineFile(file, "result/iilinefile");
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
 	struct iiNet *net = create_iiNet(file);
+	//print_iiNet(net, "result/iinet");
 	//the point 0 can get all kinds of degree in both cycle or non_cycle net.
 	int *sp = shortestpath_1A_iiNet(net, 0);
 	int *alld, alldNum;
 	double *p_alld;
 	get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
-	//int i;
+	int i;
 	//for (i=0; i<alldNum; ++i) {
 	//	printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
 	//}
+	//return 0;
 
+	//printf("%d\n", INT_MAX);
 	int *id1 = malloc(L*L*sizeof(int));
 	int *id2 = malloc(L*L*sizeof(int));
 	int *hash = calloc((net->maxId + 1)*2, sizeof(int));
@@ -119,7 +124,7 @@ int main (int argc, char **argv) {
 			}
 		}
 		long tmp = totalL + splength;
-		//printf("out: %d\n", splength);
+		//printf("out: %d, %ld\n", splength, tmp);
 		if (tmp > limit) {
 			break;
 		}
@@ -135,7 +140,8 @@ int main (int argc, char **argv) {
 				free(left);
 				continue;
 			}
-			printf("%.4f%%\r", (double)totalL*100/limit);
+			//printf("%.4f%%\r", (double)totalL*100/limit);
+			//printf("out: %d, i1: %d, i2: %d\n", splength, i1, i2);
 			id1[idNum] = i1;
 			id2[idNum] = i2;
 			++idNum;
@@ -162,13 +168,13 @@ int main (int argc, char **argv) {
 	net = create_iiNet(file);
 	int *dis = get_ALLSP_iiNet(net);
 
-	int i;
 	double aveSP = 0;
 	long spNum = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
 		if (dis[i]) {
 			aveSP += (double)dis[i]*i;
 			spNum += dis[i];
+			//printf("%d\t%d\n", i, dis[i]);
 		}
 	}
 	aveSP /= spNum;
