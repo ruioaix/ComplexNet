@@ -1,3 +1,4 @@
+#include "common.h"
 #include "generatenet.h"
 #include "iinet.h"
 #include "error.h"
@@ -9,17 +10,6 @@
 #include <math.h>
 #include <limits.h>
 
-static void print_time(void) {
-	time_t t=time(NULL); 
-	printf("%s", ctime(&t)); 
-	fflush(stdout);
-}
-
-void set_RandomSeed(void) {
-	time_t t=time(NULL);
-	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
-	init_by_array(init, length);
-}
 
 static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_alld, double alpha) {
 	int i;
@@ -80,15 +70,14 @@ int main (int argc, char **argv) {
 		alpha = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
-		L = 512;
+		L = 50;
 		alpha = 2;
 	}
 	else {
 		isError("wrong args");
 	}
 
-	enum CICLENET cc = cycle;
-	struct iiLineFile *file = generateNet_2D(L, cc);
+	struct iiLineFile *file = generateNet_2D(L, cycle, non_direct);
 	print_iiLineFile(file, "iilf");
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
@@ -166,7 +155,7 @@ int main (int argc, char **argv) {
 		isError("very bad luck.");
 	}
 	insert_link_to_lf(id1, id2, idNum, file);
-	//print_iiLineFile(file, "iilf");
+	print_iiLineFile(file, "iilfa");
 
 	free(id1);
 	free(id2);
@@ -174,10 +163,31 @@ int main (int argc, char **argv) {
 
 	free_iiNet(net);
 	net = create_iiNet(file);
+	verify_iiNet(net);
+	print_iiNet(net, "net");
 	//verify_iiNet(net);
 	//return 0;
-	int *dis = get_ALLSP_iiNet(net);
+	int **apsp = shortestpath_AA_FW_iiNet(net);
+	int j;
+	//for (i = 0; i < net->maxId + 1; ++i) {
+	//	for (j = 0; j < net->maxId + 1; ++j) {
+	//		printf("%d\t%d\t%d\n", i, j, apsp[i][j]);
+	//	}
+	//}
 
+	for (i = 0; i < net->maxId + 1; ++i) {
+		int *sp = shortestpath_1A_iiNet(net, i);
+		for (j = 0; j < net->maxId + 1; ++j) {
+			if (sp[j] != apsp[i][j] && i!=j) {
+				printf("%d\t%d\t%d\t%d\n", i, j, sp[j], apsp[i][j]);
+			}
+		}
+		free(sp);
+	}
+	
+
+	/*
+	int *dis = get_ALLSP_iiNet(net);
 	double aveSP = 0;
 	long spNum = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
@@ -191,9 +201,9 @@ int main (int argc, char **argv) {
 	aveSP /= spNum;
 
 	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
-
-
 	free(dis);
+	*/
+
 	free(p_alld);
 	//free(choose);
 	free(alld);

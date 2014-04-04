@@ -161,7 +161,7 @@ static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum,
 		
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
-			//if (sign) printf("left: %d\t%d\t%d\t%ld\n", *lNum, i, id, net->count[id]);
+			//printf("STEP: %d\t%d\t%d\t%d\t%ld\n", STEP, *lNum, i, id, net->count[id]);
 			for (j=0; j<net->count[id]; ++j) {
 				int neigh = net->edges[id][j];
 				if (!sp[neigh]) {
@@ -231,6 +231,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 }
 
 int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
+	FILE *fp = fopen("fw", "w");
 	int **apsp = malloc((net->maxId + 1)*sizeof(void *));
 	int i,j,k;
 	for (i=0; i<net->maxId + 1; ++i) {
@@ -245,19 +246,28 @@ int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
 	for (i=0; i<net->maxId + 1; ++i) {
 		for (j=0; j<net->maxId + 1; ++j) {
 			if (!apsp[i][j]) {
-				apsp[i][j] = INT_MAX;
+				apsp[i][j] = 2*(net->maxId + 1);
 			}
+			else if (i<j){
+				//fprintf(fp, "%d\t%d\t%d\n", i, j, apsp[i][j]);
+			}
+			if (i==j) {
+				apsp[i][j] = 0;
+			}
+			fprintf(fp, "%d\t%d\t%d\n", i, j, apsp[i][j]);
 		}
 	}
-	for (i=0; i<net->maxId + 1; ++i) {
-		printf("%.2f%%\r", i*100.0/net->maxId);fflush(stdout);
-		for (j=0; j<net->maxId + 1; ++j) {
-			for (k=0; k<net->maxId + 1; ++k) {
+	for (k=0; k<net->maxId + 1; ++k) {
+		printf("%.2f%%\r", k*100.0/net->maxId);fflush(stdout);
+		for (i=0; i<net->maxId + 1; ++i) {
+			for (j=0; j<net->maxId + 1; ++j) {
 				int havek = apsp[i][k] + apsp[k][j];
 				apsp[i][j] = havek < apsp[i][j] ? havek : apsp[i][j];
 			}
 		}
+		//printf("%d\t%d\t%d\n", apsp[7][0], apsp[8][8], apsp[7][8]);
 	}
+	printf("\n");fflush(stdout);
 	return apsp;
 }
 
