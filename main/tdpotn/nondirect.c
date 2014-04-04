@@ -60,7 +60,7 @@ static void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFil
 
 int main (int argc, char **argv) {
 	print_time();
-	//set_RandomSeed();
+	set_RandomSeed();
 
 	int L;
 	double alpha;
@@ -78,11 +78,9 @@ int main (int argc, char **argv) {
 	}
 
 	struct iiLineFile *file = generateNet_2D(L, cycle, non_direct);
-	print_iiLineFile(file, "iilf");
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
 	struct iiNet *net = create_iiNet(file);
-	//print_iiNet(net, "result/iinet");
 	//the point 0 can get all kinds of degree in both cycle or non_cycle net.
 	int *sp = shortestpath_1A_iiNet(net, 0);
 	int *alld, alldNum;
@@ -155,38 +153,34 @@ int main (int argc, char **argv) {
 		isError("very bad luck.");
 	}
 	insert_link_to_lf(id1, id2, idNum, file);
-	print_iiLineFile(file, "iilfa");
 
 	free(id1);
 	free(id2);
 
-
 	free_iiNet(net);
 	net = create_iiNet(file);
-	verify_iiNet(net);
-	print_iiNet(net, "net");
 	//verify_iiNet(net);
 	//return 0;
-	int **apsp = shortestpath_AA_FW_iiNet(net);
-	int j;
+	//int **apsp = shortestpath_AA_FW_iiNet(net);
+	//int j;
+	//int *ddis = calloc(net->maxId + 1, sizeof(int));
 	//for (i = 0; i < net->maxId + 1; ++i) {
 	//	for (j = 0; j < net->maxId + 1; ++j) {
-	//		printf("%d\t%d\t%d\n", i, j, apsp[i][j]);
+	//		ddis[apsp[i][j]]++;
 	//	}
 	//}
 
-	for (i = 0; i < net->maxId + 1; ++i) {
-		int *sp = shortestpath_1A_iiNet(net, i);
-		for (j = 0; j < net->maxId + 1; ++j) {
-			if (sp[j] != apsp[i][j] && i!=j) {
-				printf("%d\t%d\t%d\t%d\n", i, j, sp[j], apsp[i][j]);
-			}
-		}
-		free(sp);
-	}
+	//for (i = 0; i < net->maxId + 1; ++i) {
+	//	int *sp = shortestpath_1A_iiNet(net, i);
+	//	for (j = 0; j < net->maxId + 1; ++j) {
+	//		if (sp[j] != apsp[i][j] && i!=j) {
+	//			printf("%d\t%d\t%d\t%d\n", i, j, sp[j], apsp[i][j]);
+	//		}
+	//	}
+	//	free(sp);
+	//}
 	
 
-	/*
 	int *dis = get_ALLSP_iiNet(net);
 	double aveSP = 0;
 	long spNum = 0;
@@ -196,13 +190,15 @@ int main (int argc, char **argv) {
 			spNum += dis[i];
 			//printf("%d\t%d\n", i, dis[i]);
 		}
+		//if (dis[i] != ddis[i]) {
+		//	printf("%d\t%d\t%d\n", i, dis[i], ddis[i]);
+		//}
 	}
 	printf("\nspNum : %ld\n", spNum);
 	aveSP /= spNum;
 
 	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
 	free(dis);
-	*/
 
 	free(p_alld);
 	//free(choose);

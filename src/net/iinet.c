@@ -231,7 +231,7 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 }
 
 int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
-	FILE *fp = fopen("fw", "w");
+	//FILE *fp = fopen("fw", "w");
 	int **apsp = malloc((net->maxId + 1)*sizeof(void *));
 	int i,j,k;
 	for (i=0; i<net->maxId + 1; ++i) {
@@ -254,7 +254,7 @@ int **shortestpath_AA_FW_iiNet(struct iiNet *net) {
 			if (i==j) {
 				apsp[i][j] = 0;
 			}
-			fprintf(fp, "%d\t%d\t%d\n", i, j, apsp[i][j]);
+			//fprintf(fp, "%d\t%d\t%d\n", i, j, apsp[i][j]);
 		}
 	}
 	for (k=0; k<net->maxId + 1; ++k) {
