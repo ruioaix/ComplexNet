@@ -25,9 +25,9 @@ onion
 reappearLLY
 selectRandomUsers
 similarity
-tdpotn
 onion_*
 generatenet-*
+tdpotn-*
 
 temp/*
 backup/*

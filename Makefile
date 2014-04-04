@@ -26,12 +26,17 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir tdpotn
+all: dir tdpotn-hasdirect
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
 
 #################################################################
+MAIN_TDPOTN_SRC = $(wildcard main/tdpotn/*.c)
+MAIN_TDPOTN_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TDPOTN_SRC)))
+$(MAIN_TDPOTN_EXEC) : tdpotn-% : $(SRC_OBJ) obj/main/tdpotn/%.o 
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 MAIN_ONION_SRC = $(wildcard main/onion/*.c)
 MAIN_ONION_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ONION_SRC)))
 $(MAIN_ONION_EXEC) : onion-% : $(SRC_OBJ) obj/main/onion/%.o 

@@ -2,12 +2,15 @@
 #include "error.h"
 #include <stdlib.h>
 
-struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
+struct iiLineFile * generateNet_2D(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	if (L<2) isError("generateNet_2D L too small");
 	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
 	long linesNum = (L-1)*L*2;
 	if (cc == cycle && L != 2) {
 		linesNum += 2*L;
+	}
+	if (dd == direct) {
+		linesNum *= 2;
 	}
 
 	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
@@ -19,34 +22,74 @@ struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
 			lines[k].i1=id;
 			lines[k].i2=id-1;	
 			++k;
+			if (dd == direct) {
+				lines[k].i2=id;
+				lines[k].i1=id-1;	
+				++k;
+			}
 			lines[k].i1=id;
 			lines[k].i2=id-L;
 			++k;
+			if (dd == direct) {
+				lines[k].i2=id;
+				lines[k].i1=id-L;
+				++k;
+			}
 		}
 	}
 	for (i=1; i<L; ++i) {
 		lines[k].i1 = i;
 		lines[k].i2 = i-1;
 		++k;
+		if (dd == direct) {
+			lines[k].i2 = i;
+			lines[k].i1 = i-1;
+			++k;
+		}
 		lines[k].i1 = i*L;
 		lines[k].i2 = i*L-L;
 		++k;
+		if (dd == direct) {
+			lines[k].i2 = i*L;
+			lines[k].i1 = i*L-L;
+			++k;
+		}
 	}
 	if (cc == cycle && L != 2) {
 		for (i=1; i<L; ++i) {
 			lines[k].i1 = i;
 			lines[k].i2 = i+(L-1)*L;
 			++k;
+			if (dd == direct) {
+				lines[k].i2 = i;
+				lines[k].i1 = i+(L-1)*L;
+				++k;
+			}
 			lines[k].i1 = i*L;
 			lines[k].i2 = i*L+L-1;
 			++k;
+			if (dd == direct) {
+				lines[k].i2 = i*L;
+				lines[k].i1 = i*L+L-1;
+				++k;
+			}
 		}
 		lines[k].i1=0;
 		lines[k].i2=L-1;
 		++k;
+		if (dd == direct) {
+			lines[k].i2=0;
+			lines[k].i1=L-1;
+			++k;
+		}
 		lines[k].i1=0;
 		lines[k].i2=(L-1)*L;
 		++k;
+		if (dd == direct) {
+			lines[k].i2=0;
+			lines[k].i1=(L-1)*L;
+			++k;
+		}
 	}
 	if(linesNum != k) {
 		printf("%ld\t%ld\n", linesNum, k);
@@ -59,19 +102,22 @@ struct iiLineFile * generateNet_2D(int L, enum CICLENET cc) {
 	file->i1Min = 1;
 	file->i2Max = L*L - 2;
 	file->i2Min = 0;
-	if (cc == cycle) {
+	if (cc == cycle || dd == direct) { 
 		file->i1Min = 0;
 		file->i2Max = L*L - 1;
 	}
 	return file;
 }
 
-struct iiLineFile * generateNet_1D(int L, enum CICLENET cc) {
+struct iiLineFile * generateNet_1D(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	struct iiLineFile *file = malloc(sizeof(struct iiLineFile));
 
 	long linesNum = L-1;
 	if (cc == cycle) {
 		linesNum += 1;
+	}
+	if (dd == direct) {
+		linesNum *= 2;
 	}
 
 	struct iiLine *lines = malloc(linesNum*sizeof(struct iiLine));
@@ -81,11 +127,21 @@ struct iiLineFile * generateNet_1D(int L, enum CICLENET cc) {
 		lines[k].i1 = i;
 		lines[k].i2 = i-1;
 		++k;
+		if (dd == direct) {
+			lines[k].i2 = i;
+			lines[k].i1 = i-1;
+			++k;
+		}
 	}
 	if (cc == cycle) {
 		lines[k].i1 = 0;
 		lines[k].i2 = L - 1;
 		++k;
+		if (dd == direct) {
+			lines[k].i2 = 0;
+			lines[k].i1 = L - 1;
+			++k;
+		}
 	}
 
 	if(linesNum != k) {
