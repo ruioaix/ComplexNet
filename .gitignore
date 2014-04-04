@@ -4,16 +4,9 @@
 4
 5
 6
+
 result/*
-results/*
-Result/*
-RESULT/*
-Results/*
-script
-Script
-scripts/*
-*Script
-Record/*
+script/*
 
 *.eps
 *.swp
