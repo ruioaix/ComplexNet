@@ -77,7 +77,7 @@ int main (int argc, char **argv) {
 		isError("wrong args");
 	}
 
-	struct iiLineFile *file = generateNet_2D(L, cycle, non_direct);
+	struct iiLineFile *file = generateNet_2D(L, non_cycle, non_direct);
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
 	struct iiNet *net = create_iiNet(file);

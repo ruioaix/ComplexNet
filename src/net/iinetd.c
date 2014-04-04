@@ -123,7 +123,7 @@ void verify_iiNetD(struct iiNetD *net) {
 	}
 }
 
-static void shortestpath_core_iiNetD(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNetD *net, int *STEP_END) {
+static void shortestpath_core_iiNetD(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNetD *net, int *STEP_END, int i2) {
 	int i,j;
 	int STEP = 0;
 	while (*lNum && STEP != *STEP_END) {
@@ -134,6 +134,10 @@ static void shortestpath_core_iiNetD(int *sp, int **left, int **right, int *lNum
 			int id = (*left)[i];
 			for (j=0; j<net->count[id]; ++j) {
 				int neigh = net->to[id][j];
+				if (neigh == i2) {
+					*STEP_END = STEP;
+					return;
+				}
 				if (!sp[neigh]) {
 					sp[neigh] = STEP;
 					(*right)[(*rNum)++] = neigh;
@@ -149,6 +153,22 @@ static void shortestpath_core_iiNetD(int *sp, int **left, int **right, int *lNum
 	//*STEP_END = STEP;
 }
 
+int shortestpath_11_iiNetD(struct iiNetD *net, int i1, int i2) {
+	int *sp = calloc(net->maxId + 1, sizeof(int));
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	int lNum, rNum;
+	lNum = 1;
+	left[0] = i1;
+	sp[i1] = -1;
+	int STEP_END = -1;
+	shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END, i2);
+	free(left);
+	free(right);
+	free(sp);
+	return STEP_END;	
+}
+
 int *shortestpath_1A_iiNetD(struct iiNetD *net, int originId) {
 	if (originId<net->minId || originId>net->maxId) {
 		return NULL;
@@ -161,7 +181,7 @@ int *shortestpath_1A_iiNetD(struct iiNetD *net, int originId) {
 	left[0] = originId;
 	sp[originId] = -1;
 	int STEP_END = -1;
-	shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+	shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END, -1);
 	free(left);
 	free(right);
 	return sp;	
@@ -179,7 +199,7 @@ int *shortestpath_1A_S_iiNetD(struct iiNetD *net, int originId, int step, int *N
 	left[0] = originId;
 	sp[originId] = -1;
 	int STEP_END = step;
-	shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+	shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END, -1);
 	free(sp);
 	free(right);
 	*Num = lNum;
@@ -204,7 +224,7 @@ int *get_ALLSP_iiNetD(struct iiNetD *net) {
 			sp[j] = 0;
 		}
 		sp[i] = -1;
-		shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
+		shortestpath_core_iiNetD(sp, &left, &right, &lNum, &rNum, net, &STEP_END, -1);
 		for (j=0; j<net->maxId + 1; ++j) {
 			if (sp[j] > 0) {
 				//printf("sp: %d\t%d\t%d\n", i, j, sp[j]);
