@@ -1,7 +1,6 @@
 #include "common.h"
-#include "generatenet.h"
+#include "generateds.h"
 #include "iinet.h"
-#include "error.h"
 #include "sort.h"
 #include "mt_random.h"
 #include <stdio.h>
@@ -59,9 +58,9 @@ static void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFil
 }
 
 int main (int argc, char **argv) {
+	/********************************************************************************************************/
 	print_time();
 	set_RandomSeed();
-
 	int L;
 	double alpha;
 	if (argc == 3) {
@@ -76,32 +75,33 @@ int main (int argc, char **argv) {
 	else {
 		isError("wrong args");
 	}
+	/********************************************************************************************************/
 
-	struct iiLineFile *file = generateNet_2D(L, cycle, non_direct);
+	/************get initial net.****************************************************************************/
+	struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
 	//struct iiLineFile *file = generateNet_1D(L, cc);
-
 	struct iiNet *net = create_iiNet(file);
+	int N = net->maxId + 1;
+	/********************************************************************************************************/
+
+	/**************get degree prossiblity, used to choose new links******************************************/
 	//the point 0 can get all kinds of degree in both cycle or non_cycle net.
 	int *sp = shortestpath_1A_iiNet(net, 0);
-	int *alld, alldNum;
-	double *p_alld;
+	int *alld, alldNum; double *p_alld;
 	get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
-	int i;
-	for (i=0; i<alldNum; ++i) {
-		//printf("%d\t%d\t%.16f\n", i, alld[i], p_alld[i]);
-	}
-	//return 0;
+	free(sp);
+	/********************************************************************************************************/
 
-	//printf("%d\n", INT_MAX);
+	/****************get new links***************************************************************************/
 	int *id1 = malloc(10*L*L*sizeof(int));
 	int *id2 = malloc(10*L*L*sizeof(int));
-	int *hash = calloc((net->maxId + 1)*3, sizeof(int));
+	int *hash1 = calloc((net->maxId + 1)*3, sizeof(int));
 	int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
+	int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
 	int idNum = 0;
-
 	int badluck = 0;
 	long totalL = 0;
-	long limit = (long)L*L*10;
+	long limit = (long)N*10;
 	while (1) {
 		double chooseSPL = genrand_real3();
 		int splength = 0;
@@ -120,20 +120,20 @@ int main (int argc, char **argv) {
 		int i1 = genrand_int31()%(net->maxId + 1);
 		int lNum;
 		int *left = shortestpath_1A_S_iiNet(net, i1, splength, &lNum);
-
 		if (lNum > 0) {
 			int random = genrand_int31()%lNum;
 			int i2 = left[random];
 			int min = i1 < i2 ? i1 : i2;
 			int max = i1 > i2 ? i1 : i2;
-			if (hash[min + 2*max] && hash2[min + max]) {
+			if (hash1[min + 2*max] && hash2[min + max] && hash3[min*2 + max]) {
 				//printf("not lucky, drop on same positon. try again.\n");
 				badluck ++;
 				free(left);
 				continue;
 			}
-			hash[min + 2*max] = 1;
+			hash1[min + 2*max] = 1;
 			hash2[min + max] = 1;
+			hash3[min*2 + max] = 1;
 			//printf("%.4f%%\r", (double)totalL*100/limit);
 			//printf("out: %d, i1: %d, i2: %d, %ld\n", splength, i1, i2, totalL);
 			id1[idNum] = i1;
@@ -143,71 +143,44 @@ int main (int argc, char **argv) {
 		}
 		free(left);
 	}
-	free(hash);
+	free(hash1);
+	free(hash2);
+	free(hash3);
+	free(p_alld);
+	free(alld);
 	printf("badluck: %d, NumofAddedLinks: %d\n", badluck, idNum);
+	/********************************************************************************************************/
 
+	/*******add new links to net, get new net****************************************************************/
 	long newLen = file->linesNum + idNum;
 	struct iiLine * tmp = realloc(file->lines, (newLen)*sizeof(struct iiLine));
-	if (tmp != NULL) {
-		file->lines = tmp;
-	}
-	else {
-		isError("very bad luck.");
-	}
+	assert(tmp != NULL);
+	file->lines = tmp;
 	insert_link_to_lf(id1, id2, idNum, file);
-
 	free(id1);
 	free(id2);
-
 	free_iiNet(net);
 	net = create_iiNet(file);
-	//verify_iiNet(net);
-	//return 0;
-	//int **apsp = shortestpath_AA_FW_iiNet(net);
-	//int j;
-	//int *ddis = calloc(net->maxId + 1, sizeof(int));
-	//for (i = 0; i < net->maxId + 1; ++i) {
-	//	for (j = 0; j < net->maxId + 1; ++j) {
-	//		ddis[apsp[i][j]]++;
-	//	}
-	//}
+	free_iiLineFile(file);
+	/********************************************************************************************************/
 
-	//for (i = 0; i < net->maxId + 1; ++i) {
-	//	int *sp = shortestpath_1A_iiNet(net, i);
-	//	for (j = 0; j < net->maxId + 1; ++j) {
-	//		if (sp[j] != apsp[i][j] && i!=j) {
-	//			printf("%d\t%d\t%d\t%d\n", i, j, sp[j], apsp[i][j]);
-	//		}
-	//	}
-	//	free(sp);
-	//}
-	
-
+	/*******************get average shortest path************************************************************/
 	int *dis = get_ALLSP_iiNet(net);
 	double aveSP = 0;
 	long spNum = 0;
+	int i;
 	for (i=0; i<net->maxId + 1; ++i) {
 		if (dis[i]) {
 			aveSP += (double)dis[i]*i;
 			spNum += dis[i];
-			//printf("%d\t%d\n", i, dis[i]);
 		}
-		//if (dis[i] != ddis[i]) {
-		//	printf("%d\t%d\t%d\n", i, dis[i], ddis[i]);
-		//}
 	}
-	printf("\nspNum : %ld\n", spNum);
 	aveSP /= spNum;
-
 	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
 	free(dis);
-
-	free(p_alld);
-	//free(choose);
-	free(alld);
-	free(sp);
 	free_iiNet(net);
-	free_iiLineFile(file);
+	/********************************************************************************************************/
+
 	print_time();
 	return 0;
 }

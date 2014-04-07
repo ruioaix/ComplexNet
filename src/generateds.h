@@ -11,8 +11,9 @@ enum DIRECTNET {
 	direct, non_direct
 };
 
-struct iiLineFile * generateNet_2D(int L, enum CICLENET cc, enum DIRECTNET dd);
-struct iiLineFile * generateNet_1D(int L, enum CICLENET cc, enum DIRECTNET dd);
+
+struct iiLineFile * generate_2DLattice(int L, enum CICLENET cc, enum DIRECTNET dd);
+struct iiLineFile * generate_1DLine(int L, enum CICLENET cc, enum DIRECTNET dd);
 
 
 
