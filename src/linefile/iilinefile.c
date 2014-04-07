@@ -1,5 +1,5 @@
 #include "iilinefile.h"
-#include "error.h"
+#include "common.h"
 #include "mt_random.h"
 #include <stdio.h>
 #include <string.h>

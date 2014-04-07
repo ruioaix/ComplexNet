@@ -2,7 +2,7 @@
  *
  */
 #include "bip.h"
-#include "error.h"
+#include "common.h"
 #include "mt_random.h"
 #include "sort.h"
 #include <math.h>

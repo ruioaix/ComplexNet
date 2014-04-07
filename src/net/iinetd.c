@@ -1,5 +1,5 @@
 #include "iinetd.h"
-#include "error.h"
+#include "common.h"
 #include "mt_random.h"
 #include <math.h>
 #include <stdlib.h>

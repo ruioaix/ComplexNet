@@ -1,7 +1,6 @@
+#include "common.h"
 #include "hashtable.h"
-#include "error.h"
 #include "iilinefile.h"
-//#include "i4linefile.h"
 #include <assert.h>
 #include <stdlib.h>
 
