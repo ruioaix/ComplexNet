@@ -66,16 +66,20 @@ int main (int argc, char **argv) {
 	if (argc == 3) {
 		char *p;
 		L = strtol(argv[1], &p, 10);
-		alpha = strtod(argv[2], &p);
+		//alpha = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
 		L = 50;
-		alpha = 2;
+		//alpha = 2;
 	}
 	else {
 		isError("wrong args");
 	}
 	/********************************************************************************************************/
+
+	int kk;
+	for (kk = 0; kk < 41; ++kk) {
+		alpha = kk * 0.1;
 
 	/************get initial net.****************************************************************************/
 	struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
@@ -181,6 +185,7 @@ int main (int argc, char **argv) {
 	free_iiNet(net);
 	/********************************************************************************************************/
 
+	}
 	print_time();
 	return 0;
 }
