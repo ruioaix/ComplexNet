@@ -77,7 +77,7 @@ int main (int argc, char **argv) {
 		isError("wrong args");
 	}
 
-	struct iiLineFile *file = generateNet_2D(L, non_cycle, non_direct);
+	struct iiLineFile *file = generateNet_2D(L, cycle, non_direct);
 	//struct iiLineFile *file = generateNet_1D(L, cc);
 
 	struct iiNet *net = create_iiNet(file);
@@ -93,14 +93,15 @@ int main (int argc, char **argv) {
 	//return 0;
 
 	//printf("%d\n", INT_MAX);
-	int *id1 = malloc(L*L*sizeof(int));
-	int *id2 = malloc(L*L*sizeof(int));
+	int *id1 = malloc(10*L*L*sizeof(int));
+	int *id2 = malloc(10*L*L*sizeof(int));
 	int *hash = calloc((net->maxId + 1)*3, sizeof(int));
+	int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
 	int idNum = 0;
 
 	int badluck = 0;
 	long totalL = 0;
-	long limit = (long)L*L;
+	long limit = (long)L*L*10;
 	while (1) {
 		double chooseSPL = genrand_real3();
 		int splength = 0;
@@ -125,15 +126,16 @@ int main (int argc, char **argv) {
 			int i2 = left[random];
 			int min = i1 < i2 ? i1 : i2;
 			int max = i1 > i2 ? i1 : i2;
-			if (hash[min + 2*max]) {
+			if (hash[min + 2*max] && hash2[min + max]) {
 				//printf("not lucky, drop on same positon. try again.\n");
 				badluck ++;
 				free(left);
 				continue;
 			}
 			hash[min + 2*max] = 1;
+			hash2[min + max] = 1;
 			//printf("%.4f%%\r", (double)totalL*100/limit);
-			//printf("out: %d, i1: %d, i2: %d\n", splength, i1, i2);
+			//printf("out: %d, i1: %d, i2: %d, %ld\n", splength, i1, i2, totalL);
 			id1[idNum] = i1;
 			id2[idNum] = i2;
 			++idNum;
