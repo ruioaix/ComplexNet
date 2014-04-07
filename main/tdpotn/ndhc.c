@@ -83,7 +83,7 @@ int main (int argc, char **argv) {
 
 	/************get initial net.****************************************************************************/
 	struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
-	//struct iiLineFile *file = generateNet_1D(L, cc);
+	//struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
 	struct iiNet *net = create_iiNet(file);
 	int N = net->maxId + 1;
 	/********************************************************************************************************/
@@ -97,8 +97,8 @@ int main (int argc, char **argv) {
 	/********************************************************************************************************/
 
 	/****************get new links***************************************************************************/
-	int *id1 = malloc(10*L*L*sizeof(int));
-	int *id2 = malloc(10*L*L*sizeof(int));
+	int *id1 = malloc(5*N*sizeof(int));
+	int *id2 = malloc(5*N*sizeof(int));
 	int *hash1 = calloc((net->maxId + 1)*3, sizeof(int));
 	int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
 	int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
@@ -180,7 +180,7 @@ int main (int argc, char **argv) {
 		}
 	}
 	aveSP /= spNum;
-	printf("\nresult: %d\t%f\t%.9f\n", L, alpha, aveSP);
+	printf("\nresult: %d\t%d\t%f\t%.9f\n", L, N, alpha, aveSP);
 	free(dis);
 	free_iiNet(net);
 	/********************************************************************************************************/
