@@ -82,11 +82,11 @@ int main (int argc, char **argv) {
 		alpha = kk * 0.1;
 
 	/************get initial net.****************************************************************************/
-	struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
-	//struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
+	//struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
+	struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
 	struct iiNet *net = create_iiNet(file);
 	int N = net->maxId + 1;
-	long limit = (long)N*10;
+	double limit = (double)N*10;
 	/********************************************************************************************************/
 
 	/**************get degree prossiblity, used to choose new links******************************************/
@@ -105,7 +105,7 @@ int main (int argc, char **argv) {
 	int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
 	int idNum = 0;
 	int badluck = 0;
-	long totalL = 0;
+	double totalL = 0;
 	while (1) {
 		double chooseSPL = genrand_real3();
 		int splength = 0;
@@ -116,7 +116,8 @@ int main (int argc, char **argv) {
 				break;
 			}
 		}
-		long tmp = totalL + splength;
+		double dsplength = pow(splength, 0.5);
+		double tmp = totalL + dsplength;
 		//printf("out: %d, %ld\n", splength, tmp);
 		if (tmp > limit) {
 			break;
@@ -143,7 +144,7 @@ int main (int argc, char **argv) {
 			id1[idNum] = i1;
 			id2[idNum] = i2;
 			++idNum;
-			totalL += splength;
+			totalL += dsplength;
 		}
 		free(left);
 	}
