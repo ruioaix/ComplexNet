@@ -26,6 +26,8 @@ void *verify_iiNet(void *arg);
 int *shortestpath_1A_iiNet(struct iiNet *net, int id);
 int *get_ALLSP_iiNet(struct iiNet *net);
 
+void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, double *sameRate, double *cleanRate);
+
 int **shortestpath_AA_FW_iiNet(struct iiNet *net);
 
 int *shortestpath_1A_S_iiNet(struct iiNet *net, int id, int step, int *lNum);

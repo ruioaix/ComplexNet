@@ -44,50 +44,62 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 	}
 }
 
-static void insert_link_to_lf(int *id1, int *id2, int sumnline, struct iiLineFile *lf) {
+static struct iiLineFile *create_newlf(int *id1, int *id2, int idNum) {
+	struct iiLineFile *lf = malloc(sizeof(struct iiLineFile));
+	assert(lf != NULL);
+	lf->lines = malloc(idNum*sizeof(struct iiLine));
+	assert(lf->lines != NULL);
 	int i;
-	for (i=0; i<sumnline; ++i) {
-		lf->lines[lf->linesNum].i1 = id1[i];
-		lf->lines[lf->linesNum].i2 = id2[i];
-		lf->i1Max = lf->i1Max > id1[i]?lf->i1Max:id1[i];
-		lf->i1Min = lf->i1Min < id1[i]?lf->i1Min:id1[i];
-		lf->i2Max = lf->i2Max > id2[i]?lf->i2Max:id2[i];
-		lf->i2Min = lf->i2Min < id2[i]?lf->i2Min:id2[i];
-		lf->linesNum++;
+	int i1Max, i1Min, i2Max, i2Min;
+    i1Max = i1Min = id1[0];
+	i2Max = i2Min = id2[0];
+	for (i=0; i<idNum; ++i) {
+		i1Max = i1Max > id1[i] ? i1Max : id1[i];
+		i1Min = i1Min < id1[i] ? i1Min : id1[i];
+		i2Max = i2Max > id2[i] ? i2Max : id2[i];
+		i2Min = i2Min < id2[i] ? i2Min : id2[i];
+		lf->lines[i].i1 = id1[i];
+		lf->lines[i].i2 = id2[i];
 	}
+	lf->i1Max = i1Max;
+	lf->i1Min = i1Min;
+	lf->i2Max = i2Max;
+	lf->i2Min = i2Min;
+	lf->linesNum = idNum;
+	return lf;
 }
 
 int main (int argc, char **argv) {
 	/********************************************************************************************************/
 	print_time();
-	set_RandomSeed();
+	//set_RandomSeed();
 	int L;
-	double alpha;
-	double theta;
-	if (argc == 3) {
+	double alpha = 2;
+	if (argc == 2) {
 		char *p;
 		L = strtol(argv[1], &p, 10);
-		theta = strtod(argv[2], &p);
+		//alpha = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
-		L = 50;
-		theta = 1;
+		L = 10;
+		//alpha = 2;
 	}
 	else {
 		isError("wrong args");
 	}
 	/********************************************************************************************************/
 
-	int kk;
-	for (kk = 0; kk < 41; ++kk) {
-		alpha = kk * 0.1;
+	//int kk;
+	//for (kk = 0; kk < 41; ++kk) {
+	//	alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
-		struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
-		//struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
+		//struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
+		struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
 		struct iiNet *net = create_iiNet(file);
+		free_iiLineFile(file);
 		int N = net->maxId + 1;
-		double limit = (double)N*5;
+		long limit = (long)N;
 		/********************************************************************************************************/
 
 		/**************get degree prossiblity, used to choose new links******************************************/
@@ -106,7 +118,7 @@ int main (int argc, char **argv) {
 		int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
 		int idNum = 0;
 		int badluck = 0;
-		double totalL = 0;
+		long totalL = 0;
 		while (1) {
 			double chooseSPL = genrand_real3();
 			int splength = 0;
@@ -117,8 +129,7 @@ int main (int argc, char **argv) {
 					break;
 				}
 			}
-			double dsplength = pow(splength, theta);
-			double tmp = totalL + dsplength;
+			long tmp = totalL + splength;
 			//printf("out: %d, %ld\n", splength, tmp);
 			if (tmp > limit) {
 				break;
@@ -141,11 +152,11 @@ int main (int argc, char **argv) {
 				hash2[min + max] = 1;
 				hash3[min*2 + max] = 1;
 				//printf("%.4f%%\r", (double)totalL*100/limit);
-				//printf("%d\tout: %d, i1: %d, i2: %d, %f, %f\n", idNum, splength, i1, i2, totalL, limit);
+				//printf("out: %d, i1: %d, i2: %d, %ld\n", splength, i1, i2, totalL);
 				id1[idNum] = i1;
 				id2[idNum] = i2;
 				++idNum;
-				totalL += dsplength;
+				totalL += splength;
 			}
 			free(left);
 		}
@@ -158,36 +169,26 @@ int main (int argc, char **argv) {
 		/********************************************************************************************************/
 
 		/*******add new links to net, get new net****************************************************************/
-		long newLen = file->linesNum + idNum;
-		struct iiLine * tmp = realloc(file->lines, (newLen)*sizeof(struct iiLine));
-		assert(tmp != NULL);
-		file->lines = tmp;
-		insert_link_to_lf(id1, id2, idNum, file);
+		struct iiLineFile *newlf = create_newlf(id1, id2, idNum);
+		struct iiNet *newnet = create_iiNet(newlf);
+		free_iiLineFile(newlf);
 		free(id1);
 		free(id2);
-		free_iiNet(net);
-		net = create_iiNet(file);
-		free_iiLineFile(file);
 		/********************************************************************************************************/
+
+		//print_iiNet(net, "net");
+		//print_iiNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
-		int *dis = get_ALLSP_iiNet(net);
-		double aveSP = 0;
-		long spNum = 0;
-		int i;
-		for (i=0; i<net->maxId + 1; ++i) {
-			if (dis[i]) {
-				aveSP += (double)dis[i]*i;
-				spNum += dis[i];
-			}
-		}
-		aveSP /= spNum;
-		printf("\nresult: %d\t%d\t%f\t%f\t%.9f\n", L, N, theta, alpha, aveSP);
-		free(dis);
+		double useRate, sameRate, cleanRate;
+		get_useRate_iiNet(net, newnet, &useRate, &sameRate, &cleanRate);
+		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
+		printf("%ld\t%f\t%f\t%f\t%f\n", limit/N, alpha, useRate, sameRate, cleanRate);
 		free_iiNet(net);
+		free_iiNet(newnet);
 		/********************************************************************************************************/
 
-	}
+	//}
 	print_time();
 	return 0;
 }

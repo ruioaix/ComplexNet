@@ -79,7 +79,7 @@ struct iiNet *create_iiNet(const struct iiLineFile * const file) {
 	net->countMin=countMin;
 	net->count=count;
 	net->edges=edges;
-	printf("build net:\tMax: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
+	printf("create iinet==>> Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
 	return net;
 }
 
@@ -288,4 +288,145 @@ int *shortestpath_1A_S_iiNet(struct iiNet *net, int originId, int step, int *Num
 	free(right);
 	*Num = lNum;
 	return left;	
+}
+
+static void useRate_core_iiNet(int *sp, char *use, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END) {
+	int i,j;
+	int STEP = 0;
+	while (*lNum && STEP != *STEP_END) {
+		++STEP;
+		*rNum = 0;
+		
+		for (i=0; i<*lNum; ++i) {
+			int id = (*left)[i];
+			//printf("id:%d\n", id);
+			for (j=0; j<net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (!sp[neigh]) {
+					//pn q xiang yu net
+					if (-1 == use[id]) {
+						use[neigh] = 0;
+						sp[neigh] = STEP;
+						(*right)[(*rNum)++] = neigh;
+					}
+					else if (0 == use[id]) {
+						if (-1 == use[neigh]) {
+							use[neigh] = 3;
+						}
+						else if (4 == use[neigh]) {
+							use[neigh] = 2;
+							sp[neigh] = STEP;
+							(*right)[(*rNum)++] = neigh;
+						}
+					}
+					else if (1 == use[id]) {
+						if (-1 == use[neigh]) {
+							use[neigh] = 4;
+						}
+						else if (3 == use[neigh]) {
+							use[neigh] = 2;
+							sp[neigh] = STEP;
+							(*right)[(*rNum)++] = neigh;
+						}
+					}
+					else if (2 == use[id]) {
+						use[neigh] = 2;
+						sp[neigh] = STEP;
+						(*right)[(*rNum)++] = neigh;
+					}
+				}
+			}
+			if(id < air->maxId + 1) {
+				for (j=0; j<air->count[id]; ++j) {
+					int neigh = air->edges[id][j];
+					if (!sp[neigh] || sp[neigh] == STEP) {
+						if (-1 == use[id]) {
+							use[neigh] = 1;
+							sp[neigh] = STEP;
+							(*right)[(*rNum)++] = neigh;
+						}
+						else {
+							if (-1 == use[neigh]) {
+								use[neigh] = 4;
+							}
+							else if (3 == use[neigh]) {
+								use[neigh] = 2;
+								sp[neigh] = STEP;
+								(*right)[(*rNum)++] = neigh;
+							}
+						}
+					}
+				}
+			}
+		}
+		//static int kk = 0;
+		for (j = 0; j < net->maxId + 1; ++j) {
+			if (3 == use[j] || 4 == use[j]) {
+				use[j] -= 3;
+				sp[j] = STEP;
+				(*right)[(*rNum)++] = j;
+			}
+			//printf("%d\t%d\n", j, use[j]);fflush(stdout);
+		}
+		//printf("******************************************\n");
+		//if (kk++ == 4) exit(0);
+		int *tmp = *left;
+		*left = *right;
+		*right = tmp;
+		*lNum = *rNum;
+	}
+}
+
+void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, double *sameRate, double *cleanRate) {
+	int *sp = malloc((net->maxId + 1)*sizeof(int));
+	assert(sp != NULL);
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	assert(left != NULL);
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	assert(right != NULL);
+	char *use = malloc((net->maxId + 1) * sizeof(char));
+	assert(use != NULL);
+	int lNum, rNum;
+
+	int i,j;
+	int STEP_END = -1;
+	*useRate = 0;
+	*sameRate = 0;
+	*cleanRate = 0;
+	for (i=0; i<net->maxId + 1; ++i) {
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		lNum = 1;
+		left[0] = i;
+		for (j=0; j<net->maxId + 1; ++j) {
+			sp[j] = 0;
+			use[j] = -1;
+		}
+		sp[i] = -1;
+		useRate_core_iiNet(sp, use, &left, &right, &lNum, &rNum, net, air, &STEP_END);
+		for (j = 0; j < net->maxId + 1; ++j) {
+			//printf("%d\t%d\n", j, use[j]);
+			if (1 == use[j]) {
+				++(*useRate);
+			}
+			else if (2 == use[j]) {
+				++(*sameRate);
+			}
+			else if (0 == use[j]) {
+				++(*cleanRate);
+			}
+			//if (sp[j]>0) {
+			//	printf("%d\t%d\t%d\n", i, j, sp[j]);
+			//}
+		}
+		//printf("*****************************\n");
+	}
+
+	free(left);
+	free(right);
+	free(sp);
+	free(use);
+	double all = (double)(net->maxId + 1)*net->maxId;
+	*useRate = (*useRate)/all;
+	*sameRate = (*sameRate)/all;
+	*cleanRate = (*cleanRate)/all;
 }
