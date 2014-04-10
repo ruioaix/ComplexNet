@@ -54,7 +54,7 @@
  * add by rui. the mt&mti data is generated with following args.
  * 1. unsigned long init[4]={0x123, 0x234, 0x345, 0x456}, length=4;
  * 2. init_by_array(init, length);
- * I don't need to init anymore before using genrand_int32/genrand_int31/... because 
+ * I don't need to init anymore before using get_i32_MTPR/get_i31_MTPR/... because 
  * of setting the two data static.
  * if you use the two data following, you will get same seriels random number.
  * if you need different random number, just set different init[N] and use 

@@ -1,5 +1,5 @@
-#ifndef CN_COMMON_H
-#define CN_COMMON_H
+#ifndef CN_BASE_H
+#define CN_BASE_H
 
 /********************************************************************************************************/
 #define NDEBUG
