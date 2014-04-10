@@ -304,12 +304,7 @@ static void useRate_core_iiNet(int *sp, char *use, int **left, int **right, int 
 				int neigh = net->edges[id][j];
 				if (!sp[neigh]) {
 					//pn q xiang yu net
-					if (-1 == use[id]) {
-						use[neigh] = 0;
-						sp[neigh] = STEP;
-						(*right)[(*rNum)++] = neigh;
-					}
-					else if (0 == use[id]) {
+					if (0 == use[id]) {
 						if (-1 == use[neigh]) {
 							use[neigh] = 3;
 						}
@@ -339,21 +334,14 @@ static void useRate_core_iiNet(int *sp, char *use, int **left, int **right, int 
 			if(id < air->maxId + 1) {
 				for (j=0; j<air->count[id]; ++j) {
 					int neigh = air->edges[id][j];
-					if (!sp[neigh] || sp[neigh] == STEP) {
-						if (-1 == use[id]) {
-							use[neigh] = 1;
+					if (!sp[neigh]) {
+						if (-1 == use[neigh]) {
+							use[neigh] = 4;
+						}
+						else if (3 == use[neigh]) {
+							use[neigh] = 2;
 							sp[neigh] = STEP;
 							(*right)[(*rNum)++] = neigh;
-						}
-						else {
-							if (-1 == use[neigh]) {
-								use[neigh] = 4;
-							}
-							else if (3 == use[neigh]) {
-								use[neigh] = 2;
-								sp[neigh] = STEP;
-								(*right)[(*rNum)++] = neigh;
-							}
 						}
 					}
 				}
@@ -395,13 +383,26 @@ void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, do
 	*cleanRate = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
 		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
-		lNum = 1;
-		left[0] = i;
 		for (j=0; j<net->maxId + 1; ++j) {
 			sp[j] = 0;
 			use[j] = -1;
 		}
 		sp[i] = -1;
+		lNum = 0;
+		for (j = 0; j < net->count[i]; ++j) {
+			int to = net->edges[i][j];
+			left[lNum++] = to;
+			sp[to] = 1;
+			use[to] = 0;
+		}
+		if (i < air->maxId + 1) {
+			for (j = 0; j < air->count[i]; ++j) {
+				int to = air->edges[i][j];
+				left[lNum++] = to;
+				sp[to] = 1;
+				use[to] = 1;
+			}
+		}
 		useRate_core_iiNet(sp, use, &left, &right, &lNum, &rNum, net, air, &STEP_END);
 		for (j = 0; j < net->maxId + 1; ++j) {
 			//printf("%d\t%d\n", j, use[j]);

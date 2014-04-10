@@ -72,7 +72,7 @@ static struct iiLineFile *create_newlf(int *id1, int *id2, int idNum) {
 int main (int argc, char **argv) {
 	/********************************************************************************************************/
 	print_time();
-	//set_RandomSeed();
+	set_RandomSeed();
 	int L;
 	double alpha = 2;
 	if (argc == 2) {
@@ -183,12 +183,13 @@ int main (int argc, char **argv) {
 		double useRate, sameRate, cleanRate;
 		get_useRate_iiNet(net, newnet, &useRate, &sameRate, &cleanRate);
 		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
-		printf("%ld\t%f\t%f\t%f\t%f\n", limit/N, alpha, useRate, sameRate, cleanRate);
+		printf("result:\t%ld\t%f\t%f\t%f\t%f\t%f\n", limit/N, alpha, useRate, sameRate, cleanRate, useRate+sameRate+cleanRate);
 		free_iiNet(net);
 		free_iiNet(newnet);
 		/********************************************************************************************************/
 
 	//}
+
 	print_time();
 	return 0;
 }
