@@ -90,9 +90,9 @@ int main (int argc, char **argv) {
 	}
 	/********************************************************************************************************/
 
-	//int kk;
-	//for (kk = 0; kk < 41; ++kk) {
-	//	alpha = kk * 0.1;
+	int kk;
+	for (kk = 0; kk < 41; ++kk) {
+		alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
 		//struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
@@ -100,7 +100,7 @@ int main (int argc, char **argv) {
 		struct iiNet *net = create_iiNet(file);
 		free_iiLineFile(file);
 		int N = net->maxId + 1;
-		long limit = (long)N;
+		long limit = (long)N*5;
 		/********************************************************************************************************/
 
 		/**************get degree prossiblity, used to choose new links******************************************/
@@ -189,7 +189,7 @@ int main (int argc, char **argv) {
 		free_iiNet(newnet);
 		/********************************************************************************************************/
 
-	//}
+	}
 
 	print_time();
 	return 0;

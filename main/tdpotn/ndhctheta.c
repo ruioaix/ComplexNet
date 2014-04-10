@@ -8,6 +8,7 @@
 #include <time.h>
 #include <math.h>
 #include <limits.h>
+#include <assert.h>
 
 
 static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_alld, double alpha) {
