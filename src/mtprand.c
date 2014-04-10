@@ -190,7 +190,7 @@ static void init_genrand(unsigned long s)
 /* init_key is the array for initializing keys */
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
-void init_by_array(unsigned long init_key[], int key_length)
+static void init_by_array(unsigned long init_key[], int key_length)
 {
     int i, j, k;
     init_genrand(19650218UL);
@@ -215,8 +215,20 @@ void init_by_array(unsigned long init_key[], int key_length)
     mt[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
 }
 
+#include <time.h>
+void set_timeseed_MTPR(void) {
+	unsigned long t=(unsigned long)time(NULL);
+	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
+}
+
+void set_seed_MTPR(unsigned long seed) {
+	unsigned long init[4]={seed, 0x234, 0x345, 0x456}, length=4;
+	init_by_array(init, length);
+}
+
 /* generates a random number on [0,0xffffffff]-interval */
-unsigned long genrand_int32(void)
+unsigned long get_i32_MTPR(void)
 {
     unsigned long y;
     static unsigned long mag01[2]={0x0UL, MATRIX_A};
@@ -254,36 +266,36 @@ unsigned long genrand_int32(void)
 }
 
 /* generates a random number on [0,0x7fffffff]-interval */
-long genrand_int31(void)
+long get_i31_MTPR(void)
 {
-    return (long)(genrand_int32()>>1);
+    return (long)(get_i32_MTPR()>>1);
 }
 
 /* generates a random number on [0,1]-real-interval */
-double genrand_real1(void)
+double get_d01_MTPR(void)
 {
-    return genrand_int32()*(1.0/4294967295.0); 
+    return get_i32_MTPR()*(1.0/4294967295.0); 
     /* divided by 2^32-1 */ 
 }
 
 /* generates a random number on [0,1)-real-interval */
-double genrand_real2(void)
+double get_d0_MTPR(void)
 {
-    return genrand_int32()*(1.0/4294967296.0); 
+    return get_i32_MTPR()*(1.0/4294967296.0); 
     /* divided by 2^32 */
 }
 
 /* generates a random number on (0,1)-real-interval */
-double genrand_real3(void)
+double get_d_MTPR(void)
 {
-    return (((double)genrand_int32()) + 0.5)*(1.0/4294967296.0); 
+    return (((double)get_i32_MTPR()) + 0.5)*(1.0/4294967296.0); 
     /* divided by 2^32 */
 }
 
 /* generates a random number on [0,1) with 53-bit resolution*/
-double genrand_res53(void) 
+double get_d530_MTPR(void) 
 { 
-    unsigned long a=genrand_int32()>>5, b=genrand_int32()>>6; 
+    unsigned long a=get_i32_MTPR()>>5, b=get_i32_MTPR()>>6; 
     return(a*67108864.0+b)*(1.0/9007199254740992.0); 
 } 
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
