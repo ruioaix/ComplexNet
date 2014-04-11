@@ -100,7 +100,7 @@ int main (int argc, char **argv) {
 		struct iiNet *net = create_iiNet(file);
 		free_iiLineFile(file);
 		int N = net->maxId + 1;
-		long limit = (long)N*5;
+		long limit = (long)N*10;
 		/********************************************************************************************************/
 
 		/**************get degree prossiblity, used to choose new links******************************************/
