@@ -95,8 +95,8 @@ int main (int argc, char **argv) {
 		alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
-		//struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
-		struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
+		struct iiLineFile *file = generate_2DLattice(L, cycle, non_direct);
+		//struct iiLineFile *file = generate_1DLine(L, cycle, non_direct);
 		struct iiNet *net = create_iiNet(file);
 		free_iiLineFile(file);
 		int N = net->maxId + 1;
