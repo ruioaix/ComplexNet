@@ -16,6 +16,6 @@ int main(void)
       if (i%5==4) printf("\n");
     }
 
-	struct LineFile *lf = create_LineFile("test", 0, 0);
+	struct LineFile *lf = create_LineFile("test", 1, 1, 2, 9, 9);
     return 0;
 }
