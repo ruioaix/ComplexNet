@@ -4,7 +4,7 @@
 
 int main(void)
 {
-	struct LineFile *lf = create_LineFile("movielens_2c", 1, 1, -1);
+	struct LineFile *lf = create_LineFile("movielens_3c", 1, 1, 1, 1, 1, -1);
 	print_LineFile(lf, "1");
     return 0;
 }

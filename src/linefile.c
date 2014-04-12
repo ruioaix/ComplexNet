@@ -92,8 +92,9 @@ static void setmem_LineFile(struct LineFile *lf, int vn, int *typelist, int ***i
 static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 	*lread = 0;
 	char *line = buffer;
-	while((*lread)++ != LINES_READIN && fgets(line, LINE_LENGTH, fp)) {
+	while((*lread) != LINES_READIN && fgets(line, LINE_LENGTH, fp)) {
 		line += LINE_LENGTH;
+		++(*lread);
 	}
 }
 
@@ -123,9 +124,9 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 		switch(type) {
 			case 1:
 				l = *(ilist[IL++]);
-				printf("x%ldxx\n", lf->linesNum);fflush(stdout);
+				//printf("x%ldxx\n", lf->linesNum);fflush(stdout);
 				for (j = 0; j < lread; ++j) {
-					 l[j+lf->linesNum] = 0;//strtol(p[j], &pend, 10);
+					 l[j+lf->linesNum] = strtol(p[j], &pend, 10);
 				}
 				break;
 			case 2:
@@ -162,6 +163,7 @@ struct LineFile *create_LineFile(const char * const filename, ...) {
 		typelist[vn++] = type;
 		printf("%d\t", type);
 	}
+	printf("\n");
 	va_end(vl);
 
 	setmem_LineFile(lf, vn, typelist, ilist, dlist);
@@ -178,6 +180,7 @@ struct LineFile *create_LineFile(const char * const filename, ...) {
 		while (lf->linesNum + lread > lf->memNum) {
 			resize_LineFile(lf);
 		}
+		//printf("lread: %d\n", lread);
 		set_allparts_LineFile(buffer, allparts, vn, lread);
 		set_lf_LineFile(lf, allparts, typelist, ilist, dlist, lread, vn);
 	}
