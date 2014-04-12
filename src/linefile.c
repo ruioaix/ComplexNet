@@ -4,14 +4,18 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 
 #define LINES_STEP 1000000
-#define LINE_LENGTH 10000
+#define LINE_LENGTH 2000
+#define LINES_READIN 10000
 #define ILIMIT 9
 #define DLIMIT 9
 
 static void init_LineFile(struct LineFile *lf) {
+	lf->linesNum = 0;
+	lf->memNum = 0;
 	lf->i1 = NULL;
 	lf->i2 = NULL;
 	lf->i3 = NULL;
@@ -33,47 +37,46 @@ static void init_LineFile(struct LineFile *lf) {
 }
 
 static void resize_LineFile(struct LineFile *lf) {
-	int *ilist[ILIMIT] = {lf->i1, lf->i2, lf->i3, lf->i4, lf->i5, lf->i6, lf->i7, lf->i8, lf->i9};
-	double *dlist[DLIMIT] = {lf->d1, lf->d2, lf->d3, lf->d4, lf->d5, lf->d6, lf->d7, lf->d8, lf->d9};
+	int **ilist[ILIMIT] = {&(lf->i1), &(lf->i2), &(lf->i3), &(lf->i4), &(lf->i5), &(lf->i6), &(lf->i7), &(lf->i8), &(lf->i9)};
+	double **dlist[DLIMIT] = {&(lf->d1), &(lf->d2), &(lf->d3), &(lf->d4), &(lf->d5), &(lf->d6), &(lf->d7), &(lf->d8), &(lf->d9)};
+
 	int i;
 	for (i=0; i<ILIMIT; ++i) {
-		if (ilist[i] != NULL) {
-			int *tmp = realloc(ilist[i], (lf->memNum + LINES_STEP)*sizeof(int));
+		if (*(ilist[i]) != NULL) {
+			int *tmp = realloc(*(ilist[i]), (lf->memNum + LINES_STEP)*sizeof(int));
 			assert(tmp != NULL);
-			ilist[i] = tmp;
+			*(ilist[i]) = tmp;
 		}
 	}
 	for (i=0; i<DLIMIT; ++i) {
-		if (dlist[i] != NULL) {
-			double *tmp = realloc(dlist[i], (lf->memNum + LINES_STEP)*sizeof(double));
+		if (*(dlist[i]) != NULL) {
+			double *tmp = realloc(*(dlist[i]), (lf->memNum + LINES_STEP)*sizeof(double));
 			assert(tmp != NULL);
-			dlist[i] = tmp;
+			*(dlist[i]) = tmp;
 		}
 	}
 	lf->memNum += LINES_STEP;
 }
 
-static void setmem_LineFile(struct LineFile *lf, int vn, int *typelist) {
+static void setmem_LineFile(struct LineFile *lf, int vn, int *typelist, int ***ilist, double ***dlist) {
 	int ii = 0;
 	int di = 0;
-	int *ilist[ILIMIT] = {lf->i1, lf->i2, lf->i3, lf->i4, lf->i5, lf->i6, lf->i7, lf->i8, lf->i9};
-	double *dlist[DLIMIT] = {lf->d1, lf->d2, lf->d3, lf->d4, lf->d5, lf->d6, lf->d7, lf->d8, lf->d9};
 
 	int i;
 	for (i = 0; i < vn; ++i) {
 		int type = typelist[i];
 		switch(type) {
-			case 0:
+			case 1:
 				if (ii < ILIMIT) {
-					ilist[ii++] = malloc(LINES_STEP * sizeof(int));
+					*(ilist[ii++]) = malloc(LINES_STEP * sizeof(int));
 				}
 				else {
 					isError("create_LineFile, set large ilimit.");
 				}
 				break;
-			case 1:
+			case 2:
 				if (di < DLIMIT) {
-					dlist[di++] = malloc(LINES_STEP * sizeof(double));
+					*(dlist[di++]) = malloc(LINES_STEP * sizeof(double));
 				}
 				else {
 					isError("create_LineFile, set large dlimit.");
@@ -83,15 +86,72 @@ static void setmem_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 		}
 	}
+	lf->memNum += LINES_STEP;
+}
+
+static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
+	*lread = 0;
+	char *line = buffer;
+	while((*lread)++ != LINES_READIN && fgets(line, LINE_LENGTH, fp)) {
+		line += LINE_LENGTH;
+	}
+}
+
+static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lread) {
+	int i,j;
+	char *line = buffer;
+	char *delimiter = "\t ,:\n";
+	for (i = 0; i < lread; ++i) {
+		allparts[i] =strtok(line, delimiter);
+		for (j=1; j<vn; ++j) {
+			allparts[i + j * LINES_READIN] = strtok(NULL, delimiter);
+		}
+		line += LINE_LENGTH;
+	}
+}
+
+static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist, int ***ilist, double ***dlist, int lread, int vn) {
+	int i,j;
+	int IL = 0;
+	int DL = 0;
+	int *l;
+	double *d;
+	char *pend;
+	for (i = 0; i < vn; ++i) {
+		int type = typelist[i];
+		char **p = allparts + i*LINES_READIN;
+		switch(type) {
+			case 1:
+				l = *(ilist[IL++]);
+				printf("x%ldxx\n", lf->linesNum);fflush(stdout);
+				for (j = 0; j < lread; ++j) {
+					 l[j+lf->linesNum] = 0;//strtol(p[j], &pend, 10);
+				}
+				break;
+			case 2:
+				d = *(dlist[DL++]);
+				for (j = 0; j < lread; ++j) {
+					 d[j+lf->linesNum] = strtod(p[j], &pend);
+				}
+				break;
+
+		}
+	}
+	lf->linesNum += lread;
 }
 
 struct LineFile *create_LineFile(const char * const filename, ...) {
 	struct LineFile *lf = malloc(sizeof(struct LineFile));
 	assert(lf != NULL);
+
 	init_LineFile(lf);
 
 	FILE *fp = fopen(filename, "r");
 	fileError(fp, "create_LineFile");
+
+	int **ilist[ILIMIT] = {&(lf->i1), &(lf->i2), &(lf->i3), &(lf->i4), &(lf->i5), &(lf->i6), &(lf->i7), &(lf->i8), &(lf->i9)};
+	double **dlist[DLIMIT] = {&(lf->d1), &(lf->d2), &(lf->d3), &(lf->d4), &(lf->d5), &(lf->d6), &(lf->d7), &(lf->d8), &(lf->d9)};
+
 
 	int typelist[ILIMIT + DLIMIT];
 	va_list vl;
@@ -103,23 +163,48 @@ struct LineFile *create_LineFile(const char * const filename, ...) {
 		printf("%d\t", type);
 	}
 	va_end(vl);
-	setmem_LineFile(lf, vn, typelist);
+
+	setmem_LineFile(lf, vn, typelist, ilist, dlist);
 
 
-	long memNum = LINES_STEP;
-	long linesNum = 0;
-	long filelinesNum = 0;
-	char line[LINE_LENGTH];
-	while(fgets(line, LINE_LENGTH, fp)) {
-		++filelinesNum;
-		if (linesNum<memNum) {
-			//fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
-		} else {
-			printf("\tread valid lines: %ld\n", linesNum); fflush(stdout);
+	char *buffer = malloc(LINE_LENGTH * LINES_READIN * sizeof(char));
+	assert(buffer != NULL);
+	char **allparts = malloc(vn * LINES_READIN * sizeof(void *));
+	assert(allparts != NULL);
+
+	int lread = LINES_READIN;
+	while (lread == LINES_READIN) {
+		set_buffer_LineFile(fp, buffer, &lread);
+		while (lf->linesNum + lread > lf->memNum) {
 			resize_LineFile(lf);
-			//fill_iiLine(line, LinesInfo, &linesNum, each, &maxId, &minId, &_maxId, &_minId, filelineNum);
 		}
+		set_allparts_LineFile(buffer, allparts, vn, lread);
+		set_lf_LineFile(lf, allparts, typelist, ilist, dlist, lread, vn);
 	}
 
-	return NULL;
+	return lf;
+}
+
+void print_LineFile(struct LineFile *lf, char *filename) {
+	int **ilist[ILIMIT] = {&(lf->i1), &(lf->i2), &(lf->i3), &(lf->i4), &(lf->i5), &(lf->i6), &(lf->i7), &(lf->i8), &(lf->i9)};
+	double **dlist[DLIMIT] = {&(lf->d1), &(lf->d2), &(lf->d3), &(lf->d4), &(lf->d5), &(lf->d6), &(lf->d7), &(lf->d8), &(lf->d9)};
+
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_LineFile");
+
+	int i;
+	long j;
+	for (j = 0; j < lf->linesNum; ++j) {
+		for (i=0; i<ILIMIT; ++i) {
+			if (*(ilist[i]) != NULL) {
+				fprintf(fp, "%d\t", (*(ilist[i]))[j]);
+			}
+		}
+		for (i=0; i<DLIMIT; ++i) {
+			if (*(dlist[i]) != NULL) {
+				fprintf(fp, "%f\t", (*(dlist[i]))[j]);
+			}
+		}
+		fprintf(fp, "\n");
+	}
 }

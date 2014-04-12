@@ -79,5 +79,6 @@ struct LineFile {
 };
 
 struct LineFile *create_LineFile(const char * const filename, ...);
+void print_LineFile(struct LineFile *lf, char *filename);
 
 #endif
