@@ -1,4 +1,5 @@
 #include "linefile.h"
+#include "iinet.h"
 #include "mtprand.h"
 #include <stdio.h>
 
@@ -17,6 +18,11 @@ int main(void)
 		if (i%5==4) printf("\n");
 	}
 	print_LineFile(lf, "1");
+
+	struct iiNet *net = create_iiNet(lf);
+	print_iiNet(net, "2");
+
+
 	free_LineFile(lf);
 
 	return 0;
