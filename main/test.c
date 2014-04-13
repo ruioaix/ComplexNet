@@ -16,7 +16,6 @@ int main(void)
 		printf("%10.8f ", get_d0_MTPR());
 		if (i%5==4) printf("\n");
 	}
-	return 0;
 	print_LineFile(lf, "1");
 	free_LineFile(lf);
 
