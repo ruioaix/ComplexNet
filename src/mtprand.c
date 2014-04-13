@@ -218,12 +218,14 @@ static void init_by_array(unsigned long init_key[], int key_length)
 #include <time.h>
 void set_timeseed_MTPR(void) {
 	unsigned long t=(unsigned long)time(NULL);
-	unsigned long init[4]={t, 0x234, 0x345, 0x456}, length=4;
+	unsigned long init[4]={t, 0x234, 0x345, 0x456};
+	int length=4;
 	init_by_array(init, length);
 }
 
 void set_seed_MTPR(unsigned long seed) {
-	unsigned long init[4]={seed, 0x234, 0x345, 0x456}, length=4;
+	unsigned long init[4]={seed, 0x234, 0x345, 0x456};
+	int length=4;
 	init_by_array(init, length);
 }
 
@@ -274,21 +276,21 @@ long get_i31_MTPR(void)
 /* generates a random number on [0,1]-real-interval */
 double get_d01_MTPR(void)
 {
-    return get_i32_MTPR()*(1.0/4294967295.0); 
+    return (double)get_i32_MTPR()*(1.0/4294967295.0); 
     /* divided by 2^32-1 */ 
 }
 
 /* generates a random number on [0,1)-real-interval */
 double get_d0_MTPR(void)
 {
-    return get_i32_MTPR()*(1.0/4294967296.0); 
+    return (double)get_i32_MTPR()*(1.0/4294967296.0); 
     /* divided by 2^32 */
 }
 
 /* generates a random number on (0,1)-real-interval */
 double get_d_MTPR(void)
 {
-    return (((double)get_i32_MTPR()) + 0.5)*(1.0/4294967296.0); 
+    return (double)(((double)get_i32_MTPR()) + 0.5)*(1.0/4294967296.0); 
     /* divided by 2^32 */
 }
 
@@ -296,7 +298,7 @@ double get_d_MTPR(void)
 double get_d530_MTPR(void) 
 { 
     unsigned long a=get_i32_MTPR()>>5, b=get_i32_MTPR()>>6; 
-    return(a*67108864.0+b)*(1.0/9007199254740992.0); 
+    return (double)(a*67108864.0+b)*(1.0/9007199254740992.0); 
 } 
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
