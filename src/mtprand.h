@@ -13,26 +13,26 @@
 #define CN_MTPRAND_H
 
 /// set a explicit seed.
-void set_seed_MTPR(unsigned long seed);
+extern void set_seed_MTPR(unsigned long seed);
 /// set the seed with unix timestamp.
-void set_timeseed_MTPR(void);
+extern void set_timeseed_MTPR(void);
 
 /// get a 32 bits prn.
-unsigned long get_i32_MTPR(void);
+extern unsigned long get_i32_MTPR(void);
 
 /// get a 31 bits prn.
-long get_i31_MTPR(void);
+extern long get_i31_MTPR(void);
 
 /// get a double prm which is in [0, 1].
-double get_d01_MTPR(void);
+extern double get_d01_MTPR(void);
 
 /// get a double prm which is in [0, 1).
-double get_d0_MTPR(void);
+extern double get_d0_MTPR(void);
 
 /// get a double prm which is in (0, 1).
-double get_d_MTPR(void);
+extern double get_d_MTPR(void);
 
 /// get a 53-precision double prm which is in [0, 1).
-double get_d530_MTPR(void);
+extern double get_d530_MTPR(void);
 
 #endif

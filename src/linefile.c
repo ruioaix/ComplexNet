@@ -96,14 +96,14 @@ static void resize_LineFile(struct LineFile *lf) {
 
 	for (i=0; i<ILIMIT; ++i) {
 		if (*(ilist[i]) != NULL) {
-			int *tmp = realloc(*(ilist[i]), (lf->memNum + LINES_STEP)*sizeof(int));
+			int *tmp = realloc(*(ilist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(int));
 			assert(tmp != NULL);
 			*(ilist[i]) = tmp;
 		}
 	}
 	for (i=0; i<DLIMIT; ++i) {
 		if (*(dlist[i]) != NULL) {
-			double *tmp = realloc(*(dlist[i]), (lf->memNum + LINES_STEP)*sizeof(double));
+			double *tmp = realloc(*(dlist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(double));
 			assert(tmp != NULL);
 			*(dlist[i]) = tmp;
 		}
