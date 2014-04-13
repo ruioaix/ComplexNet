@@ -9,7 +9,7 @@
 
 #define LINES_STEP 1000000
 #define LINE_LENGTH 2000
-#define LINES_READIN 10000
+#define LINES_READIN 1000
 #define ILIMIT 9
 #define DLIMIT 9
 
