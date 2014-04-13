@@ -13,7 +13,12 @@
 #define ILIMIT 9
 #define DLIMIT 9
 
-static void init_LineFile(struct LineFile *lf) {
+static struct LineFile *init_LineFile(void) {
+	struct LineFile *lf = malloc(sizeof(struct LineFile));
+	if (lf == NULL) {
+		return NULL;
+	}
+
 	lf->linesNum = 0;
 	lf->memNum = 0;
 	lf->i1 = NULL;
@@ -34,6 +39,7 @@ static void init_LineFile(struct LineFile *lf) {
 	lf->d7 = NULL;
 	lf->d8 = NULL;
 	lf->d9 = NULL;
+	return lf;
 }
 
 static void resize_LineFile(struct LineFile *lf) {
@@ -142,10 +148,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 }
 
 struct LineFile *create_LineFile(const char * const filename, ...) {
-	struct LineFile *lf = malloc(sizeof(struct LineFile));
-	assert(lf != NULL);
-
-	init_LineFile(lf);
+	struct LineFile *lf = init_LineFile();
 
 	FILE *fp = fopen(filename, "r");
 	fileError(fp, "create_LineFile");

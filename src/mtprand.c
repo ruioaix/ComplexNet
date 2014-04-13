@@ -60,8 +60,8 @@
  * if you need different random number, just set different init[N] and use 
  * init_by_array() to genrate different mt[N]. 
  */
-//static unsigned long mt[N]; /* the array for the state vector  */
-//static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
+//static unsigned long mt[N]; // the array for the state vector  
+//static int mti=N+1; // mti==N+1 means mt[N] is not initialized 
 static int mti=624;
 static unsigned long mt[N]={
 	2147483648ul, 1827812183ul, 1371430253ul, 3559376401ul, 4152304030ul, 3484546413ul, 
