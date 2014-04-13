@@ -45,6 +45,7 @@ struct LineFile {
  * if more than 4, only 4 parts is read in.
  */
 struct LineFile *create_LineFile(const char * const filename, ...);
+struct LineFile *init_LineFile(void);
 
 /// print the struct LineFile's content into a file
 void print_LineFile(struct LineFile *lf, char *filename);

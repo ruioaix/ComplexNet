@@ -59,7 +59,7 @@ static void set_dlist_LineFile(double ***dlist, struct LineFile *lf) {
 	dlist[8] = &(lf->d9);
 }
 
-static struct LineFile *init_LineFile(void) {
+struct LineFile *init_LineFile(void) {
 	struct LineFile *lf = malloc(sizeof(struct LineFile));
 	assert(lf != NULL);
 
