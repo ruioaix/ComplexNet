@@ -35,7 +35,7 @@ void free_LineFile(struct LineFile *lf) {
 	free(lf);
 }
 
-static set_ilist_LineFile(int ***ilist, struct LineFile *lf) {
+static void set_ilist_LineFile(int ***ilist, struct LineFile *lf) {
 	ilist[0] = &(lf->i1);
 	ilist[1] = &(lf->i2);
 	ilist[2] = &(lf->i3);
@@ -47,7 +47,7 @@ static set_ilist_LineFile(int ***ilist, struct LineFile *lf) {
 	ilist[8] = &(lf->i9);
 }
 
-static set_dlist_LineFile(double ***dlist, struct LineFile *lf) {
+static void set_dlist_LineFile(double ***dlist, struct LineFile *lf) {
 	dlist[0] = &(lf->d1);
 	dlist[1] = &(lf->d2);
 	dlist[2] = &(lf->d3);
@@ -245,6 +245,9 @@ struct LineFile *create_LineFile(const char * const filename, ...) {
 		set_allparts_LineFile(buffer, allparts, vn, lread);
 		set_lf_LineFile(lf, allparts, typelist, ilist, dlist, lread, vn);
 	}
+	free(buffer);
+	free(allparts);
+	fclose(fp);
 
 	return lf;
 }
@@ -275,4 +278,5 @@ void print_LineFile(struct LineFile *lf, char *filename) {
 		}
 		fprintf(fp, "\n");
 	}
+	fclose(fp);
 }
