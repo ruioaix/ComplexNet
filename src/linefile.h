@@ -46,9 +46,10 @@ struct LineFile {
  */
 struct LineFile *create_LineFile(const char * const filename, ...);
 
-/**
- * print the struct LineFile's content into a file
- */
+/// print the struct LineFile's content into a file
 void print_LineFile(struct LineFile *lf, char *filename);
+
+/// free;
+void free_LineFile(struct LineFile *lf);
 
 #endif

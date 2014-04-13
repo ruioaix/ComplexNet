@@ -5,7 +5,7 @@
 void print_time(void) {
 	time_t t=time(NULL); 
 	printf("%s", ctime(&t)); 
-	fflush(stdout);
+	(void)fflush(stdout);
 }
 /********************************************************************************************************/
 
