@@ -26,7 +26,7 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir tool-serial
+all: dir onion-BR
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)

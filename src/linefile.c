@@ -65,6 +65,7 @@ struct LineFile *init_LineFile(void) {
 
 	lf->linesNum = 0;
 	lf->memNum = 0;
+	lf->filename = NULL;
 	lf->i1 = NULL;
 	lf->i2 = NULL;
 	lf->i3 = NULL;
