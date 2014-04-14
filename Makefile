@@ -26,7 +26,7 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir bip
+all: dir 
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
@@ -42,9 +42,9 @@ MAIN_ONION_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ONION_SRC)))
 $(MAIN_ONION_EXEC) : onion-% : $(SRC_OBJ) obj/main/onion/%.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
-MAIN_GENERATENET_SRC = $(wildcard main/generatenet/*.c)
-MAIN_GENERATENET_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_GENERATENET_SRC)))
-$(MAIN_GENERATENET_EXEC) : generatenet-% : $(SRC_OBJ) obj/main/generatenet/%.o 
+MAIN_TOOL_SRC = $(wildcard main/tool/*.c)
+MAIN_TOOL_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TOOL_SRC)))
+$(MAIN_TOOL_EXEC) : tool-% : $(SRC_OBJ) obj/main/tool/%.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
 MAIN_SRC = $(wildcard main/*.c) 
