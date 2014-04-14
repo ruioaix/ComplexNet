@@ -194,7 +194,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 	lf->linesNum += lread;
 }
 
-struct LineFile *create_LineFile(const char * const filename, ...) {
+struct LineFile *create_LineFile(char *filename, ...) {
 	struct LineFile *lf;
 	int **ilist[ILIMIT];
 	double **dlist[DLIMIT];
@@ -249,6 +249,7 @@ struct LineFile *create_LineFile(const char * const filename, ...) {
 	free(allparts);
 	fclose(fp);
 
+	lf->filename = filename;
 	return lf;
 }
 

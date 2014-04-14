@@ -8,8 +8,8 @@ struct iiNet{
 	int minId;
 	int idNum;
 	long edgesNum;
-	long countMin;
 	long countMax;
+	long countMin;
 	long *count;
 	int **edges;
 };
