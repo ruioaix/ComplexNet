@@ -84,4 +84,5 @@ struct Metrics_iiBip *RENBI_iiBip(struct iiBip *traini1, struct iiBip *traini2, 
 
 struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *trainSim, double hybrid_param);
 
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim);
 #endif

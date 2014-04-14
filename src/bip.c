@@ -490,6 +490,8 @@ void free_MetricsiiBip(struct Metrics_iiBip *lp) {
 struct iiBip_recommend_param{
 	int i1;
 
+	int mass_topk;
+
 	double HNBI_param;
 
 	double RENBI_param;
@@ -717,6 +719,63 @@ static void mass_recommend_iiBip(struct iiBip_recommend_param *args) {
 	}
 }
 
+//three-step random walk of Probs
+static void mass_topk_recommend_iiBip(struct iiBip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topR = args->mass_topk;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+
+	int **i1ids = args->traini1->edges;
+	int **i2ids = args->traini2->edges; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k < topR) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
+
 //three-step random walk of heats
 static void heats_recommend_iiBip(struct iiBip_recommend_param *args) {
 	int i1 = args->i1;
@@ -940,7 +999,6 @@ static void hybrid_recommend_iiBip(struct iiBip_recommend_param *args) {
  * core function of recommendation.
  * type :
  * 1  -- mass (NONE arg)
- * 2  -- mass_topR (int mass_topR)
  * 3  -- mass_corK (under development)
  * 4  -- heats (NONE arg)
  * 5  -- HNBI  (double HNBI_param)
@@ -1087,3 +1145,74 @@ struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2,
 
 	return recommend_iiBip(hybrid_recommend_iiBip, &param);
 }
+
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim) {
+	printf("get bestR begin......");fflush(stdout);
+
+	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
+	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
+	int *rank = malloc((traini2->maxId + 1)*sizeof(int));
+	int *i2id =  malloc((traini2->maxId + 1)*sizeof(int));
+
+	double R, PL;
+
+	struct iiBip_recommend_param args;
+	args.traini1 = traini1;
+	args.traini2 = traini2;
+	args.testi1 = testi1;
+	args.i1source = i1source;
+	args.i2source = i2source;
+	args.userSim = userSim;
+
+	int i;
+    int j;
+	int L = 50;
+	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
+	double bestR;
+	int bestRK;
+	int *bestK = malloc((traini1->maxId + 1)*sizeof(int));
+	double realR = 0, realR2 = 0;
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+		if (i<testi1->maxId + 1 && testi1->count[i]) {
+			//just to make sure bestR is enough big.
+			bestR = LONG_MAX;
+			bestRK = -1;
+			//to make realR2 is same with mass.
+			for (j=1; j<= userSim->count[i] || (j ==1 && userSim->count[i] == 0); ++j) {
+
+				//probs_knn_Bip_core(i, &args, userSim, j);
+				args.i1 = i;
+				args.mass_topk = j;
+				mass_topk_recommend_iiBip(&args);
+
+				
+				iiBip_core_common_part(&args, i2id, rank, topL + i*L, L);
+
+				R=PL=0;
+				metrics_R_PL_iiBip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
+				//R will never be 0, because i is in testi1.
+				if (bestR > R) {
+					bestR = R;
+					bestRK = j;
+				}
+			}
+			realR += bestR;
+			realR2 += R;
+
+			bestK[i] = bestRK;
+
+		}
+		else {
+			bestK[i] = -1;
+		}
+	}
+	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);
+
+	free(i1source);
+	free(i2source);
+	free(rank);
+	free(i2id);
+	printf("get bestR done.\n\n");fflush(stdout);
+	return bestK;
+}
+
