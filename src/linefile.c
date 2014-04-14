@@ -223,9 +223,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	vn = 0;
 	while ((type = va_arg(vl, int))>0) {
 		typelist[vn++] = type;
-		printf("%d\t", type);
 	}
-	printf("\n");
 	va_end(vl);
 
 	setmem_LineFile(lf, vn, typelist, ilist, dlist);

@@ -22,7 +22,6 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 	//all elements of struct iiBip.
 	int maxId;
 	int minId;
-	int idNum=0;
 	long countMax=-1;
 	long countMin=LONG_MAX;
 	long *count;
@@ -31,6 +30,7 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 
 	int *i1 = lf->i1;
 	int *i2 = lf->i2;
+
 
 	long i;
 	if (1 == index) {
@@ -41,7 +41,7 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 		}
 	}
 	else {
-		minId = maxId = i1[0];
+		minId = maxId = i2[0];
 		for(i=0; i<edgesNum; ++i) {
 			maxId = maxId > i2[i] ? maxId : i2[i];
 			minId = minId < i2[i] ? minId : i2[i];
@@ -55,8 +55,6 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 	assert(edges != NULL);
 
 	//fill the count.
-	edgesNum=lf->linesNum;
-	
 	if (1 == index) {
 		for(i=0; i<edgesNum; ++i) {
 			++count[i1[i]];
@@ -70,6 +68,7 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 
 	//once get count, the three points which point to point can be assigned with memory.
 	int j;
+	int idNum=0;
 	for(j=0; j<maxId+1; ++j) {
 		if (count[j]>0) {
 			countMax = countMax>count[j]?countMax:count[j];
@@ -86,7 +85,7 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 	//fill edges
 	long *temp = calloc(maxId+1, sizeof(long));
 	assert(temp!=NULL);
-	if (index) {
+	if (1 == index) {
 		for(i=0; i<edgesNum; ++i) {
 			int ii1 =i1[i];
 			edges[ii1][temp[ii1]]=i2[i];
@@ -116,10 +115,10 @@ struct iiBip *create_iiBip(const struct LineFile * const lf, int index) {
 	Bip->edgesNum=edgesNum;
 
 	if (index == 1) {
-		printf("create i1 bip from %s=>>\tMax: %d, Min: %d, Num: %d, countMax: %ld, countMin: %ld, edgesNum: %ld\n", lf->filename, maxId, minId, idNum, countMax, countMin, edgesNum); fflush(stdout);
+		printf("create i1 bip from %s =>> Max: %5d, Min: %5d, Num: %5d, countMax: %5ld, countMin: %5ld, edgesNum: %5ld\n", lf->filename, maxId, minId, idNum, countMax, countMin, edgesNum); fflush(stdout);
 	}
 	else {
-		printf("create i2 bip from %s=>>\tMax: %d, Min: %d, Num: %d, countMax: %ld, countMin: %ld, edgesNum: %ld\n", lf->filename, maxId, minId, idNum, countMax, countMin, edgesNum); fflush(stdout);
+		printf("create i2 bip from %s =>> Max: %5d, Min: %5d, Num: %5d, countMax: %5ld, countMin: %5ld, edgesNum: %5ld\n", lf->filename, maxId, minId, idNum, countMax, countMin, edgesNum); fflush(stdout);
 	}
 
 	return Bip;
@@ -210,6 +209,7 @@ void *verify_iiBip(struct iiBip *bipi1, struct iiBip *bipi2) {
 //return two struct LineFile. 
 //the first one is always the small one.
 //the second is always the large one.
+static char *divfilename[2] = {"trainset", "testset "};
 void divide_iiBip(struct iiBip *bipi1, struct iiBip *bipi2, double rate, struct LineFile **small, struct LineFile **big) {
 	if (rate <=0 || rate >= 1) {
 		isError("divide_iiBip error: wrong rate.\n");
@@ -288,14 +288,18 @@ void divide_iiBip(struct iiBip *bipi1, struct iiBip *bipi2, double rate, struct 
 	free(counti1);
 	free(counti2);
 
-	(*small)->linesNum = line1;
 	(*big)->linesNum = line2;
+	(*small)->linesNum = line1;
 
-	printf("divide iiBip=>>\trate: %f\tbig file's linesNum: %ld\tsmall file's linesNum: %ld\n", rate, line1, line2);fflush(stdout);
+	(*big)->filename = divfilename[0];
+	(*small)->filename = divfilename[1];
+
+	printf("divide iiBip into train&test set =>> rate: %.3f, big file's linesNum: %ld, small file's linesNum: %ld.\n", rate, line2, line1);fflush(stdout);
 }
 
 //if target == 1, then calculate i1(mostly user)'s similarity.
 //if target == 2, then calculate i2(mostly item)'s similarity.
+static char *simfilename[3] = {"", "i1_similiarity", "i2_similiarity"};
 struct LineFile *similarity_iiBip(struct iiBip *bipi1, struct iiBip *bipi2, int target) {
 	if (target != 1 && target != 2) isError("similarity_iiBip target");
 	int idmax, idmax2;
@@ -374,8 +378,9 @@ struct LineFile *similarity_iiBip(struct iiBip *bipi1, struct iiBip *bipi2, int 
 	simfile->i1 = i1;
 	simfile->i2 = i2;
 	simfile->d1 = d1;
+	simfile->filename = simfilename[target];	
 
-	printf("calculate similarity done.\n");
+	printf("calculate %s done =>> linesNum: %ld.\n", simfile->filename, linesNum);
 	return simfile;
 }
 
@@ -993,7 +998,7 @@ static struct Metrics_iiBip *recommend_iiBip(void (*recommend_core)(struct iiBip
 			args->i1 = i;
 			recommend_core(args);
 			iiBip_core_common_part(args, i2id, rank, topL + i*L, L);
-			metrics_R_PL_iiBip(i, i1count, i2idNum, args->testi1, L, rank, &R, &PL);
+			metrics_R_PL_iiBip(i, i1count, /*i2maxId*/i2idNum, args->testi1, L, rank, &R, &PL);
 
 		}
 		//printf("%d\t", i);fflush(stdout);

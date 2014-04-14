@@ -26,7 +26,7 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir tdpotn-air
+all: dir bip
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
