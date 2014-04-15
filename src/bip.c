@@ -1146,7 +1146,7 @@ struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2,
 	return recommend_iiBip(hybrid_recommend_iiBip, &param);
 }
 
-int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim) {
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, int begin, int end) {
 	printf("get bestR begin......");fflush(stdout);
 
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
@@ -1172,11 +1172,16 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 	int bestRK;
 	int *bestK = malloc((traini1->maxId + 1)*sizeof(int));
 	double realR = 0, realR2 = 0;
-	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
+
+	char fn[100];
+	for (i = begin; i<traini1->maxId + 1 && i<end; ++i) { //each user
 		if (i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
-			bestR = LONG_MAX;
+			bestR = -1;
 			bestRK = -1;
+			sprintf(fn, "output/output_%d", i);
+			FILE *fp = fopen(fn, "w");
+			fileError(fp, "fn");
 			//to make realR2 is same with mass.
 			for (j=1; j<= userSim->count[i] || (j ==1 && userSim->count[i] == 0); ++j) {
 
@@ -1191,11 +1196,14 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 				R=PL=0;
 				metrics_R_PL_iiBip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
 				//R will never be 0, because i is in testi1.
-				if (bestR > R) {
-					bestR = R;
+				if (bestR < PL) {
+					bestR = PL;
 					bestRK = j;
 				}
+				fprintf(fp, "%d\t%d\t%f\t%f\t%d\n", i, j, PL, bestR, bestRK);fflush(stdout);
 			}
+			fclose(fp);
+			
 			realR += bestR;
 			realR2 += R;
 
@@ -1212,7 +1220,7 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 	free(i2source);
 	free(rank);
 	free(i2id);
+	free(topL);
 	printf("get bestR done.\n\n");fflush(stdout);
 	return bestK;
 }
-
