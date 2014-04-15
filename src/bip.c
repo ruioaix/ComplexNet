@@ -1146,8 +1146,9 @@ struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2,
 	return recommend_iiBip(hybrid_recommend_iiBip, &param);
 }
 
-int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, int begin, int end) {
-	printf("get bestR begin......");fflush(stdout);
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim) {
+	printf("calculate BK begin =>> ");
+	print_time();
 
 	double *i1source = malloc((traini1->maxId + 1)*sizeof(double));
 	double *i2source = malloc((traini2->maxId + 1)*sizeof(double));
@@ -1168,20 +1169,18 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
     int j;
 	int L = 50;
 	int *topL = calloc(L*(traini1->maxId + 1), sizeof(int));
-	double bestR;
-	int bestRK;
-	int *bestK = malloc((traini1->maxId + 1)*sizeof(int));
-	double realR = 0, realR2 = 0;
+	double bR, bPL;
+	int bi;
+	int *best = malloc((traini1->maxId + 1)*sizeof(int));
+	double total_bR = 0, total_R = 0;
+	double total_bPL = 0, total_PL = 0;
 
-	char fn[100];
-	for (i = begin; i<traini1->maxId + 1 && i<end; ++i) { //each user
+	for (i = 0; i<traini1->maxId + 1; ++i) { //each user
 		if (i<testi1->maxId + 1 && testi1->count[i]) {
 			//just to make sure bestR is enough big.
-			bestR = -1;
-			bestRK = -1;
-			sprintf(fn, "output/output_%d", i);
-			FILE *fp = fopen(fn, "w");
-			fileError(fp, "fn");
+			bR = 10000; //big enough.
+			bPL = -1;
+			bi = -1;
 			//to make realR2 is same with mass.
 			for (j=1; j<= userSim->count[i] || (j ==1 && userSim->count[i] == 0); ++j) {
 
@@ -1196,31 +1195,36 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 				R=PL=0;
 				metrics_R_PL_iiBip(i, traini1->count, traini2->idNum, testi1, L, rank, &R, &PL);
 				//R will never be 0, because i is in testi1.
-				if (bestR < PL) {
-					bestR = PL;
-					bestRK = j;
+				if (bR > R) {
+					bR = R;
+					bi = j;
 				}
-				fprintf(fp, "%d\t%d\t%f\t%f\t%d\n", i, j, PL, bestR, bestRK);fflush(stdout);
+				if (bPL < PL) {
+					bPL = PL;
+				}
 			}
 			fclose(fp);
 			
-			realR += bestR;
-			realR2 += R;
+			total_bR += bR;
+			total_R += R;
+			total_bPL += bPL;
+			total_PL += PL;
 
-			bestK[i] = bestRK;
+			best[i] = bi;
 
 		}
 		else {
-			bestK[i] = -1;
+			best[i] = -1;
 		}
 	}
-	printf("%f, %f\n", realR/testi1->edgesNum, realR2/testi1->edgesNum);fflush(stdout);
+	printf("BR result =>> Best R: %f, normal R: %f, Best PL: %f, normal PL: %f\n", total_bR/testi1->edgesNum, total_R/testi1->edgesNum, total_bPL/testi1->edgesNum, total_PL/testi1->edgesNum);
 
 	free(i1source);
 	free(i2source);
 	free(rank);
 	free(i2id);
 	free(topL);
-	printf("get bestR done.\n\n");fflush(stdout);
-	return bestK;
+	printf("calculate BK done =>> \n");
+	print_time();
+	return best;
 }
