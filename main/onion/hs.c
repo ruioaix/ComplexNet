@@ -30,32 +30,32 @@
 #include "bip.h"
 #include "mtprand.h"
 
-void create_2dataset(char *netfilename, struct iiBip **traini1, struct iiBip **traini2, struct iiBip **testi1, struct iiBip **testi2, double rate) {
+void create_2dataset(char *netfilename, struct Bip **traini1, struct Bip **traini2, struct Bip **testi1, struct Bip **testi2, double rate) {
 	struct LineFile *netfile = create_LineFile(netfilename, 1, 1, -1);
-	struct iiBip *neti1 = create_iiBip(netfile, 1);
-	struct iiBip *neti2 = create_iiBip(netfile, 2);
+	struct Bip *neti1 = create_Bip(netfile, 1);
+	struct Bip *neti2 = create_Bip(netfile, 2);
 	free_LineFile(netfile);
 	struct LineFile *first, *second;
-	divide_iiBip(neti1, neti2, rate, &first, &second);
-	free_iiBip(neti1);
-	free_iiBip(neti2);
-	*traini1 = create_iiBip(second, 1);
-	*traini2 = create_iiBip(second, 2);
-	*testi1 = create_iiBip(first, 1);
-	*testi2 = create_iiBip(first, 2);
+	divide_Bip(neti1, neti2, rate, &first, &second);
+	free_Bip(neti1);
+	free_Bip(neti2);
+	*traini1 = create_Bip(second, 1);
+	*traini2 = create_Bip(second, 2);
+	*testi1 = create_Bip(first, 1);
+	*testi2 = create_Bip(first, 2);
 	free_LineFile(first);
 	free_LineFile(second);
 }
 
-void get_UserSimilarity(struct iiBip *traini1, struct iiBip *traini2, struct iidNet **userSim) {
-	struct LineFile *userSimilarityfile = similarity_iiBip(traini1, traini2, 1);
-	//struct LineFile *userSimilarityfile = mass_similarity_iiBip(traini1, traini2);
+void get_UserSimilarity(struct Bip *traini1, struct Bip *traini2, struct iidNet **userSim) {
+	struct LineFile *userSimilarityfile = similarity_Bip(traini1, traini2, 1);
+	//struct LineFile *userSimilarityfile = mass_similarity_Bip(traini1, traini2);
 	*userSim = create_iidNet(userSimilarityfile);
 	free_LineFile(userSimilarityfile);
 }
 
-void get_ItemSimilarity(struct iiBip *traini1, struct iiBip *traini2, struct iidNet **itemSim) {
-	struct LineFile *itemSimilarityfile = similarity_iiBip(traini1, traini2, 2);
+void get_ItemSimilarity(struct Bip *traini1, struct Bip *traini2, struct iidNet **itemSim) {
+	struct LineFile *itemSimilarityfile = similarity_Bip(traini1, traini2, 2);
 	*itemSim = create_iidNet(itemSimilarityfile);
 	free_LineFile(itemSimilarityfile);
 }
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	char *netfilename;
 	test_ArgcArgv(argc, argv, &netfilename, &rate); 
 
-	struct iiBip *traini1, *traini2, *testi1, *testi2;
+	struct Bip *traini1, *traini2, *testi1, *testi2;
 	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2, rate);
 
 	struct iidNet *userSim, *itemSim=NULL;
@@ -101,15 +101,15 @@ int main(int argc, char **argv)
 	printf("topk stop at =>> %d\n", max_similaruer /= 2);
 
 	for (i = 0; i < max_similaruer; ++i) {
-		struct Metrics_iiBip *hs_result = mass_hs_iiBip(traini1, traini2, testi1, testi2, userSim, itemSim, i);
+		struct Metrics_Bip *hs_result = mass_hs_Bip(traini1, traini2, testi1, testi2, userSim, itemSim, i);
 		printf("hs result =>> Rate: %f, topk: %d, R: %f, PL: %f, IL: %f, HL: %f, NL: %f\n", rate, i, hs_result->R, hs_result->PL, hs_result->IL, hs_result->HL, hs_result->NL);
-		free_MetricsiiBip(hs_result);
+		free_MetricsBip(hs_result);
 	}
 
-	free_iiBip(traini1);
-	free_iiBip(traini2);
-	free_iiBip(testi1);
-	free_iiBip(testi2);
+	free_Bip(traini1);
+	free_Bip(traini2);
+	free_Bip(testi1);
+	free_Bip(testi2);
 	free_iidNet(userSim);
 	free_iidNet(itemSim);
 	

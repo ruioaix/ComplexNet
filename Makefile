@@ -26,12 +26,17 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir onion-BR
+all: dir score-3methods
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
 
 #################################################################
+MAIN_SCORE_SRC = $(wildcard main/score/*.c)
+MAIN_SCORE_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_SCORE_SRC)))
+$(MAIN_SCORE_EXEC) : score-% : $(SRC_OBJ) obj/main/score/%.o 
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 MAIN_TDPOTN_SRC = $(wildcard main/tdpotn/*.c)
 MAIN_TDPOTN_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TDPOTN_SRC)))
 $(MAIN_TDPOTN_EXEC) : tdpotn-% : $(SRC_OBJ) obj/main/tdpotn/%.o 

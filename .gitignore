@@ -21,6 +21,7 @@ similarity
 onion-*
 tool-*
 tdpotn-*
+score-*
 
 temp/*
 backup/*
