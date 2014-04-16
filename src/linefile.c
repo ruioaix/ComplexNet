@@ -13,7 +13,9 @@
 #define ILIMIT 9
 #define DLIMIT 9
 
+//this function need to be changed when ix or dx or xxx varied.
 void free_LineFile(struct LineFile *lf) {
+	//TODO
 	free(lf->i1);
 	free(lf->i2);
 	free(lf->i3);
@@ -35,13 +37,14 @@ void free_LineFile(struct LineFile *lf) {
 	free(lf);
 }
 
+//this function need to be changed when ix or dx or xxx varied.
 struct LineFile *init_LineFile(void) {
 	struct LineFile *lf = malloc(sizeof(struct LineFile));
 	assert(lf != NULL);
-
 	lf->linesNum = 0;
 	lf->memNum = 0;
 	lf->filename = NULL;
+	//TODO
 	lf->i1 = NULL;
 	lf->i2 = NULL;
 	lf->i3 = NULL;
@@ -63,6 +66,7 @@ struct LineFile *init_LineFile(void) {
 	return lf;
 }
 
+//this function need to be changed when ix or dx or xxx varied.
 static void set_ilist_LineFile(int ***ilist, struct LineFile *lf) {
 	ilist[0] = &(lf->i1);
 	ilist[1] = &(lf->i2);
@@ -74,7 +78,6 @@ static void set_ilist_LineFile(int ***ilist, struct LineFile *lf) {
 	ilist[7] = &(lf->i8);
 	ilist[8] = &(lf->i9);
 }
-
 static void set_dlist_LineFile(double ***dlist, struct LineFile *lf) {
 	dlist[0] = &(lf->d1);
 	dlist[1] = &(lf->d2);
@@ -86,7 +89,6 @@ static void set_dlist_LineFile(double ***dlist, struct LineFile *lf) {
 	dlist[7] = &(lf->d8);
 	dlist[8] = &(lf->d9);
 }
-
 static void add_memory_LineFile(struct LineFile *lf, int ***ilist, double ***dlist) {
 	int i;
 	for (i=0; i<ILIMIT; ++i) {
@@ -105,12 +107,10 @@ static void add_memory_LineFile(struct LineFile *lf, int ***ilist, double ***dli
 	}
 	lf->memNum += LINES_STEP;
 }
-
 static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist, int ***ilist, double ***dlist) {
 	int ii = 0;
 	int di = 0;
 	int i;
-
 	for (i = 0; i < vn; ++i) {
 		int type = typelist[i];
 		switch(type) {
@@ -141,7 +141,6 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist, int
 	}
 	lf->memNum += LINES_STEP;
 }
-
 static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 	char *line = buffer;
 	*lread = 0;
@@ -150,7 +149,6 @@ static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 		++(*lread);
 	}
 }
-
 static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lread) {
 	int i,j;
 	char *line = buffer;
@@ -163,8 +161,7 @@ static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lre
 		line += LINE_LENGTH;
 	}
 }
-
-static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist, int ***ilist, double ***dlist, int lread, int vn) {
+static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist, int ***ilist, double ***dlist, int lread, int vn, char *isok) {
 	int i,j;
 	int IL = 0;
 	int DL = 0;
@@ -181,7 +178,8 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 				for (j = 0; j < lread; ++j) {
 					l[j+lf->linesNum] = strtol(p[j], &pend, 10);
 					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("\tline %ld not valid.\n", j+lf->linesNum);
+						printf("create LineFile =>> %s file, line: %ld, int part: %d.\n", lf->filename, j+lf->linesNum, IL);
+						*isok = 0;
 					}
 				}
 				break;
@@ -190,27 +188,34 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 				for (j = 0; j < lread; ++j) {
 					d[j+lf->linesNum] = strtod(p[j], &pend);
 					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("\tline %ld not valid.\n", j+lf->linesNum);
+						printf("create LineFile =>> %s file, line: %ld, double part: %d.\n", lf->filename, j+lf->linesNum, IL);
+						*isok = 0;
 					}
 				}
 				break;
-
+			default:
+				isError("wrong type in set_lf_LineFile");
 		}
 	}
 	lf->linesNum += lread;
 }
 
 struct LineFile *create_LineFile(char *filename, ...) {
+	//check filename.
 	FILE *fp = fopen(filename, "r");
 	fileError(fp, "create_LineFile");
 
+	//the return lf.
 	struct LineFile *lf = init_LineFile();
+	lf->filename = filename;
 
+	//get ilist and dlist.
 	int **ilist[ILIMIT];
 	double **dlist[DLIMIT];
 	set_ilist_LineFile(ilist, lf);
 	set_dlist_LineFile(dlist, lf);
 
+	//get typelist.
 	int typelist[ILIMIT + DLIMIT];
 	va_list vl;
 	va_start(vl, filename);
@@ -220,13 +225,15 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	}
 	va_end(vl);
 
+	//set lf memory with typelist.
 	init_memory_LineFile(lf, vn, typelist, ilist, dlist);
 
+	//buffer used to read file.
+	char isok = 1;
 	char *buffer = malloc(LINE_LENGTH * LINES_READIN * sizeof(char));
 	assert(buffer != NULL);
 	char **allparts = malloc(vn * LINES_READIN * sizeof(void *));
 	assert(allparts != NULL);
-
 	int lread = LINES_READIN;
 	while (lread == LINES_READIN) {
 		set_buffer_LineFile(fp, buffer, &lread);
@@ -234,29 +241,30 @@ struct LineFile *create_LineFile(char *filename, ...) {
 			add_memory_LineFile(lf, ilist, dlist);
 		}
 		set_allparts_LineFile(buffer, allparts, vn, lread);
-		set_lf_LineFile(lf, allparts, typelist, ilist, dlist, lread, vn);
+		set_lf_LineFile(lf, allparts, typelist, ilist, dlist, lread, vn, &isok);
 	}
 	free(buffer);
 	free(allparts);
 	fclose(fp);
 
-	lf->filename = filename;
+	if (!isok) {
+		printf("create Linefile =>> %s has some non-valid lines, program stop.\n", lf->filename);
+		exit(-1);
+	}
+
+	printf("create Linefile =>> read %s successfully.\n", lf->filename);
 	return lf;
 }
 
 void print_LineFile(struct LineFile *lf, char *filename) {
-	int **ilist[ILIMIT];
-	double **dlist[DLIMIT];
-	int i;
-	long j;
-
-
 	FILE *fp = fopen(filename, "w");
 	fileError(fp, "print_LineFile");
-
+	int **ilist[ILIMIT];
+	double **dlist[DLIMIT];
 	set_ilist_LineFile(ilist, lf);
 	set_dlist_LineFile(dlist, lf);
-
+	int i;
+	long j;
 	for (j = 0; j < lf->linesNum; ++j) {
 		for (i=0; i<ILIMIT; ++i) {
 			if (*(ilist[i]) != NULL) {

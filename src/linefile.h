@@ -2,6 +2,12 @@
  * this file is used to read text file into struct LineFile.
  * struct LineFile has its limit. for now, at most, it can process a line with 9 int and 9 double.
  * lines will be seprated into parts with "\t", space, ":", "\n", ",".
+ *
+ * when you want to read a file, just use create_LineFile, with right parameters.
+ * when you use a struct LineFile, you should have a purpose.
+ * 	for example, use lf(a struct LineFile object) to create a iidNet, then you should use i1,i2,d1.
+ * 		then you should check lf->i1, lf->i2, lf->d1 != NULL.
+ * 			if any one of these three is NULL, there is something wrong.
  * 
  *  Author: RuiXiao <xrfind@gmail.com>
  */
