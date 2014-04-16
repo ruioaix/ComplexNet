@@ -30,13 +30,13 @@
 #include "bip.h"
 #include "mtprand.h"
 
-void create_2dataset(char *netfilename, struct iiBip **traini1, struct iiBip **traini2, struct iiBip **testi1, struct iiBip **testi2) {
+void create_2dataset(char *netfilename, struct iiBip **traini1, struct iiBip **traini2, struct iiBip **testi1, struct iiBip **testi2, double rate) {
 	struct LineFile *netfile = create_LineFile(netfilename, 1, 1, -1);
 	struct iiBip *neti1 = create_iiBip(netfile, 1);
 	struct iiBip *neti2 = create_iiBip(netfile, 2);
 	free_LineFile(netfile);
 	struct LineFile *first, *second;
-	divide_iiBip(neti1, neti2, 0.1, &first, &second);
+	divide_iiBip(neti1, neti2, rate, &first, &second);
 	free_iiBip(neti1);
 	free_iiBip(neti2);
 	*traini1 = create_iiBip(second, 1);
@@ -60,17 +60,15 @@ void get_ItemSimilarity(struct iiBip *traini1, struct iiBip *traini2, struct iid
 	free_LineFile(itemSimilarityfile);
 }
 
-void test_ArgcArgv(int argc, char **argv, char **netfilename, int *begin, int *end) {
+void test_ArgcArgv(int argc, char **argv, char **netfilename, double *rate) {
 	if (argc == 1) {
-		*netfilename = "netflix_2c";
-		*begin = 3;
-		*end = 5;
+		*netfilename = "../movielens/movielens_943_1574_82520";
+		*rate = 0.1;
 	}
-	else if (argc == 4) {
+	else if (argc == 3) {
 		*netfilename = argv[1];
 		char *p;
-		*begin = strtod(argv[2], &p);
-		*end = strtod(argv[3], &p);
+		*rate = strtod(argv[2], &p);
 	}
 	else {
 		isError("wrong argc, argv.\n");
@@ -82,12 +80,12 @@ int main(int argc, char **argv)
 	print_time();
 	//set_timeseed_MTPR();
 
-	int begin, end;
+	double rate;
 	char *netfilename;
-	test_ArgcArgv(argc, argv, &netfilename, &begin, &end); 
+	test_ArgcArgv(argc, argv, &netfilename, &rate); 
 
 	struct iiBip *traini1, *traini2, *testi1, *testi2;
-	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2);
+	create_2dataset(netfilename, &traini1, &traini2, &testi1, &testi2, rate);
 
 	struct iidNet *userSim, *itemSim=NULL;
 	get_UserSimilarity(traini1, traini2, &userSim);
@@ -95,7 +93,8 @@ int main(int argc, char **argv)
 	
 	sort_desc_iidNet(userSim);
 
-	mass_getBK_iiBip(traini1, traini2, testi1, testi2, userSim, begin, end);
+	int *BK = mass_getBK_iiBip(traini1, traini2, testi1, testi2, userSim, rate);
+	free(BK);
 
 	free_iiBip(traini1);
 	free_iiBip(traini2);

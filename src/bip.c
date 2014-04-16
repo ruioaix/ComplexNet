@@ -719,63 +719,6 @@ static void mass_recommend_iiBip(struct iiBip_recommend_param *args) {
 	}
 }
 
-//three-step random walk of Probs
-static void mass_topk_recommend_iiBip(struct iiBip_recommend_param *args) {
-
-	int i1 = args->i1;
-    struct iidNet *userSim = args->userSim;
-	int topR = args->mass_topk;
-
-	double * i1source = args->i1source;
-	double *i2source = args->i2source;
-
-	int **i1ids = args->traini1->edges;
-	int **i2ids = args->traini2->edges; 
-	int i1maxId = args->traini1->maxId;
-	int i2maxId = args->traini2->maxId;
-	long *i1count = args->traini1->count;
-	long *i2count = args->traini2->count;
-
-	int i, j, neigh;
-	long degree;
-	double source;
-	//one 
-	memset(i2source, 0, (i2maxId+1)*sizeof(double));
-	for (j=0; j<i1count[i1]; ++j) {
-		neigh = i1ids[i1][j];
-		i2source[neigh] = 1.0;
-	}
-	//two
-	memset(i1source, 0, (i1maxId+1)*sizeof(double));
-	for (i=0; i<i2maxId + 1; ++i) {
-		if (i2source[i]) {
-			degree = i2count[i];
-			source = i2source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = i2ids[i][j];
-				i1source[neigh] += source;
-			}
-		}
-	}
-	//three
-	memset(i2source, 0, (i2maxId+1)*sizeof(double));
-	long k;
-	for (k=0; k<userSim->count[i1]; ++k) {
-		i = userSim->edges[i1][k];
-		if (k < topR) {
-			degree = i1count[i];
-			source = (double)i1source[i]/(double)degree;
-			for (j=0; j<degree; ++j) {
-				neigh = i1ids[i][j];
-				i2source[neigh] += source;
-			}
-		}
-		else {
-			break;
-		}
-	}
-}
-
 //three-step random walk of heats
 static void heats_recommend_iiBip(struct iiBip_recommend_param *args) {
 	int i1 = args->i1;
@@ -994,16 +937,125 @@ static void hybrid_recommend_iiBip(struct iiBip_recommend_param *args) {
 	}
 }
 
+static void mass_topk_recommend_iiBip(struct iiBip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topk = args->mass_topk;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+
+	int **i1ids = args->traini1->edges;
+	int **i2ids = args->traini2->edges; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k < topk) {
+			degree = i1count[i];
+			source = (double)i1source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+	}
+}
+
+static void mass_hs_recommend_iiBip(struct iiBip_recommend_param *args) {
+
+	int i1 = args->i1;
+    struct iidNet *userSim = args->userSim;
+	int topk = args->mass_topk;
+
+	double * i1source = args->i1source;
+	double *i2source = args->i2source;
+
+	int **i1ids = args->traini1->edges;
+	int **i2ids = args->traini2->edges; 
+	int i1maxId = args->traini1->maxId;
+	int i2maxId = args->traini2->maxId;
+	long *i1count = args->traini1->count;
+	long *i2count = args->traini2->count;
+
+	int i, j, neigh;
+	long degree;
+	double source;
+	//one 
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	for (j=0; j<i1count[i1]; ++j) {
+		neigh = i1ids[i1][j];
+		i2source[neigh] = 1.0;
+	}
+	//two
+	memset(i1source, 0, (i1maxId+1)*sizeof(double));
+	for (i=0; i<i2maxId + 1; ++i) {
+		if (i2source[i]) {
+			degree = i2count[i];
+			source = i2source[i]/(double)degree;
+			for (j=0; j<degree; ++j) {
+				neigh = i2ids[i][j];
+				i1source[neigh] += source;
+			}
+		}
+	}
+	//three
+	memset(i2source, 0, (i2maxId+1)*sizeof(double));
+	long k;
+	for (k=0; k<userSim->count[i1]; ++k) {
+		i = userSim->edges[i1][k];
+		if (k < topk) {
+			degree = i1count[i];
+			source = (double)i1source[i]/((double)degree*k);
+			for (j=0; j<degree; ++j) {
+				neigh = i1ids[i][j];
+				i2source[neigh] += source;
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
 
 /** 
  * core function of recommendation.
  * type :
- * 1  -- mass (NONE arg)
- * 3  -- mass_corK (under development)
- * 4  -- heats (NONE arg)
- * 5  -- HNBI  (double HNBI_param)
- * 6  -- RENBI  (RENBI_param)
- * 7  -- hybrid (hybrid_param)
+ *   -- mass (NONE arg)
+ *   -- heats (NONE arg)
+ *   -- HNBI  (double HNBI_param)
+ *   -- RENBI  (RENBI_param)
+ *   -- hybrid (hybrid_param)
+ *   -- topk 
+ *   -- hs
  *
  * all L is from this function. if you want to change, change the L below.
  */
@@ -1146,7 +1198,8 @@ struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2,
 	return recommend_iiBip(hybrid_recommend_iiBip, &param);
 }
 
-int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim) {
+
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, double rate) {
 	printf("calculate BK begin =>> ");
 	print_time();
 
@@ -1203,7 +1256,6 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 					bPL = PL;
 				}
 			}
-			fclose(fp);
 			
 			total_bR += bR;
 			total_R += R;
@@ -1217,14 +1269,40 @@ int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip
 			best[i] = -1;
 		}
 	}
-	printf("BR result =>> Best R: %f, normal R: %f, Best PL: %f, normal PL: %f\n", total_bR/testi1->edgesNum, total_R/testi1->edgesNum, total_bPL/testi1->edgesNum, total_PL/testi1->edgesNum);
+	printf("BR result =>> Rate: %f, Best R: %f, normal R: %f, Best PL: %f, normal PL: %f\n", rate, total_bR/testi1->edgesNum, total_R/testi1->edgesNum, total_bPL/testi1->edgesNum, total_PL/testi1->edgesNum);
 
 	free(i1source);
 	free(i2source);
 	free(rank);
 	free(i2id);
 	free(topL);
-	printf("calculate BK done =>> \n");
+	printf("calculate BK done =>> ");
 	print_time();
 	return best;
+}
+
+struct Metrics_iiBip *mass_topk_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk) {
+	struct iiBip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_topk = topk;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_iiBip(mass_topk_recommend_iiBip, &param);
+}
+
+struct Metrics_iiBip *mass_hs_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk) {
+	struct iiBip_recommend_param param;
+	param.userSim = userSim;
+	param.itemSim = itemSim;
+	param.mass_topk = topk;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+	param.testi1 = testi1;
+
+	return recommend_iiBip(mass_hs_recommend_iiBip, &param);
 }

@@ -84,5 +84,9 @@ struct Metrics_iiBip *RENBI_iiBip(struct iiBip *traini1, struct iiBip *traini2, 
 
 struct Metrics_iiBip *hybrid_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *trainSim, double hybrid_param);
 
-int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim);
+int *mass_getBK_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, double rate);
+
+struct Metrics_iiBip *mass_topk_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk);
+struct Metrics_iiBip *mass_hs_iiBip(struct iiBip *traini1, struct iiBip *traini2, struct iiBip *testi1, struct iiBip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk);
+
 #endif
