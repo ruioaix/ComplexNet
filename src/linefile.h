@@ -8,6 +8,12 @@
  * 	for example, use lf(a struct LineFile object) to create a iidNet, then you should use i1,i2,d1.
  * 		then you should check lf->i1, lf->i2, lf->d1 != NULL.
  * 			if any one of these three is NULL, there is something wrong.
+ *
+ * when you get a file contains only 2 parts in a line, but you use create_LineFile(xx, 1, 1, 1, -1);
+ * 	then you get -1 for each i3[x];
+ *
+ * when you get a file contains 3 parts in a line, but you use create_LineFile(xx, 1, 1, -1);
+ * 	then you only fetch the first 2 parts from each line. lf->i3 will be NULL.
  * 
  *  Author: RuiXiao <xrfind@gmail.com>
  */

@@ -1640,7 +1640,7 @@ struct Metrics_Bip *mass_hs_Bip(struct Bip *traini1, struct Bip *traini2, struct
 	return recommend_Bip(mass_hs_recommend_Bip, &param);
 }
 
-struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, int maxscore, int mass_score) {
+struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, int maxscore, double mass_score) {
 	struct Bip_recommend_param param;
 	param.itemSim = itemSim;
 	param.mass_score = mass_score;
@@ -1654,7 +1654,7 @@ struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, str
 	return recommend_Bip(mass_score_recommend_Bip, &param);
 }
 
-struct Metrics_Bip *mass_scoret3step_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, int mass_score) {
+struct Metrics_Bip *mass_scoret3step_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, double mass_score) {
 	struct Bip_recommend_param param;
 	param.itemSim = itemSim;
 	param.mass_score = mass_score;
@@ -1666,7 +1666,7 @@ struct Metrics_Bip *mass_scoret3step_Bip(struct Bip *traini1, struct Bip *traini
 	return recommend_Bip(mass_scoret3step_recommend_Bip, &param);
 }
 
-struct Metrics_Bip *mass_degree_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, int mass_score) {
+struct Metrics_Bip *mass_degree_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, double mass_score) {
 	struct Bip_recommend_param param;
 	param.itemSim = itemSim;
 	param.mass_score = mass_score;
