@@ -44,9 +44,11 @@ struct Bip {
 //i1 and i2 is the data in LineFile.
 //if index is 2, means i2 is the index.
 struct Bip *create_Bip(const struct LineFile * const file, int index);
+void sort_desc_Bip(struct Bip *bip);
 void free_Bip(struct Bip *bip);
 struct Bip * clone_Bip(struct Bip *bip);
 void verify_Bip(struct Bip *bipi1, struct Bip *bipi2);
+void print_Bip(struct Bip *bip, char *filename);
 
 //the dividation will guarantee that: 
 //	for each available user(degree of this user is at least one), at least there will be an edge in big part.

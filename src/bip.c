@@ -162,6 +162,24 @@ struct Bip *create_Bip(const struct LineFile * const lf, int index) {
 	return Bip;
 }
 
+void sort_desc_Bip(struct Bip *bip) {
+	int i;
+	if (bip->score != NULL) {
+		for (i = 0; i < bip->maxId + 1; ++i) {
+			if (bip->count[i]) {
+				qsort_ii_desc(bip->edges[i], 0, bip->count[i] - 1, bip->score[i]);
+			}
+		}
+	}
+	else {
+		for (i = 0; i < bip->maxId + 1; ++i) {
+			if (bip->count[i]) {
+				qsort_i_desc(bip->edges[i], 0, bip->count[i] - 1);
+			}
+		}
+	}
+}
+
 void free_Bip(struct Bip *bip) {
 	int i=0;
 	for(i=0; i<bip->maxId+1; ++i) {
@@ -270,6 +288,25 @@ void verify_Bip(struct Bip *bipi1, struct Bip *bipi2) {
 	else {
 		printf("verifyBip: perfect network.\n");
 	}
+}
+
+void print_Bip(struct Bip *bip, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_Bip");
+	int i;
+	long j;
+	for (i = 0; i < bip->maxId + 1; ++i) {
+		for (j = 0; j < bip->count[i]; ++j) {
+			fprintf(fp, "%d\t%d", i, bip->edges[i][j]);
+			if (bip->score != NULL) {
+				fprintf(fp, "\t%d\n", bip->score[i][j]);
+			}
+			else {
+				fprintf(fp, "\n");
+			}
+		}
+	}
+	fclose(fp);
 }
 
 //divide Bip into two parts.

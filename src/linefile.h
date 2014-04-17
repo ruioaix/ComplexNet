@@ -55,6 +55,8 @@ struct LineFile {
 struct LineFile *create_LineFile(char * filename, ...);
 struct LineFile *init_LineFile(void);
 
+struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2);
+
 /// print the struct LineFile's content into a file
 void print_LineFile(struct LineFile *lf, char *filename);
 

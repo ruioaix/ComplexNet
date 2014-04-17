@@ -1,5 +1,6 @@
 #include "base.h"
 #include "linefile.h"
+#include "sort.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
@@ -174,22 +175,31 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 		switch(type) {
 			case 1:
 				l = *(ilist[IL++]);
-				//printf("x%ldxx\n", lf->linesNum);fflush(stdout);
 				for (j = 0; j < lread; ++j) {
-					l[j+lf->linesNum] = strtol(p[j], &pend, 10);
-					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
-						*isok = 0;
+					if (p[j] != NULL) {
+						l[j+lf->linesNum] = strtol(p[j], &pend, 10);
+						if (pend[0]!='\0') {
+							printf("create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
+							*isok = 0;
+						}
+					}
+					else {
+						l[j+lf->linesNum] = -1;
 					}
 				}
 				break;
 			case 2:
 				d = *(dlist[DL++]);
 				for (j = 0; j < lread; ++j) {
-					d[j+lf->linesNum] = strtod(p[j], &pend);
-					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
-						*isok = 0;
+					if (p[j] != NULL) {
+						d[j+lf->linesNum] = strtod(p[j], &pend);
+						if (pend[0]!='\0') {
+							printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							*isok = 0;
+						}
+					}
+					else {
+						d[j+lf->linesNum] = -1;
 					}
 				}
 				break;
@@ -279,4 +289,70 @@ void print_LineFile(struct LineFile *lf, char *filename) {
 		fprintf(fp, "\n");
 	}
 	fclose(fp);
+}
+
+struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2) {
+	if (lf1 == NULL || lf2 == NULL || lf1->linesNum < 1 || lf2->linesNum < 1) isError("add_LineFile");
+
+	struct LineFile *lf = init_LineFile();
+
+	int **ilist[ILIMIT];
+	double **dlist[DLIMIT];
+	set_ilist_LineFile(ilist, lf);
+	set_dlist_LineFile(dlist, lf);
+
+	int **ilist1[ILIMIT];
+	double **dlist1[DLIMIT];
+	set_ilist_LineFile(ilist1, lf1);
+	set_dlist_LineFile(dlist1, lf1);
+
+	int **ilist2[ILIMIT];
+	double **dlist2[DLIMIT];
+	set_ilist_LineFile(ilist2, lf2);
+	set_dlist_LineFile(dlist2, lf2);
+
+	lf->linesNum = lf1->linesNum + lf2->linesNum;
+
+	int i;
+	long j;
+	for (i=0; i<ILIMIT; ++i) {
+		if (*(ilist1[i]) != NULL && *(ilist2[i]) != NULL) {
+			*(ilist[i]) = malloc((lf->linesNum)*sizeof(int));
+			assert(*(ilist[i]) != NULL);
+			for (j = 0; j < lf1->linesNum; ++j) {
+				(*(ilist[i]))[j] = (*(ilist1[i]))[j];
+			}
+			for (j = 0; j < lf2->linesNum; ++j) {
+				(*(ilist[i]))[j+lf1->linesNum] = (*(ilist2[i]))[j];
+			}
+		}
+		else if (*(ilist1[i]) == NULL && *(ilist2[i]) == NULL) {
+			//*(ilist[i]) == NULL;
+		}
+		else {
+			isError("lf1 and lf2 have different Structures, can not add lf1 with lf2.");
+		}
+	}
+	for (i=0; i<DLIMIT; ++i) {
+		if (*(dlist1[i]) != NULL && *(dlist2[i]) != NULL) {
+			*(dlist[i]) = malloc((lf1->linesNum + lf2->linesNum)*sizeof(double));
+			assert(*(dlist[i]) != NULL);
+			for (j = 0; j < lf1->linesNum; ++j) {
+				(*(dlist[i]))[j] = (*(dlist1[i]))[j];
+			}
+			for (j = 0; j < lf2->linesNum; ++j) {
+				(*(dlist[i]))[j+lf1->linesNum] = (*(dlist2[i]))[j];
+			}
+		}
+		else if (*(dlist1[i]) == NULL && *(dlist2[i]) == NULL) {
+			//*(dlist[i]) == NULL;
+		}
+		else {
+			isError("lf1 and lf2 have different Structures, can not add lf1 with lf2.");
+		}
+	}
+
+	lf->memNum = lf->linesNum;
+	lf->filename = "addlinefile";
+	return lf;
 }

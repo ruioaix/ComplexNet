@@ -26,12 +26,18 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir score-3methods
+#all: dir score-3methods
+all: dir test-dividebip
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
 
 #################################################################
+MAIN_TEST_SRC = $(wildcard main/test/*.c)
+MAIN_TEST_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TEST_SRC)))
+$(MAIN_TEST_EXEC) : test-% : $(SRC_OBJ) obj/main/test/%.o 
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
 MAIN_SCORE_SRC = $(wildcard main/score/*.c)
 MAIN_SCORE_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_SCORE_SRC)))
 $(MAIN_SCORE_EXEC) : score-% : $(SRC_OBJ) obj/main/score/%.o 

@@ -23,4 +23,6 @@ extern void memError(void *p, const char * const errormsg);
 extern void isError(const char * const errormsg);
 /********************************************************************************************************/
 
+void print_label(void);
+
 #endif

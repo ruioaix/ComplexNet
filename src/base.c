@@ -32,3 +32,8 @@ void isError(const char * const errormsg)
 	exit(EXIT_FAILURE);
 }
 /********************************************************************************************************/
+
+void print_label(void) {
+	printf("xxxx====xxxx\n");
+	fflush(stdout);
+}
