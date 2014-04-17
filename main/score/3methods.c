@@ -140,10 +140,10 @@ int main(int argc, char **argv)
 
 		int L = r1->L;
 		long len = L*(traini1->maxId + 1);
-		for (j=0; j<L*(traini1->maxId + 1); ++j) {
-			aveScore1 += score[r1->topL[j]]/len;
-			aveScore2 += score[r2->topL[j]]/len;
-			aveScore3 += score[r3->topL[j]]/len;
+		for (i=0; i<L*(traini1->maxId + 1); ++i) {
+			aveScore1 += score[r1->topL[i]]/len;
+			aveScore2 += score[r2->topL[i]]/len;
+			aveScore3 += score[r3->topL[i]]/len;
 		}
 		
 		free_Bip(traini1);

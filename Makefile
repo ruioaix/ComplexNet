@@ -26,8 +26,8 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-#all: dir score-3methods
-all: dir test-dividebip
+all: dir score-3methods
+#all: dir test-dividebip
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
