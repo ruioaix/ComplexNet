@@ -5,9 +5,12 @@
 5
 6
 
-data/*
-result/*
-script/*
+data/
+result/
+script/
+temp/
+backup/
+obj/
 
 *.eps
 *.swp
@@ -22,12 +25,6 @@ onion-*
 tool-*
 tdpotn-*
 score-*
-
-temp/*
-backup/*
-obj/*
-
-output*
-*output
+test-*
 
 tags
