@@ -1124,7 +1124,7 @@ static void mass_hs_recommend_Bip(struct Bip_recommend_param *args) {
 
 static void mass_score_recommend_Bip(struct Bip_recommend_param *args) {
 	int i1 = args->i1;
-	double * i1source = args->i1source;
+	double *i1source = args->i1source;
 	double *i2source = args->i2source;
 	int **i1ids = args->traini1->edges;
 	int **i2ids = args->traini2->edges; 
@@ -1139,7 +1139,7 @@ static void mass_score_recommend_Bip(struct Bip_recommend_param *args) {
 	double *i1sourceA = args->i1sourceA;
 	double *i2sourceA = args->i2sourceA;
 	
-	int **score = args->traini1->score;
+	int **score = args->traini2->score;
 	if (score == NULL) isError("mass_score_recommend_Bip");
 
 	int *i2id = args->i2id;
@@ -1169,6 +1169,7 @@ static void mass_score_recommend_Bip(struct Bip_recommend_param *args) {
 			totalsource = 0;
 			for (j=0; j<degree; ++j) {
 				neigh = i2ids[i][j];
+				//i1sourceA[neigh] = pow(maxscore - fabs(0-i2id[i]), theta); 
 				i1sourceA[neigh] = pow(maxscore - fabs(score[i][j]-i2id[i]), theta); 
 				totalsource += i1sourceA[neigh];
 			}
@@ -1178,6 +1179,7 @@ static void mass_score_recommend_Bip(struct Bip_recommend_param *args) {
 			}
 		}
 	}
+	//printf("xxxo\n");fflush(stdout);
 	
 	//three
 	memset(i2source, 0, (i2maxId+1)*sizeof(double));
@@ -1215,7 +1217,7 @@ static void mass_scoret3step_recommend_Bip(struct Bip_recommend_param *args) {
 	double *i2sourceA = args->i2sourceA;
 	
 	int **score = args->traini1->score;
-	if (score == NULL) isError("mass_score_recommend_Bip");
+	if (score == NULL) isError("mass_scoret3step_recommend_Bip");
 
 
 	int i, j, neigh;
@@ -1276,7 +1278,7 @@ static void mass_degree_recommend_Bip(struct Bip_recommend_param *args) {
 	double *i2sourceA = args->i2sourceA;
 	
 	int **score = args->traini1->score;
-	if (score == NULL) isError("mass_score_recommend_Bip");
+	if (score == NULL) isError("mass_degree_recommend_Bip");
 
 
 	int i, j, neigh;
@@ -1387,7 +1389,6 @@ static struct Metrics_Bip *recommend_Bip(void (*recommend_core)(struct Bip_recom
 			recommend_core(args);
 			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
 			metrics_R_PL_Bip(i, i1count, /*i2maxId*/i2idNum, args->testi1, L, rank, &R, &PL);
-
 		}
 		//printf("%d\t", i);fflush(stdout);
 	}
@@ -1595,6 +1596,7 @@ struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, str
 	param.traini2 = traini2;
 	param.testi1 = testi1;
 
+	//return recommend_Bip(mass_recommend_Bip, &param);
 	return recommend_Bip(mass_score_recommend_Bip, &param);
 }
 

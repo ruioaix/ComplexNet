@@ -48,8 +48,8 @@ void get_ItemSimilarity(struct Bip *traini1, struct Bip *traini2, struct iidNet 
 
 void test_ArgcArgv(int argc, char **argv, char **netfilename, int *loopNum, int *maxscore) {
 	if (argc == 1) {
-		*netfilename = "../movielens/movielens_3c";
-		*loopNum = 10;
+		*netfilename = "repo/stage1/data/movielens/movielens_3c";
+		*loopNum = 3;
 		*maxscore = 5;
 	}
 	else if (argc == 4) {
@@ -66,7 +66,7 @@ void test_ArgcArgv(int argc, char **argv, char **netfilename, int *loopNum, int 
 int main(int argc, char **argv)
 {
 	print_time();
-	set_timeseed_MTPR();
+	//set_timeseed_MTPR();
 
 	char *netfilename;
 	int loopNum, maxscore;

@@ -178,7 +178,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 				for (j = 0; j < lread; ++j) {
 					l[j+lf->linesNum] = strtol(p[j], &pend, 10);
 					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("create LineFile =>> %s file, line: %ld, int part: %d.\n", lf->filename, j+lf->linesNum, IL);
+						printf("create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
 						*isok = 0;
 					}
 				}
@@ -188,7 +188,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 				for (j = 0; j < lread; ++j) {
 					d[j+lf->linesNum] = strtod(p[j], &pend);
 					if (pend[0]!='\0' || p[j] == NULL) {
-						printf("create LineFile =>> %s file, line: %ld, double part: %d.\n", lf->filename, j+lf->linesNum, IL);
+						printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
 						*isok = 0;
 					}
 				}
