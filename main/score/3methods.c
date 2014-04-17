@@ -46,17 +46,19 @@ void get_ItemSimilarity(struct Bip *traini1, struct Bip *traini2, struct iidNet 
 	free_LineFile(itemSimilarityfile);
 }
 
-void test_ArgcArgv(int argc, char **argv, char **netfilename, int *loopNum, int *maxscore) {
+void test_ArgcArgv(int argc, char **argv, char **netfilename, int *loopNum, int *maxscore, double *theta) {
 	if (argc == 1) {
 		*netfilename = "repo/stage1/data/movielens/movielens_3c";
-		*loopNum = 3;
+		*loopNum = 2;
 		*maxscore = 5;
+		*theta = 0;
 	}
-	else if (argc == 4) {
+	else if (argc == 5) {
 		*netfilename = argv[1];
 		char *p;
 		*loopNum = strtol(argv[2], &p, 10);
 		*maxscore = strtol(argv[3], &p, 10);
+		*theta = strtod(argv[4], &p);
 	}
 	else {
 		isError("wrong argc, argv.\n");
@@ -70,7 +72,8 @@ int main(int argc, char **argv)
 
 	char *netfilename;
 	int loopNum, maxscore;
-	test_ArgcArgv(argc, argv, &netfilename, &loopNum, &maxscore); 
+	double theta; 
+	test_ArgcArgv(argc, argv, &netfilename, &loopNum, &maxscore, &theta); 
 
 	struct LineFile *netfile = create_LineFile(netfilename, 1, 1, 1, -1);
 	struct Bip *neti1 = create_Bip(netfile, 1);
@@ -93,72 +96,77 @@ int main(int argc, char **argv)
 	struct Metrics_Bip *s3stp_result = create_MetricsBip();
 	struct Metrics_Bip *degre_result = create_MetricsBip();
 
-	double theta;
-	for(i=0; i<25; ++i) {
-		theta = i*0.1;
-		clean_MetricsBip(score_result);
-		clean_MetricsBip(s3stp_result);
-		clean_MetricsBip(degre_result);
-		double aveScore1 = 0;
-		double aveScore2 = 0;
-		double aveScore3 = 0;
+	clean_MetricsBip(score_result);
+	clean_MetricsBip(s3stp_result);
+	clean_MetricsBip(degre_result);
+	double aveScore1 = 0;
+	double aveScore2 = 0;
+	double aveScore3 = 0;
 
-		for (j=0; j<loopNum; ++j) {
-			struct LineFile *first, *second;
-			divide_Bip(neti1, neti2, 0.1, &first, &second);
-			struct Bip *traini1 = create_Bip(second, 1);
-			struct Bip *traini2 = create_Bip(second, 2);
-			struct Bip *testi1 = create_Bip(first, 1);
-			struct Bip *testi2 = create_Bip(first, 2);
-			free_LineFile(first);
-			free_LineFile(second);
+	for (j=0; j<loopNum; ++j) {
 
-			struct LineFile *simfile = similarity_Bip(traini1, traini2, 2);
-			struct iidNet *itemSim = create_iidNet(simfile);
-			free_LineFile(simfile);
+		struct LineFile *first, *second;
+		divide_Bip(neti1, neti2, 0.1, &first, &second);
+		struct Bip *traini1 = create_Bip(second, 1);
+		struct Bip *traini2 = create_Bip(second, 2);
+		struct Bip *testi1 = create_Bip(first, 1);
+		struct Bip *testi2 = create_Bip(first, 2);
+		free_LineFile(first);
+		free_LineFile(second);
 
-			struct Metrics_Bip *r1 = mass_score_Bip(traini1, traini2, testi1, testi2, itemSim, maxscore, theta);
-			struct Metrics_Bip *r2 = mass_scoret3step_Bip(traini1, traini2, testi1, testi2, itemSim, theta);
-			struct Metrics_Bip *r3 = mass_degree_Bip(traini1, traini2, testi1, testi2, itemSim, theta);
+		struct LineFile *simfile = similarity_Bip(traini1, traini2, 2);
+		struct iidNet *itemSim = create_iidNet(simfile);
+		free_LineFile(simfile);
 
-			score_result->R +=  r1->R;
-			score_result->PL += r1->PL;
-			score_result->HL += r1->HL;
-			score_result->IL += r1->IL;
-			score_result->NL += r1->NL;
-			s3stp_result->R +=  r2->R;
-			s3stp_result->PL += r2->PL;
-			s3stp_result->HL += r2->HL;
-			s3stp_result->IL += r2->IL;
-			s3stp_result->NL += r2->NL;
-			degre_result->R +=  r3->R;
-			degre_result->PL += r3->PL;
-			degre_result->HL += r3->HL;
-			degre_result->IL += r3->IL;
-			degre_result->NL += r3->NL;
+		struct Metrics_Bip *r1 = mass_score_Bip(traini1, traini2, testi1, testi2, itemSim, maxscore, theta);
+		struct Metrics_Bip *r2 = mass_scoret3step_Bip(traini1, traini2, testi1, testi2, itemSim, theta);
+		struct Metrics_Bip *r3 = mass_degree_Bip(traini1, traini2, testi1, testi2, itemSim, theta);
 
-			int L = r1->L;
-			long len = L*(traini1->maxId + 1);
-			for (j=0; j<L*(traini1->maxId + 1); ++j) {
-				aveScore1 += score[r1->topL[j]]/len;
-				aveScore2 += score[r2->topL[j]]/len;
-				aveScore3 += score[r3->topL[j]]/len;
-			}
-			
-			free_Bip(traini1);
-			free_Bip(traini2);
-			free_Bip(testi1);
-			free_Bip(testi2);
-			free_iidNet(itemSim);
-			free_MetricsBip(r1);
-			free_MetricsBip(r2);
-			free_MetricsBip(r3);
+		score_result->R +=  r1->R;
+		score_result->PL += r1->PL;
+		score_result->HL += r1->HL;
+		score_result->IL += r1->IL;
+		score_result->NL += r1->NL;
+		s3stp_result->R +=  r2->R;
+		s3stp_result->PL += r2->PL;
+		s3stp_result->HL += r2->HL;
+		s3stp_result->IL += r2->IL;
+		s3stp_result->NL += r2->NL;
+		degre_result->R +=  r3->R;
+		degre_result->PL += r3->PL;
+		degre_result->HL += r3->HL;
+		degre_result->IL += r3->IL;
+		degre_result->NL += r3->NL;
+
+		int L = r1->L;
+		long len = L*(traini1->maxId + 1);
+		for (j=0; j<L*(traini1->maxId + 1); ++j) {
+			aveScore1 += score[r1->topL[j]]/len;
+			aveScore2 += score[r2->topL[j]]/len;
+			aveScore3 += score[r3->topL[j]]/len;
 		}
-		printf("score result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, score_result->R/loopNum, score_result->PL/loopNum, score_result->IL/loopNum, score_result->HL/loopNum, score_result->NL/loopNum, aveScore1/loopNum);
-		printf("s3stp result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, s3stp_result->R/loopNum, s3stp_result->PL/loopNum, s3stp_result->IL/loopNum, s3stp_result->HL/loopNum, s3stp_result->NL/loopNum, aveScore2/loopNum);
-		printf("degre result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, degre_result->R/loopNum, degre_result->PL/loopNum, degre_result->IL/loopNum, degre_result->HL/loopNum, degre_result->NL/loopNum, aveScore3/loopNum);
+		
+		free_Bip(traini1);
+		free_Bip(traini2);
+		free_Bip(testi1);
+		free_Bip(testi2);
+		free_iidNet(itemSim);
+		free_MetricsBip(r1);
+		free_MetricsBip(r2);
+		free_MetricsBip(r3);
 	}
 
+	printf("score result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, score_result->R/loopNum, score_result->PL/loopNum, score_result->IL/loopNum, score_result->HL/loopNum, score_result->NL/loopNum, aveScore1/loopNum);
+	printf("s3stp result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, s3stp_result->R/loopNum, s3stp_result->PL/loopNum, s3stp_result->IL/loopNum, s3stp_result->HL/loopNum, s3stp_result->NL/loopNum, aveScore2/loopNum);
+	printf("degre result =>> lN: %d, theta: %f, R: %f, PL: %f, IL: %f, HL: %f, NL: %f, SL: %f\n", loopNum, theta, degre_result->R/loopNum, degre_result->PL/loopNum, degre_result->IL/loopNum, degre_result->HL/loopNum, degre_result->NL/loopNum, aveScore3/loopNum);
+
+
+	free_MetricsBip(score_result);
+	free_MetricsBip(s3stp_result);
+	free_MetricsBip(degre_result);
+	free_Bip(neti1);
+	free_Bip(neti2);
+	free(score);
 	print_time();
 	return 0;
 }
