@@ -97,4 +97,9 @@ struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, str
 struct Metrics_Bip *mass_scoret3step_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, double mass_score);
 struct Metrics_Bip *mass_degree_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim,  double mass_score);
 
+//rank
+double *mass_score_rank_Bip(struct Bip *traini1, struct Bip *traini2, int maxscore, double mass_score);
+double *mass_scoret3step_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score);
+double *mass_degree_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score);
+
 #endif

@@ -1677,3 +1677,100 @@ struct Metrics_Bip *mass_degree_Bip(struct Bip *traini1, struct Bip *traini2, st
 
 	return recommend_Bip(mass_degree_recommend_Bip, &param);
 }
+
+//just for rank
+static double *rank_Bip(void (*recommend_core)(struct Bip_recommend_param *), struct Bip_recommend_param *args) {
+
+	int i1maxId      = args->traini1->maxId;
+	int i2maxId      = args->traini2->maxId;
+	int i1idNum      = args->traini1->idNum;
+	int i2idNum      = args->traini2->idNum;
+	long *i1count    = args->traini1->count;
+ 	// all L is from this function. if you want to change, change the L below.
+	int L = 50;
+
+	double *i1source = malloc((i1maxId + 1)*sizeof(double));
+	assert(i1source != NULL);
+	double *i2source = malloc((i2maxId + 1)*sizeof(double));
+	assert(i2source != NULL);
+	args->i1source = i1source;
+	args->i2source = i2source;
+
+	double *i2sourceA = malloc((i2maxId + 1)*sizeof(double));
+	assert(i2sourceA != NULL);
+	args->i2sourceA = i2sourceA;
+	double *i1sourceA = malloc((i1maxId + 1)*sizeof(double));
+	assert(i1sourceA != NULL);
+	args->i1sourceA = i1sourceA;
+
+	int *rank = malloc((i2maxId + 1)*sizeof(int));
+	assert(rank != NULL);
+	int *i1id =  malloc((i1maxId + 1)*sizeof(int));
+	assert(i1id != NULL);
+	int *i2id =  malloc((i2maxId + 1)*sizeof(int));
+	assert(i2id != NULL);
+	args->i1id = i1id;
+	args->i2id = i2id;
+
+	int i, j;
+	int *topL = calloc(L*(i1maxId + 1), sizeof(int));
+	assert(topL != NULL);
+
+	double *rankA = calloc((i2maxId + 1), sizeof(double));
+	assert(rankA != NULL);
+
+	for (i = 0; i<i1maxId + 1; ++i) { //each user
+		//if (i%1000 ==0) {printf("%d\n", i);fflush(stdout);}
+		if (i1count[i]) {
+			//get rank
+			args->i1 = i;
+			recommend_core(args);
+			Bip_core_common_part(args, i2id, rank, topL + i*L, L);
+			for (j=0; j<i2maxId + 1; ++j) {
+				rankA[j] += (double)rank[j]/((double)i2idNum*i1idNum);
+			}
+		}
+	}
+
+	free(i1source);
+	free(i2source);
+	free(i1sourceA);
+	free(i2sourceA);
+	free(i1id);
+	free(i2id);
+	free(rank);
+	return rankA;
+}
+
+double *mass_score_rank_Bip(struct Bip *traini1, struct Bip *traini2, int maxscore, double mass_score) {
+	struct Bip_recommend_param param;
+	param.mass_score = mass_score;
+	param.maxscore = maxscore;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+
+	//return recommend_Bip(mass_recommend_Bip, &param);
+	return rank_Bip(mass_score_recommend_Bip, &param);
+}
+
+double *mass_scoret3step_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score) {
+	struct Bip_recommend_param param;
+	//param.itemSim = itemSim;
+	param.mass_score = mass_score;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+
+	return rank_Bip(mass_scoret3step_recommend_Bip, &param);
+}
+
+double *mass_degree_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score) {
+	struct Bip_recommend_param param;
+	param.mass_score = mass_score;
+
+	param.traini1 = traini1;
+	param.traini2 = traini2;
+
+	return rank_Bip(mass_degree_recommend_Bip, &param);
+}
