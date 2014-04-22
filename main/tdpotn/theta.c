@@ -76,6 +76,8 @@ int main (int argc, char **argv) {
 	/********************************************************************************************************/
 
 	int kk;
+	double optimal_alpha = -1;
+	double optimal_asp = LONG_MAX;
 	for (kk = 0; kk < 41; ++kk) {
 		alpha = kk * 0.1;
 
@@ -183,12 +185,17 @@ int main (int argc, char **argv) {
 			}
 		}
 		aveSP /= spNum;
+		if (optimal_asp < aveSP) {
+			optimal_asp = aveSP;
+			optimal_alpha = alpha;
+		}
 		printf("\nresult: %d\t%d\t%f\t%f\t%.9f\n", L, N, theta, alpha, aveSP);
 		free(dis);
 		free_iiNet(net);
 		/********************************************************************************************************/
 
 	}
+	printf("optimal: L: %d, alpha: %f, theta: %f, optimal_asp: %f\n", L, alpha, theta, optimal_alpha);
 	print_time();
 	return 0;
 }
