@@ -26,7 +26,8 @@ CFLAG :=  -g -Wall -Wunused
 
 .PHONY : dir all clean
 
-all: dir tdpotn-theta
+all: dir tdpotn-wair
+#all: dir tdpotn-theta
 #all: dir score-3methods
 #all: dir test-dividebip
 #all: dir $(MAIN_ALL_EXEC)
