@@ -5,6 +5,7 @@
 #include "sort.h"
 #include "mtprand.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
@@ -13,39 +14,121 @@
 
 #define EPS 0.0000001
 
-static void useRate_core_Net(double *sp, char *gs, int **left, int **right, int *lNum, int l2, int *rNum, struct iiNet *net, struct iidNet *air, int *STEP_END) {
+static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int bNum, int nNum, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *air, int *STEP_END) {
 	int i,j;
 	int STEP = 1;
 	while (*lNum && STEP != *STEP_END) {
 		*rNum = 0;
 		++STEP;
-		
+
+		/********************************************************************************************************/
+		for (i = 0; i < nNum; ++i) {
+			int id = nlist[i];
+			if (gs[id] != 3) {
+				if (i != nNum - 1) {
+					nlist[i] = nlist[--nNum];
+					--i;
+				}
+				else {
+					--nNum;
+				}
+			}
+			else if(sp[id] < STEP + 1) {
+				blist[bNum++] = id;
+				gs[id] = 2;
+				if (i != nNum - 1) {
+					nlist[i] = nlist[--nNum];
+					--i;
+				}
+				else {
+					--nNum;
+				}
+			}
+			//else {
+			//	printf("%d\t%f\t%d\n", gs[id], sp[id], STEP);
+			//	isError("useRate_core_Net nlist");
+			//}
+		}
+		/********************************************************************************************************/
+
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
 			for (j=0; j<net->count[id]; ++j) {
 				int neigh = net->edges[id][j];
 				//if gs = 1, neigh is already defined.
-				if (!gs[neigh] ) {
-					sp[neigh] = STEP;
-					(*right)[(*rNum)++] = neigh;
-					gs[neigh] = 1;
+				if (gs[neigh] != 1) {
+					sp[neigh] = fmin(sp[id] + 1, sp[neigh]);
+					if (sp[neigh] == STEP) {
+						(*right)[(*rNum)++] = neigh;
+						gs[neigh] = 1;
+					}
+					else if (sp[neigh] < STEP + 1 && sp[neigh] > STEP) {
+						if (gs[neigh] != 2) {
+							gs[neigh] = 2;
+							blist[bNum++] = neigh;
+						}
+					}
+					else {
+						printf("err: %d\t%f\n", STEP, sp[neigh]);
+						isError("useRate_core_Net");
+					}
 				}
 			}
 			if(id < air->maxId + 1) {
 				for (j=0; j<air->count[id]; ++j) {
 					int neigh = air->edges[id][j];
-					if ( !gs[neigh] ) {
-						sp[neigh] = STEP + air->d[id][j];
-						(*right)[(*rNum)++] = neigh;
+					double airl = air->d[id][j];
+					if (gs[neigh] != 1) {
+						sp[neigh] = fmin(sp[id] + airl, sp[neigh]);
+						if (sp[neigh] == STEP) {
+							(*right)[(*rNum)++] = neigh;
+							gs[neigh] = 1;
+						}
+						else if (sp[neigh] < STEP + 1 && sp[neigh] > STEP) {
+							if (gs[neigh] != 3) {
+								gs[neigh] = 2;
+								blist[bNum++] = neigh;
+							}
+						}
+						else if (sp[neigh] >= STEP + 1) {
+							if (gs[neigh] == 0) {
+								nlist[nNum++] = neigh;
+								gs[neigh] = 3;
+							}
+							else if (gs[neigh] == 3) {
+							}
+							else {
+								isError("useRate_core_Net x");
+							}
+						}
+						else {
+							printf("err: %d\t%d\t%d\t%f\n", STEP, id, neigh, sp[neigh]);
+							isError("useRate_core_Net 2");
+						}
 					}
 				}
 			}
 		}
+
+		for (j = 0; j < bNum; ++j) {
+			int id = blist[j];	
+			if (gs[id] == 2) {
+				(*right)[(*rNum)++] = id;
+				gs[id] = 1;
+			}
+			else if (gs[id] == 1) {
+			}
+			else {
+				printf("err: %d\t%d\t%f\n", gs[id], STEP, sp[id]);
+				isError("useRate_core_Net 3");
+			}
+		}
+		bNum = 0;
+
 		int *tmp = *left;
 		*left = *right;
 		*right = tmp;
 		*lNum = *rNum;
-
 	}
 }
 
@@ -59,22 +142,26 @@ static void get_avesp_Net(struct iiNet *net, struct iidNet *air, double *avesp) 
 	int lNum, rNum;
 
 	char *gs = malloc((net->maxId + 1)*sizeof(char));
+	int *blist = malloc((net->maxId + 1)*sizeof(int));
+	int *nlist = malloc((net->maxId + 1)*sizeof(int));
+	int bNum, nNum;
+	
 
 	*avesp = 0;
 	int cc = 0;
 
 	int i,j;
 	int STEP_END = -1;
+	//FILE *fp = fopen("1", "w"); fileError(fp, "get_avesp_Net");
 	for (i=0; i<net->maxId + 1; ++i) {
 		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		for (j=0; j<net->maxId + 1; ++j) {
-			sp[j] = 0.0;
+			sp[j] = INT_MAX;
 			gs[j] = 0;
 		}
 		sp[i] = -1;
-		gs[i] = -1;
-		lNum = 0;
-		l2 = net->maxId;
+		gs[i] = 1;
+		bNum = nNum = lNum = 0;
 		for (j = 0; j < net->count[i]; ++j) {
 			int to = net->edges[i][j];
 			left[lNum++] = to;
@@ -84,33 +171,41 @@ static void get_avesp_Net(struct iiNet *net, struct iidNet *air, double *avesp) 
 		if (i < air->maxId + 1) {
 			for (j = 0; j < air->count[i]; ++j) {
 				int to = air->edges[i][j];
-				if (!gs[to] ) {
-					if (air->d[i][j] < 2) {
-						sp[to] = air->d[i][j];
+				double airl = air->d[i][j];
+				if (gs[to] == 0) {
+					if (airl < 2) {
+						sp[to] = airl;
 						gs[to] = 1;
-						left[l2--] = to;
+						left[lNum++] = to;
 					}
 					else {
-						sp[to] = air->d[i][j];
+						sp[to] = airl;
+						gs[to] = 3;
+						nlist[nNum++] = to;
 					}
 				}
 			}
 		}
-		useRate_core_Net(sp, gs, &left, &right, &lNum, l2, &rNum, net, air, &STEP_END);
+		useRate_core_Net(sp, gs, blist, nlist, bNum, nNum, &left, &right, &lNum, &rNum, net, air, &STEP_END);
 		for (j = 0; j < net->maxId + 1; ++j) {
-			if (sp[i] > 0) {
-				*avesp += sp[i];
+			//fprintf(fp, "sp: %d\t%d\t%f\n", i, j, sp[j]);
+			if (sp[j] > 0) {
+				*avesp += sp[j];
 				++cc;
 			}
 		}
 	}
+	//fclose(fp);
 
 	free(left);
 	free(right);
 	free(sp);
+	free(gs);
+	free(blist);
+	free(nlist);
 	double all = (double)(net->maxId + 1)*net->maxId;
 	*avesp = (*avesp)/all;
-	printf("check: %d\t%f\n", cc, all);
+	//printf("check: %d\t%f\n", cc, all);
 }
 
 static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_alld, double alpha) {
@@ -169,7 +264,7 @@ int main (int argc, char **argv) {
 	}
 	else if (argc == 1) {
 		L = 10;
-		lambda = 2;
+		lambda = 0.1;
 	}
 	else {
 		isError("wrong args");
@@ -177,16 +272,16 @@ int main (int argc, char **argv) {
 	/********************************************************************************************************/
 
 	int kk;
-	for (kk = 0; kk < 41; ++kk) {
+	for (kk = 10; kk < 41; ++kk) {
 		alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
-		struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
-		//struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
+		//struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
+		struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
 		struct iiNet *net = create_iiNet(file);
-		free_LineFile(file);
+		//free_LineFile(file);
 		int N = net->maxId + 1;
-		long limit = (long)N*10;
+		long limit = (long)N*1;
 		/********************************************************************************************************/
 
 		/**************get degree prossiblity, used to choose new links******************************************/
@@ -260,15 +355,33 @@ int main (int argc, char **argv) {
 		/*******add new links to net, get new net****************************************************************/
 		struct LineFile *newlf = create_newlf(id1, id2, weight, idNum);
 		struct iidNet *newnet = create_iidNet(newlf);
+		//int *id1c = malloc(5*N*sizeof(int));
+		//int *id2c = malloc(5*N*sizeof(int));
+		//memcpy(id1c, id1, 5*N*sizeof(int));
+		//memcpy(id2c, id2, 5*N*sizeof(int));
+		//struct LineFile *tlf = init_LineFile();
+		//tlf->i1 = id1c;
+		//tlf->i2 = id2c;
+		//tlf->linesNum = idNum;
+		//struct LineFile *xlf = add_LineFile(file, tlf);
+		//free_LineFile(tlf);
+		//struct iiNet *xnet = create_iiNet(xlf);
+		//free_LineFile(xlf);
+		////int *ks = get_ALLSP_iiNet(xnet);
+		//int *ks = get_ALLSP_iiNet(net);
+		//free(ks);
+		//free_iiNet(xnet);
+		free_LineFile(file);
 		free_LineFile(newlf);
 		/********************************************************************************************************/
 
-		//print_iiNet(net, "net");
-		//print_iiNet(newnet, "newnet");
+		print_iiNet(net, "net");
+		print_iidNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
 		double avesp;
 		get_avesp_Net(net, newnet, &avesp);
+		printf("result: lamba: %f, alpha: %f, avesp: %f\n", lambda, alpha, avesp);
 		free_iiNet(net);
 		free_iidNet(newnet);
 		/********************************************************************************************************/

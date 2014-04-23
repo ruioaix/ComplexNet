@@ -220,8 +220,9 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 
 	int i,j;
 	int STEP_END = -1;
+	FILE *fp = fopen("2", "w"); fileError(fp, "get_avesp_Net");
 	for (i=0; i<net->maxId + 1; ++i) {
-		printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		lNum = 1;
 		left[0] = i;
 		for (j=0; j<net->maxId + 1; ++j) {
@@ -230,12 +231,13 @@ int *get_ALLSP_iiNet(struct iiNet *net) {
 		sp[i] = -1;
 		shortestpath_core_iiNet(sp, &left, &right, &lNum, &rNum, net, &STEP_END);
 		for (j=0; j<net->maxId + 1; ++j) {
+			fprintf(fp, "sp: %d\t%d\t%f\n", i, j, (double)(sp[j]));
 			if (sp[j] > 0) {
-				//printf("sp: %d\t%d\t%d\n", i, j, sp[j]);
 				++distribSP[sp[j]];
 			}
 		}
 	}
+	fclose(fp);
 
 	free(left);
 	free(right);
