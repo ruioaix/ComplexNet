@@ -37,7 +37,7 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 					--nNum;
 				}
 			}
-			else if(sp[id] < STEP + 1 && sp[id] >= STEP) {
+			else if(sp[id] < STEP + 1 - EPS && sp[id] >= STEP) {
 				blist[bNum++] = id;
 				gs[id] = 2;
 				if (i != nNum - 1) {
@@ -47,6 +47,10 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 				else {
 					--nNum;
 				}
+			}
+			else if (sp[id] >= STEP + 1 - EPS && sp[id] < STEP + 1 ) {
+				gs[id] = 3;
+				sp[id] = STEP + 1;
 			}
 			else if (sp[id] >= STEP + 1) {
 			}
