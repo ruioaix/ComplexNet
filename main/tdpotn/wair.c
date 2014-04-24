@@ -14,6 +14,10 @@
 
 #define EPS 0.0000001
 
+static double ffmin(double a, double b) {
+	return a<b?a:b;
+}
+
 static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int bNum, int nNum, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *air, int *STEP_END) {
 	int i,j;
 	int STEP = 1;
@@ -33,7 +37,7 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 					--nNum;
 				}
 			}
-			else if(sp[id] < STEP + 1) {
+			else if(sp[id] < STEP + 1 && sp[id] >= STEP) {
 				blist[bNum++] = id;
 				gs[id] = 2;
 				if (i != nNum - 1) {
@@ -44,10 +48,12 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 					--nNum;
 				}
 			}
-			//else {
-			//	printf("%d\t%f\t%d\n", gs[id], sp[id], STEP);
-			//	isError("useRate_core_Net nlist");
-			//}
+			else if (sp[id] >= STEP + 1) {
+			}
+			else {
+				printf("%d\t%f\t%d\n", gs[id], sp[id], STEP);
+				isError("useRate_core_Net nlist");
+			}
 		}
 		/********************************************************************************************************/
 
@@ -57,7 +63,7 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 				int neigh = net->edges[id][j];
 				//if gs = 1, neigh is already defined.
 				if (gs[neigh] != 1) {
-					sp[neigh] = fmin(sp[id] + 1, sp[neigh]);
+					sp[neigh] = ffmin(sp[id] + 1, sp[neigh]);
 					if (sp[neigh] == STEP) {
 						(*right)[(*rNum)++] = neigh;
 						gs[neigh] = 1;
@@ -69,7 +75,7 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 						}
 					}
 					else {
-						printf("err: %d\t%f\n", STEP, sp[neigh]);
+						printf("err: %d\t%f\t%d\n", STEP, sp[neigh], gs[neigh]);
 						isError("useRate_core_Net");
 					}
 				}
@@ -79,13 +85,13 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 					int neigh = air->edges[id][j];
 					double airl = air->d[id][j];
 					if (gs[neigh] != 1) {
-						sp[neigh] = fmin(sp[id] + airl, sp[neigh]);
+						sp[neigh] = ffmin(sp[id] + airl, sp[neigh]);
 						if (sp[neigh] == STEP) {
 							(*right)[(*rNum)++] = neigh;
 							gs[neigh] = 1;
 						}
 						else if (sp[neigh] < STEP + 1 && sp[neigh] > STEP) {
-							if (gs[neigh] != 3) {
+							if (gs[neigh] != 2) {
 								gs[neigh] = 2;
 								blist[bNum++] = neigh;
 							}
@@ -281,7 +287,7 @@ int main (int argc, char **argv) {
 		struct iiNet *net = create_iiNet(file);
 		//free_LineFile(file);
 		int N = net->maxId + 1;
-		long limit = (long)N*1;
+		long limit = (long)N*5;
 		/********************************************************************************************************/
 
 		/**************get degree prossiblity, used to choose new links******************************************/
@@ -375,8 +381,8 @@ int main (int argc, char **argv) {
 		free_LineFile(newlf);
 		/********************************************************************************************************/
 
-		print_iiNet(net, "net");
-		print_iidNet(newnet, "newnet");
+		//print_iiNet(net, "net");
+		//print_iidNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
 		double avesp;
