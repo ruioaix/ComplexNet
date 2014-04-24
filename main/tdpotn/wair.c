@@ -75,8 +75,8 @@ static void useRate_core_Net(double *sp, char *gs, int *blist, int *nlist, int b
 						}
 					}
 					else {
-						printf("err: %d\t%f\t%d\n", STEP, sp[neigh], gs[neigh]);
-						isError("useRate_core_Net");
+						printf("err: %d\t%.17f\t%.17f\t%d\n", STEP, sp[id], sp[neigh], gs[neigh]);
+						isError("useRate_core_Net, tt");
 					}
 				}
 			}
@@ -278,7 +278,7 @@ int main (int argc, char **argv) {
 	/********************************************************************************************************/
 
 	int kk;
-	for (kk = 10; kk < 41; ++kk) {
+	for (kk = 0; kk < 41; ++kk) {
 		alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
