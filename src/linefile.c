@@ -407,7 +407,6 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	return lf;
 }
 
-//free
 void free_LineFile(struct LineFile *lf) {
 	int i;
 	long j;
