@@ -13,17 +13,29 @@
 /********************************************************************************************************/
 
 /********************************************************************************************************/
-extern void print_time(void);
+void print_time(void);
+void print_label(void);
 /********************************************************************************************************/
 
 /********************************************************************************************************/
 #include <stdio.h> //for FILE, perror, fprintf, stderr
-extern void fileError(FILE *fp, const char * const filename);
-extern void memError(void *p, const char * const errormsg);
-extern void isError(const char * const errormsg);
+void fileError(FILE *fp, const char * const filename);
+void memError(void *p, const char * const errormsg);
+void isError(const char * const errormsg);
 /********************************************************************************************************/
 
-void print_label(void);
+/********************************************************************************************************/
+double dmin(double a, double b);
+double dmax(double a, double b);
+int imin(int a, int b);
+int imax(int a, int b);
+long lmin(long a, long b);
+long lmax(long a, long b);
+/********************************************************************************************************/
+
+
+
+
 
 
 

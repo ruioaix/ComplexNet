@@ -7,6 +7,10 @@ void print_time(void) {
 	printf("%s", ctime(&t)); 
 	(void)fflush(stdout);
 }
+void print_label(void) {
+	printf("xxxx====xxxx\n");
+	fflush(stdout);
+}
 /********************************************************************************************************/
 
 /********************************************************************************************************/
@@ -33,7 +37,23 @@ void isError(const char * const errormsg)
 }
 /********************************************************************************************************/
 
-void print_label(void) {
-	printf("xxxx====xxxx\n");
-	fflush(stdout);
+/********************************************************************************************************/
+double dmin(double a, double b) {
+	return a<b?a:b;
 }
+double dmax(double a, double b) {
+	return a>b?a:b;
+}
+int imin(int a, int b) {
+	return a<b?a:b;
+}
+int imax(int a, int b) {
+	return a>b?a:b;
+}
+long lmin(long a, long b) {
+	return a<b?a:b;
+}
+long lmax(long a, long b) {
+	return a>b?a:b;
+}
+/********************************************************************************************************/
