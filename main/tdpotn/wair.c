@@ -273,7 +273,7 @@ int main (int argc, char **argv) {
 		lambda = strtod(argv[2], &p);
 	}
 	else if (argc == 1) {
-		L = 10;
+		L = 100;
 		lambda = 0.1;
 	}
 	else {
@@ -389,7 +389,7 @@ int main (int argc, char **argv) {
 		//print_iidNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
-		double avesp;
+		double avesp = 0;
 		get_avesp_Net(net, newnet, &avesp);
 		printf("result: lamba: %f, alpha: %f, avesp: %f\n", lambda, alpha, avesp);
 		free_iiNet(net);

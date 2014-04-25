@@ -22,6 +22,13 @@
 #define CN_LINEFILE_H
 
 struct LineFile {
+	int ***ilist;
+	double ***dlist;
+	char ***clist;
+	long ***llist;
+	char ****cclist;
+	int iNum, dNum, cNum, ccNum, lNum;
+
 	int *i1;
 	int *i2;
 	int *i3;
@@ -40,11 +47,33 @@ struct LineFile {
 	double *d7;
 	double *d8;
 	double *d9;
-	
-	int ***ilist;
-	int iNum;
-	double ***dlist;
-	int dNum;
+	char *c1;
+	char *c2;
+	char *c3;
+	char *c4;
+	char *c5;
+	char *c6;
+	char *c7;
+	char *c8;
+	char *c9;
+	long *l1;
+	long *l2;
+	long *l3;
+	long *l4;
+	long *l5;
+	long *l6;
+	long *l7;
+	long *l8;
+	long *l9;
+	char **cc1;
+	char **cc2;
+	char **cc3;
+	char **cc4;
+	char **cc5;
+	char **cc6;
+	char **cc7;
+	char **cc8;
+	char **cc9;
 
 	long linesNum;
 	long memNum;
@@ -64,13 +93,14 @@ struct LineFile {
  * if more than 4, only 4 parts is read in.
  */
 struct LineFile *create_LineFile(char * filename, ...);
-
-struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2);
+/// free;
+void free_LineFile(struct LineFile *lf);
 
 /// print the struct LineFile's content into a file
 void print_LineFile(struct LineFile *lf, char *filename);
 
-/// free;
-void free_LineFile(struct LineFile *lf);
+//generate a new LineFile, simply join two LineFile.
+struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2);
+
 
 #endif

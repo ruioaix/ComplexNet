@@ -164,5 +164,6 @@ struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
 	file->i1 = i1;
 	file->i2 = i2;
 	file->linesNum = linesNum;
+	file->memNum = linesNum;
 	return file;
 }
