@@ -22,7 +22,7 @@ static char *DIRECTNETC[2] = {"DIRECT", "NON_DIRECT"};
  */
 struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	if (L<2) isError("lattice2d_DS's L too small");
-	struct LineFile *file = init_LineFile();
+	struct LineFile *file = create_LineFile(NULL);
 	long linesNum = (L-1)*L*2;
 	if (cc == CYCLE && L != 2) {
 		linesNum += 2*L;
@@ -123,7 +123,7 @@ struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
 struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
 	if (N<2) isError("line1d_DS's N too small");
 	
-	struct LineFile *file = init_LineFile();
+	struct LineFile *file = create_LineFile(NULL);
 
 	long linesNum = N-1;
 	if (cc == CYCLE && N != 2) {

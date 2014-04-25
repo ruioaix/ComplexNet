@@ -46,7 +46,7 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 }
 
 static struct LineFile *create_newlf(int *id1, int *id2, int idNum) {
-	struct LineFile *lf = init_LineFile();
+	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;
 	lf->i2 = id2;
 	lf->linesNum = idNum;

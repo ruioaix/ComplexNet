@@ -40,6 +40,11 @@ struct LineFile {
 	double *d7;
 	double *d8;
 	double *d9;
+	
+	int ***ilist;
+	int iNum;
+	double ***dlist;
+	int dNum;
 
 	long linesNum;
 	long memNum;
@@ -55,11 +60,10 @@ struct LineFile {
  * 	the arg "-1" is the guard to let function know the last argument's position.
  *
  * if the number of the parts in one line is less than 4,
- * 	than the line is ignored and a warning will be sent to stdout.
+ * 	than the non-existed parts of the line are given "-1".
  * if more than 4, only 4 parts is read in.
  */
 struct LineFile *create_LineFile(char * filename, ...);
-struct LineFile *init_LineFile(void);
 
 struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2);
 

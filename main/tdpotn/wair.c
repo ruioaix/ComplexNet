@@ -253,7 +253,7 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 }
 
 static struct LineFile *create_newlf(int *id1, int *id2, double *weight, int idNum) {
-	struct LineFile *lf = init_LineFile();
+	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;
 	lf->i2 = id2;
 	lf->d1 = weight;
@@ -369,7 +369,7 @@ int main (int argc, char **argv) {
 		//int *id2c = malloc(5*N*sizeof(int));
 		//memcpy(id1c, id1, 5*N*sizeof(int));
 		//memcpy(id2c, id2, 5*N*sizeof(int));
-		//struct LineFile *tlf = init_LineFile();
+		//struct LineFile *tlf = create_LineFile(NULL);
 		//tlf->i1 = id1c;
 		//tlf->i2 = id2c;
 		//tlf->linesNum = idNum;

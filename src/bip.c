@@ -328,8 +328,8 @@ void divide_Bip(struct Bip *bipi1, struct Bip *bipi2, double rate, struct LineFi
 		l2 = l1 = bipi1->edgesNum;
 	}
 
-	*small = init_LineFile();
-	*big = init_LineFile();
+	*small = create_LineFile(NULL);
+	*big = create_LineFile(NULL);
 
 	(*small)->i1 = malloc(l1*sizeof(int));
 	assert((*small)->i1 != NULL);
@@ -445,7 +445,7 @@ struct LineFile *similarity_Bip(struct Bip *bipi1, struct Bip *bipi2, int target
 	int *sign = calloc((idmax2 + 1),sizeof(int));
 	assert(sign != NULL);
 
-	struct LineFile *simfile = init_LineFile();
+	struct LineFile *simfile = create_LineFile(NULL);
 	assert(simfile != NULL);
 
 	int con = 1000000;
@@ -511,7 +511,7 @@ struct LineFile *similarity_Bip(struct Bip *bipi1, struct Bip *bipi2, int target
 struct LineFile *mass_similarity_Bip(struct Bip *bipi1, struct Bip *bipi2) {
 
 
-	struct LineFile *simfile = init_LineFile();
+	struct LineFile *simfile = create_LineFile(NULL);
 
 	int con = 1000000;
 	int *i1 = malloc(con*sizeof(int));
