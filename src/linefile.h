@@ -1,6 +1,7 @@
 /**
  * this file is used to read text file into struct LineFile.
- * struct LineFile has its limit. for now, at most, it can process a line with 9 int and 9 double.
+ * struct LineFile has its limit. 
+ * for now, at most, it can process a line with 9 int , 9 double, 9 char, 9 long, 9 string(char *), that means 45 parts in one line.
  * lines will be seprated into parts with "\t", space, ":", "\n", ",".
  *
  * when you want to read a file, just use create_LineFile, with right parameters.
@@ -12,7 +13,7 @@
  * when you get a file contains only 2 parts in a line, but you use create_LineFile(xx, 1, 1, 1, -1);
  * 	then you get -1 for each i3[x];
  *
- * when you get a file contains 3 parts in a line, but you use create_LineFile(xx, 1, 1, -1);
+ * when you get a file contains 3 int parts in a line, but you use create_LineFile(xx, 1, 1, -1);
  * 	then you only fetch the first 2 parts from each line. lf->i3 will be NULL.
  *
  *  Author: RuiXiao <xrfind@gmail.com>
@@ -87,10 +88,20 @@ struct LineFile {
  * 	the arg "1" means: the first and the third part is an int.
  * 	the arg "2" means: the second and the fourth part is a double.
  * 	the arg "-1" is the guard to let function know the last argument's position.
- *
  * if the number of the parts in one line is less than 4,
  * 	than the non-existed parts of the line are given "-1".
  * if more than 4, only 4 parts is read in.
+ *
+ * "1" means int.
+ * "2" means double.
+ * "3" means char.
+ * "4" means long.
+ * "5" means char *(string).
+ * "-1" means guard.
+ *
+ * create_LineFile(NULL) and create_LineFile("xx", -1) will return a empty 
+ * but compete LineFile which can be used in free_LineFile(lf);
+ *
  */
 struct LineFile *create_LineFile(char * filename, ...);
 /// free;
