@@ -1,7 +1,7 @@
 #programs to deal with all kinds of calculations in complex network.
 In complex network, there are two concepts which always available:
-1. node/vertex/point
-2. edge/line
+	1. node/vertex/point
+	2. edge/line
 
 ##Limitation
 * *int* type is used to describ the node's id&number. 
