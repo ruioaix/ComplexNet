@@ -171,25 +171,26 @@ struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
 	return file;
 }
 
-void parts45_DS(char *filename) {
+void parts45_DS(char *filename, int in, int dn, int cn, int ln, int ccn) {
 	FILE *fp = fopen(filename, "w");
 	fileError(fp, "parts45_DS");
 	long i, linesNum = 10000;
 	int j;
+	set_timeseed_MTPR();
 	for (i = 0; i < linesNum; ++i) {
-		for (j = 0; j < 9; ++j) {
+		for (j = 0; j < in; ++j) {
 			fprintf(fp, "%d\t", (int)get_i31_MTPR());
 		}
-		for (j = 0; j < 9; ++j) {
+		for (j = 0; j < dn; ++j) {
 			fprintf(fp, "%f\t", get_d01_MTPR() + get_i31_MTPR()%100000);
 		}
-		for (j = 0; j < 9; ++j) {
+		for (j = 0; j < cn; ++j) {
 			fprintf(fp, "%d\t", (int)get_i31_MTPR()%128);
 		}
-		for (j = 0; j < 9; ++j) {
+		for (j = 0; j < ln; ++j) {
 			fprintf(fp, "%ld\t", get_i31_MTPR());
 		}
-		for (j = 0; j < 9; ++j) {
+		for (j = 0; j < ccn; ++j) {
 			fprintf(fp, "%d%c%d\t", (int)get_i31_MTPR(), (int)get_i31_MTPR()%26 + 65, (int)get_i31_MTPR()%128);
 		}
 		fprintf(fp, "\n");

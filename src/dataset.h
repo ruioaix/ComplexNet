@@ -19,7 +19,7 @@ enum DIRECTNET {
 struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd);
 struct LineFile * line1d_DS(int L, enum CICLENET cc, enum DIRECTNET dd);
 
-void parts45_DS(char *filename);
+void parts45_DS(char *filename, int in, int dn, int cn, int ln, int ccn);
 
 
 
