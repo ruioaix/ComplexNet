@@ -85,7 +85,7 @@ static struct LineFile *init_LineFile(void) {
 	assert(lf->clist != NULL);
 	lf->llist = malloc(lf->lNum*sizeof(void **));
 	assert(lf->llist != NULL);
-	lf->cclist = malloc(lf->ccNum*sizeof(void **));
+	lf->cclist = malloc(lf->ccNum*sizeof(void ***));
 	assert(lf->cclist != NULL);
 	set_list_LineFile(lf);
 
@@ -350,14 +350,13 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 }
 
 struct LineFile *create_LineFile(char *filename, ...) {
-	//check filename.
 
 	//the return lf.
 	struct LineFile *lf = init_LineFile();
 	lf->filename = filename;
 
 	//get typelist.
-	int *typelist = malloc((lf->iNum + lf->dNum)*sizeof(int));
+	int *typelist = malloc((lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum)*sizeof(int));
 	assert(typelist != NULL);
 	va_list vl;
 	va_start(vl, filename);
@@ -372,6 +371,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 		return lf;
 	}
 
+	//check filename.
 	FILE *fp = fopen(filename, "r");
 	fileError(fp, "create_LineFile");
 
@@ -387,10 +387,10 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	int lread = LINES_READIN;
 	while (lread == LINES_READIN) {
 		set_buffer_LineFile(fp, buffer, &lread);
+		set_allparts_LineFile(buffer, allparts, vn, lread);
 		while (lf->linesNum + lread > lf->memNum) {
 			add_memory_LineFile(lf);
 		}
-		set_allparts_LineFile(buffer, allparts, vn, lread);
 		set_lf_LineFile(lf, allparts, typelist, lread, vn, &isok);
 	}
 	free(typelist);
@@ -406,6 +406,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	printf("create Linefile =>> read %s successfully.\n", lf->filename);
 	return lf;
 }
+
 //free
 void free_LineFile(struct LineFile *lf) {
 	int i;
@@ -425,7 +426,7 @@ void free_LineFile(struct LineFile *lf) {
 	for (i = 0; i < lf->ccNum; ++i) {
 		if (*(lf->cclist[i]) != NULL) {
 			for (j = 0; j < lf->linesNum; ++j) {
-				free(*(lf->cclist[i])[j]);
+				free((*(lf->cclist[i]))[j]);
 			}
 		}
 		free(*(lf->cclist[i]));

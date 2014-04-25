@@ -1,5 +1,6 @@
 #include "base.h"
 #include "dataset.h"
+#include "mtprand.h"
 #include <stdlib.h>
 #include <assert.h>
 
@@ -22,6 +23,7 @@ static char *DIRECTNETC[2] = {"DIRECT", "NON_DIRECT"};
  */
 struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	if (L<2) isError("lattice2d_DS's L too small");
+
 	struct LineFile *file = create_LineFile(NULL);
 	long linesNum = (L-1)*L*2;
 	if (cc == CYCLE && L != 2) {
@@ -101,6 +103,7 @@ struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	file->i1 = i1;
 	file->i2 = i2;
 	file->linesNum = linesNum;
+	file->memNum = linesNum;
 	return file;
 }
 
@@ -166,4 +169,30 @@ struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
 	file->linesNum = linesNum;
 	file->memNum = linesNum;
 	return file;
+}
+
+void parts45_DS(char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "parts45_DS");
+	long i, linesNum = 10000;
+	int j;
+	for (i = 0; i < linesNum; ++i) {
+		for (j = 0; j < 9; ++j) {
+			fprintf(fp, "%d\t", (int)get_i31_MTPR());
+		}
+		for (j = 0; j < 9; ++j) {
+			fprintf(fp, "%f\t", get_d01_MTPR() + get_i31_MTPR()%100000);
+		}
+		for (j = 0; j < 9; ++j) {
+			fprintf(fp, "%d\t", (int)get_i31_MTPR()%128);
+		}
+		for (j = 0; j < 9; ++j) {
+			fprintf(fp, "%ld\t", get_i31_MTPR());
+		}
+		for (j = 0; j < 9; ++j) {
+			fprintf(fp, "%d%c%d\t", (int)get_i31_MTPR(), (int)get_i31_MTPR()%26 + 65, (int)get_i31_MTPR()%128);
+		}
+		fprintf(fp, "\n");
+	}
+	fclose(fp);
 }
