@@ -15,7 +15,11 @@ MAIN_ALL_DIR = $(sort $(dir $(MAIN_ALL_SRC)))
 MAIN_ALL_OBJ = $(patsubst %.c, obj/%.o, $(MAIN_ALL_SRC))
 MAIN_ALL_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ALL_SRC)))
 
-OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR))
+TEST_SRC = $(wildcard test/*.c test/*/*.c)
+TEST_DIR = $(sort $(dir $(TEST_SRC)))
+TEST_OBJ = $(patsubst %.c, obj/%.o, $(TEST_SRC))
+
+OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR) $(TEST_DIR))
 
 #include dir
 INCLUDE_DIR := $(patsubst %, -I%, $(SRC_DIR) $(MAIN_ALL_DIR))
@@ -24,9 +28,10 @@ CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 
 
-.PHONY : dir all clean
+.PHONY : dir all clean test
 
-all: dir tdpotn-wair
+all : dir test
+#all: dir tdpotn-wair
 #all: dir test-linefile
 #all: dir score-3methods
 #all: dir test-dividebip
@@ -35,11 +40,6 @@ all: dir tdpotn-wair
 dir: $(OBJ_DIR)
 
 #################################################################
-MAIN_TEST_SRC = $(wildcard main/test/*.c)
-MAIN_TEST_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TEST_SRC)))
-$(MAIN_TEST_EXEC) : test-% : $(SRC_OBJ) obj/main/test/%.o 
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
 MAIN_SCORE_SRC = $(wildcard main/score/*.c)
 MAIN_SCORE_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_SCORE_SRC)))
 $(MAIN_SCORE_EXEC) : score-% : $(SRC_OBJ) obj/main/score/%.o 
@@ -67,12 +67,23 @@ $(MAIN_EXEC) : % : $(SRC_OBJ) obj/main/%.o
 #################################################################
 
 
+#################################################################
+test : test/main 
+	@./test/main
+
+test/main : $(SRC_OBJ) $(TEST_OBJ)
+	$(CC) $(CFLAG) -lm $^ -o $@
+#################################################################
+
 
 #################################################################
 obj/src/%.o : src/%.c src/%.h 
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 obj/main/%.o: main/%.c 
+	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
+
+obj/test/%.o : test/%.c test/test.h 
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 $(OBJ_DIR) :
@@ -87,5 +98,5 @@ clean :
 	$(RM) $(SRC_OBJ)
 	$(RM) $(MAIN_ALL_EXEC)
 	$(RM) -r $(OBJ_DIR)
-	$(RM) tags
+	$(RM) tags test/main
 #################################################################
