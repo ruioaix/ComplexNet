@@ -72,7 +72,7 @@ test : test/main
 	-@./test/main
 
 test/main : $(SRC_OBJ) $(TEST_OBJ)
-	$(CC) $(CFLAG) -lm $^ -o $@
+	$(CC) -lm $^ -o $@
 #################################################################
 
 

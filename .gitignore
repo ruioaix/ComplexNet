@@ -11,6 +11,7 @@ script/
 temp/
 backup/
 obj/
+test/main
 
 *.eps
 *.swp

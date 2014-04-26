@@ -70,7 +70,7 @@ static struct LineFile *init_LineFile(void) {
 	assert(lf != NULL);
 	lf->linesNum = 0;
 	lf->memNum = 0;
-	lf->filename = NULL;
+	lf->filename = "NewEmptyLF";
 
 	lf->iNum = 9;
 	lf->dNum = 9;
@@ -353,7 +353,6 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	//the return lf.
 	struct LineFile *lf = init_LineFile();
-	lf->filename = filename;
 
 	//get typelist.
 	int *typelist = malloc((lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum)*sizeof(int));
@@ -370,6 +369,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 		free(typelist);
 		return lf;
 	}
+	lf->filename = filename;
 
 	//check filename.
 	FILE *fp = fopen(filename, "r");
