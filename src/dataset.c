@@ -171,10 +171,10 @@ struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
 	return file;
 }
 
-void parts45_DS(char *filename, int in, int dn, int cn, int ln, int ccn) {
+void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, int ccn) {
 	FILE *fp = fopen(filename, "w");
 	fileError(fp, "parts45_DS");
-	long i, linesNum = 10000;
+	long i;
 	int j;
 	set_timeseed_MTPR();
 	for (i = 0; i < linesNum; ++i) {

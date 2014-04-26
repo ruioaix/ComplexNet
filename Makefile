@@ -69,7 +69,7 @@ $(MAIN_EXEC) : % : $(SRC_OBJ) obj/main/%.o
 
 #################################################################
 test : test/main 
-	@./test/main
+	-@./test/main
 
 test/main : $(SRC_OBJ) $(TEST_OBJ)
 	$(CC) $(CFLAG) -lm $^ -o $@
