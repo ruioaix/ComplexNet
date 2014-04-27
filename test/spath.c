@@ -1,5 +1,4 @@
 #include "base.h"
-#include "spath.h"
 #include "dataset.h"
 #include "iinet.h"
 #include "iidnet.h"
@@ -12,7 +11,7 @@
 #include <math.h>
 #include <limits.h>
 #include <assert.h>
-
+#include "spath.h"
 
 static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_alld, double alpha) {
 	int i;
@@ -57,29 +56,15 @@ static struct LineFile *create_newlf(int *id1, int *id2, double *weight, int idN
 	return lf;
 }
 
-int main (int argc, char **argv) {
+void test_sp1 (double lambda, int L) {
 	/********************************************************************************************************/
 	print_time();
 	set_timeseed_MTPR();
-	int L;
-	double alpha, lambda;
-	if (argc == 3) {
-		char *p;
-		L = strtol(argv[1], &p, 10);
-		lambda = strtod(argv[2], &p);
-	}
-	else if (argc == 1) {
-		L = 100;
-		lambda = 0.1;
-	}
-	else {
-		isError("wrong args");
-	}
 	/********************************************************************************************************/
 
 	int kk;
 	for (kk = 0; kk < 41; ++kk) {
-		alpha = kk * 0.1;
+		double alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
 		//struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
@@ -161,33 +146,41 @@ int main (int argc, char **argv) {
 		/*******add new links to net, get new net****************************************************************/
 		struct LineFile *newlf = create_newlf(id1, id2, weight, idNum);
 		struct iidNet *newnet = create_iidNet(newlf);
-		//int *id1c = malloc(5*N*sizeof(int));
-		//int *id2c = malloc(5*N*sizeof(int));
-		//memcpy(id1c, id1, 5*N*sizeof(int));
-		//memcpy(id2c, id2, 5*N*sizeof(int));
-		//struct LineFile *tlf = create_LineFile(NULL);
-		//tlf->i1 = id1c;
-		//tlf->i2 = id2c;
-		//tlf->linesNum = idNum;
-		//struct LineFile *xlf = add_LineFile(file, tlf);
-		//free_LineFile(tlf);
-		//struct iiNet *xnet = create_iiNet(xlf);
-		//free_LineFile(xlf);
-		////int *ks = get_ALLSP_iiNet(xnet);
-		//int *ks = get_ALLSP_iiNet(net);
-		//free(ks);
-		//free_iiNet(xnet);
-		free_LineFile(file);
+
+		double *wei = malloc((file->linesNum)*sizeof(double));
+		assert(wei != NULL);
+		long j;
+		for (j = 0; j < file->linesNum; ++j) {
+			wei[j] = 1.0;
+		}
+		file->d1=wei;
+
+		struct LineFile *together = add_LineFile(file, newlf);
 		free_LineFile(newlf);
+		free_LineFile(file);
+		struct iidNet *toge = create_iidNet(together);
+		free_LineFile(together);
 		/********************************************************************************************************/
 
 		//print_iiNet(net, "net");
 		//print_iidNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
-		double avesp = 0;
-		get_kind01_SP(net, newnet, &avesp);
-		printf("result: lamba: %f, alpha: %f, avesp: %f\n", lambda, alpha, avesp);
+
+		int k;
+		for (k = 0; k < net->maxId + 1; ++k) {
+			double * spk2 = get_kind02_SP(net, newnet, k);
+			double * spdijk = dijkstra_1toall_SP(toge, k);
+			for (j = 0; j < net->maxId + 1; ++j) {
+				//if (fabs(spk2[j] - spdijk[j]) > 0.000000001) {
+				if (spk2[j] != spdijk[j]) {
+					printf("%d\t%ld\t%.17f\t%.17f\n", k, j, spk2[j], spdijk[j]);
+				}
+			}
+			printf("%d\r", k);fflush(stdout);
+			free(spk2);
+			free(spdijk);
+		}
 
 		free_iiNet(net);
 		free_iidNet(newnet);
@@ -196,5 +189,4 @@ int main (int argc, char **argv) {
 	}
 
 	print_time();
-	return 0;
 }

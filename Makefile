@@ -68,10 +68,10 @@ $(MAIN_EXEC) : % : $(SRC_OBJ) obj/main/%.o
 
 
 #################################################################
-test : test/main 
-	-@./test/main
+test : test/run
+#	-@./test/main
 
-test/main : $(SRC_OBJ) $(TEST_OBJ)
+test/run : $(SRC_OBJ) $(TEST_OBJ)
 	$(CC) -lm $^ -o $@
 #################################################################
 
@@ -98,5 +98,5 @@ clean :
 	$(RM) $(SRC_OBJ)
 	$(RM) $(MAIN_ALL_EXEC)
 	$(RM) -r $(OBJ_DIR)
-	$(RM) tags test/main
+	$(RM) tags test/run
 #################################################################
