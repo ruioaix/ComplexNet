@@ -111,10 +111,31 @@ static void test_init_LineFile(struct LineFile *lf) {
 }
 
 static void test_create_LineFile(void) {
+	/************test wrong input****************************************************************************/
 	struct LineFile *lf = create_LineFile(NULL);
 	test_init_LineFile(lf);
-	lf = create_LineFile("anyname", -1);
+	lf = create_LineFile("anyfile", -1);
 	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 1, 2, 1);
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 11.2);
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 11.2, 2);
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 11.2, -1);
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 'A');
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", 2);
+	test_init_LineFile(lf);
+	lf = create_LineFile("anyfile", -2.3, 8, -1);
+	test_init_LineFile(lf);
+	/********************************************************************************************************/
+
+	/*********test output with corret right intput***********************************************************/
+	lf = create_LineFile("./test/data/testdata", 1, 1, -1);
+	/********************************************************************************************************/
+
 }
 
 

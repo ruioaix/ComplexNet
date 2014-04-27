@@ -66,8 +66,12 @@ struct LineFile {
  * "5" means char *(string).
  * "-1" means guard.
  *
- * create_LineFile(NULL) and create_LineFile("xx", -1) will return a empty 
- * but compete LineFile which can be used in free_LineFile(lf);
+ * if the first argument is "NULL", or
+ * if the last argument is not "-1", or
+ * if any of the "int" arguments between the first and the last arguments is not belong to {1, 2, 3, 4, 5}, or
+ * if the number of the "int" arguments is zero.
+ * then create_LineFile will return a empty but compete LineFile which can be used in free_LineFile(lf);
+ * non-int type arguments are ignored.
  *
  */
 struct LineFile *create_LineFile(char * filename, ...);

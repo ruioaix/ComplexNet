@@ -359,13 +359,13 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	assert(typelist != NULL);
 	va_list vl;
 	va_start(vl, filename);
-	int vn = 0, type;
-	while ((type = va_arg(vl, int))>0) {
+	int vn = 0, type = -2;
+	while (1 == (type = va_arg(vl, int)) || 2 == type || 3 == type || 4 == type || 5 == type) {
 		typelist[vn++] = type;
 	}
 	va_end(vl);
 
-	if (NULL == filename || 0 == vn) {
+	if (NULL == filename || 0 == vn || type != -1) {
 		free(typelist);
 		return lf;
 	}
