@@ -63,8 +63,8 @@ void test_sp1 (double lambda, double alpha, int L) {
 	/********************************************************************************************************/
 
 	/************get initial net.****************************************************************************/
-	//struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
-	struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
+	struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
+	//struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
 	struct iiNet *net = create_iiNet(file);
 	//free_LineFile(file);
 	int N = net->maxId + 1;

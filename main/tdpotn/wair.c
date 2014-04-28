@@ -161,28 +161,9 @@ int main (int argc, char **argv) {
 		/*******add new links to net, get new net****************************************************************/
 		struct LineFile *newlf = create_newlf(id1, id2, weight, idNum);
 		struct iidNet *newnet = create_iidNet(newlf);
-		//int *id1c = malloc(5*N*sizeof(int));
-		//int *id2c = malloc(5*N*sizeof(int));
-		//memcpy(id1c, id1, 5*N*sizeof(int));
-		//memcpy(id2c, id2, 5*N*sizeof(int));
-		//struct LineFile *tlf = create_LineFile(NULL);
-		//tlf->i1 = id1c;
-		//tlf->i2 = id2c;
-		//tlf->linesNum = idNum;
-		//struct LineFile *xlf = add_LineFile(file, tlf);
-		//free_LineFile(tlf);
-		//struct iiNet *xnet = create_iiNet(xlf);
-		//free_LineFile(xlf);
-		////int *ks = get_ALLSP_iiNet(xnet);
-		//int *ks = get_ALLSP_iiNet(net);
-		//free(ks);
-		//free_iiNet(xnet);
 		free_LineFile(file);
 		free_LineFile(newlf);
 		/********************************************************************************************************/
-
-		//print_iiNet(net, "net");
-		//print_iidNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
 		double avesp = 0;
