@@ -32,7 +32,8 @@ CFLAG :=  -g -Wall -Wunused
 
 #all : dir test
 #all: dir tdpotn-wair
-all: dir tdpotn-coupling
+#all: dir tdpotn-coupling
+all: dir tdpotn-gini
 #all: dir test-linefile
 #all: dir score-3methods
 #all: dir test-dividebip

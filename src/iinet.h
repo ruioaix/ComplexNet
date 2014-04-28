@@ -34,4 +34,7 @@ int *shortestpath_1A_S_iiNet(struct iiNet *net, int id, int step, int *lNum);
 
 void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, double *avesp);
 
+#include "iidnet.h"
+void get_XE_iiNet(struct iiNet *net, struct iiNet *newnet, struct iidNet *XE);
+
 #endif

@@ -564,3 +564,7 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
 	//printf("result:\t%f\t%f\t%f\t%f\n", *avesp, *coupling, coup, all);
 }
+
+#include "iidnet.h"
+void get_XE_iiNet(struct iiNet *net, struct iiNet *newnet, struct iidNet *XE) {
+}
