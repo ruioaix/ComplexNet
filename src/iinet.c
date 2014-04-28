@@ -566,5 +566,138 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 }
 
 #include "iidnet.h"
-void get_XE_iiNet(struct iiNet *net, struct iiNet *newnet, struct iidNet *XE) {
+static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, double *spall) {
+	int i,j;
+	int STEP = 0;
+	while (*lNum && STEP != *STEP_END) {
+		++STEP;
+		*rNum = 0;
+
+		memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
+
+		for (i=0; i<*lNum; ++i) {
+			int id = (*left)[i];
+			//printf("id:%d\n", id);
+			for (j=0; j<net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (!sp[neigh]) {
+					spall[neigh] += spall[id];
+					stage[neigh] = 1;
+				}
+			}
+			if(id < air->maxId + 1) {
+				for (j=0; j<air->count[id]; ++j) {
+					int neigh = air->edges[id][j];
+					if (!sp[neigh]) {
+						spall[neigh] += spall[id];
+						stage[neigh] = 1;
+					}
+				}
+			}
+		}
+
+		//static int kk = 0;
+		for (j = 0; j < net->maxId + 1; ++j) {
+			if (1 == stage[j]) {
+				sp[j] = STEP;
+				(*right)[(*rNum)++] = j;
+			}
+		}
+		//printf("******************************************\n");
+		//if (kk++ == 4) exit(0);
+		int *tmp = *left;
+		*left = *right;
+		*right = tmp;
+		*lNum = *rNum;
+	}
+}
+
+static void set_d_XE(struct iidNet *net, int from, int to, double d) {
+	if (from > net->maxId || to > net->maxId || from < 0 || to <0) return;
+	int sid = dmin(from, to);
+	int bid = dmax(from, to);
+	int i;
+	for (i = 0; i < net->count[sid]; ++i) {
+		if (bid == net->edges[sid][i]) {
+			net->d[sid][i] += d;
+		}
+	}
+}
+
+static void calculate_XE(int id, int *sp, double *spall, struct iidNet *XE) {
+	int i;
+	int j;
+	for (i = 0; i < XE->maxId + 1; ++i) {
+		if (i != id) {
+			int step = sp[i];
+			//double aij = spall[i];
+			if (step == 1) {
+				assert(aij == 1);
+				set_d_XE(XE, id, i, 1);
+			}
+			while (step > 1) {
+				step--;
+				for (j = 0; j < XE->maxId + 1; ++j) {
+					if (sp[j] == step) {
+						set_d_XE(XE, j, i, 1);
+					}
+				}
+			}
+		}
+	}
+}
+
+void get_XE_iiNet(struct iiNet *net, struct iiNet *air, struct iidNet *XE) {
+	int *sp = malloc((net->maxId + 1)*sizeof(int));
+	assert(sp != NULL);
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	assert(left != NULL);
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	assert(right != NULL);
+	double *spall = malloc((net->maxId + 1) * sizeof(double));
+	assert(spall != NULL);
+	char *stage = malloc((net->maxId + 1) * sizeof(char));
+	assert(stage != NULL);
+	int lNum, rNum;
+
+	int i,j;
+	int STEP_END = -1;
+	double allsp = 0;
+	for (i=0; i<net->maxId + 1; ++i) {
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		for (j=0; j<net->maxId + 1; ++j) {
+			sp[j] = 0;
+			spall[j] = 0;
+		}
+		sp[i] = -1;
+		lNum = 0;
+		for (j = 0; j < net->count[i]; ++j) {
+			int to = net->edges[i][j];
+			left[lNum++] = to;
+			sp[to] = 1;
+			++spall[to];
+		}
+		if (i < air->maxId + 1) {
+			for (j = 0; j < air->count[i]; ++j) {
+				int to = air->edges[i][j];
+				left[lNum++] = to;
+				sp[to] = 1;
+				++spall[to];
+			}
+		}
+		XE_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, air, &STEP_END, spall);
+		calculate_XE(i, sp, spall, XE);
+		sp[i] = 0;
+		for (j = 0; j < net->maxId + 1; ++j) {
+			allsp += sp[j];
+		}
+	}
+
+	free(left);
+	free(right);
+	free(sp);
+	free(spall);
+	free(stage);
+	double avesp = allsp/((double)(net->maxId + 1)*net->maxId);
+	printf("result:\t%f\n", avesp);
 }
