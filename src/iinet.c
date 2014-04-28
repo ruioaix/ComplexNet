@@ -447,7 +447,7 @@ void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, do
 	*cleanRate = (*cleanRate)/all;
 }
 
-static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, int *spa, int *spb, int *spab) {
+static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, double *spa, double *spb, double *spab) {
 	int i,j;
 	int STEP = 0;
 	while (*lNum && STEP != *STEP_END) {
@@ -504,11 +504,11 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 	assert(left != NULL);
 	int *right = malloc((net->maxId + 1)*sizeof(int));
 	assert(right != NULL);
-	int *spa = malloc((net->maxId + 1) * sizeof(int));
+	double *spa = malloc((net->maxId + 1) * sizeof(double));
 	assert(spa != NULL);
-	int *spb = malloc((net->maxId + 1) * sizeof(int));
+	double *spb = malloc((net->maxId + 1) * sizeof(double));
 	assert(spb != NULL);
-	int *spab = malloc((net->maxId + 1) * sizeof(int));
+	double *spab = malloc((net->maxId + 1) * sizeof(double));
 	assert(spab != NULL);
 	char *stage = malloc((net->maxId + 1) * sizeof(char));
 	assert(stage != NULL);
@@ -562,4 +562,5 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 	free(stage);
 	*coupling = coup/all;
 	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
+	//printf("result:\t%f\t%f\t%f\t%f\n", *avesp, *coupling, coup, all);
 }
