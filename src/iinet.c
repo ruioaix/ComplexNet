@@ -446,3 +446,120 @@ void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, do
 	*sameRate = (*sameRate)/all;
 	*cleanRate = (*cleanRate)/all;
 }
+
+static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, int *spa, int *spb, int *spab) {
+	int i,j;
+	int STEP = 0;
+	while (*lNum && STEP != *STEP_END) {
+		++STEP;
+		*rNum = 0;
+
+		memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
+
+		for (i=0; i<*lNum; ++i) {
+			int id = (*left)[i];
+			//printf("id:%d\n", id);
+			for (j=0; j<net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (!sp[neigh]) {
+					spab[neigh] += spab[id];
+					spab[neigh] += spa[id];
+					spb[neigh] += spb[id];
+					stage[neigh] = 1;
+				}
+			}
+			if(id < air->maxId + 1) {
+				for (j=0; j<air->count[id]; ++j) {
+					int neigh = air->edges[id][j];
+					if (!sp[neigh]) {
+						spab[neigh] += spab[id];
+						spab[neigh] += spb[id];
+						spa[neigh] += spa[id];
+						stage[neigh] = 1;
+					}
+				}
+			}
+		}
+
+		//static int kk = 0;
+		for (j = 0; j < net->maxId + 1; ++j) {
+			if (1 == stage[j]) {
+				sp[j] = STEP;
+				(*right)[(*rNum)++] = j;
+			}
+		}
+		//printf("******************************************\n");
+		//if (kk++ == 4) exit(0);
+		int *tmp = *left;
+		*left = *right;
+		*right = tmp;
+		*lNum = *rNum;
+	}
+}
+
+void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, double *avesp) {
+	int *sp = malloc((net->maxId + 1)*sizeof(int));
+	assert(sp != NULL);
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	assert(left != NULL);
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	assert(right != NULL);
+	int *spa = malloc((net->maxId + 1) * sizeof(int));
+	assert(spa != NULL);
+	int *spb = malloc((net->maxId + 1) * sizeof(int));
+	assert(spb != NULL);
+	int *spab = malloc((net->maxId + 1) * sizeof(int));
+	assert(spab != NULL);
+	char *stage = malloc((net->maxId + 1) * sizeof(char));
+	assert(stage != NULL);
+	int lNum, rNum;
+
+	int i,j;
+	int STEP_END = -1;
+	double coup = 0, all = 0;
+	double allsp = 0;
+	for (i=0; i<net->maxId + 1; ++i) {
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		for (j=0; j<net->maxId + 1; ++j) {
+			sp[j] = 0;
+			spa[j] = 0;
+			spb[j] = 0;
+			spab[j] = 0;
+		}
+		sp[i] = -1;
+		lNum = 0;
+		for (j = 0; j < net->count[i]; ++j) {
+			int to = net->edges[i][j];
+			left[lNum++] = to;
+			sp[to] = 1;
+			++spb[to];
+		}
+		if (i < air->maxId + 1) {
+			for (j = 0; j < air->count[i]; ++j) {
+				int to = air->edges[i][j];
+				left[lNum++] = to;
+				sp[to] = 1;
+				++spa[to];
+			}
+		}
+		coupling_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, air, &STEP_END, spa, spb, spab);
+		sp[i] = 0;
+		for (j = 0; j < net->maxId + 1; ++j) {
+			allsp += sp[j];
+			coup += spab[j];
+			all += spa[j];
+			all += spb[j];
+			all += spab[j];
+		}
+	}
+
+	free(left);
+	free(right);
+	free(sp);
+	free(spa);
+	free(spb);
+	free(spab);
+	free(stage);
+	*coupling = coup/all;
+	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
+}
