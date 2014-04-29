@@ -41,7 +41,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 
 	long *count=calloc(maxId+1, sizeof(long));
 	assert(count!=NULL);
-	
+
 	for(i=0; i<linesNum; ++i) {
 		++count[i1[i]];
 		++count[i2[i]];
@@ -164,14 +164,14 @@ void print_iiNet(struct iiNet *net, char *filename) {
 static void shortestpath_core_iiNet(int *sp, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, int *STEP_END) {
 	int i,j;
 	int STEP = 0;
-//	int sign = 0;
-//	if ((*left)[0] == 8) {
-//		sign = 1;
-//	}
+	//	int sign = 0;
+	//	if ((*left)[0] == 8) {
+	//		sign = 1;
+	//	}
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
-		
+
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
 			//printf("STEP: %d\t%d\t%d\t%d\t%ld\n", STEP, *lNum, i, id, net->count[id]);
@@ -311,7 +311,7 @@ static void useRate_core_iiNet(int *sp, char *use, int **left, int **right, int 
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
-		
+
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
 			//printf("id:%d\n", id);
@@ -566,9 +566,9 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 }
 
 #include "iidnet.h"
-static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, double *spall) {
+static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *XE, int *STEP_END, double *spall) {
 	int i,j;
-	int STEP = 0;
+	int STEP = 1;
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
@@ -578,30 +578,21 @@ static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *l
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
 			//printf("id:%d\n", id);
-			for (j=0; j<net->count[id]; ++j) {
-				int neigh = net->edges[id][j];
+			for (j=0; j<XE->count[id]; ++j) {
+				int neigh = XE->edges[id][j];
 				if (!sp[neigh]) {
 					spall[neigh] += spall[id];
-					stage[neigh] = 1;
-				}
-			}
-			if(id < air->maxId + 1) {
-				for (j=0; j<air->count[id]; ++j) {
-					int neigh = air->edges[id][j];
-					if (!sp[neigh]) {
-						spall[neigh] += spall[id];
+					if (stage[neigh] == 0) {
 						stage[neigh] = 1;
+						(*right)[(*rNum)++] = neigh;
 					}
 				}
 			}
 		}
 
 		//static int kk = 0;
-		for (j = 0; j < net->maxId + 1; ++j) {
-			if (1 == stage[j]) {
-				sp[j] = STEP;
-				(*right)[(*rNum)++] = j;
-			}
+		for (j = 0; j < *rNum; ++j) {
+			sp[(*right)[j]] = STEP;
 		}
 		//printf("******************************************\n");
 		//if (kk++ == 4) exit(0);
@@ -610,44 +601,78 @@ static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *l
 		*right = tmp;
 		*lNum = *rNum;
 	}
+	//for (i = 0; i < net->maxId + 1; ++i) {
+	//	printf("%d\t%d\t%f\n", i, sp[i], spall[i]);
+	//}
+	//print_label(1);
 }
 
-static void set_d_XE(struct iidNet *net, int from, int to, double d) {
+static void set_d_XE(struct iidNet *net, int from, int to, double d, int des, int sou) {
 	if (from > net->maxId || to > net->maxId || from < 0 || to <0) return;
-	int sid = dmin(from, to);
-	int bid = dmax(from, to);
+	//int sm = imin(from, to);
+	//int bg = imax(from, to);
+	int sm = from;
+	int bg = to;
 	int i;
-	for (i = 0; i < net->count[sid]; ++i) {
-		if (bid == net->edges[sid][i]) {
-			net->d[sid][i] += d;
+	for (i = 0; i < net->count[sm]; ++i) {
+		if (bg == net->edges[sm][i]) {
+			net->d[sm][i] += d;
+			//printf("%d\t%d\t%f\t%d\t%d\n", from, to, d, des, sou);
+			break;
 		}
 	}
 }
 
-static void calculate_XE(int id, int *sp, double *spall, struct iidNet *XE) {
+static void calculate_XE(int source, int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *XE, double *spall) {
 	int i;
 	int j;
+	int k;
+	*rNum = 0;
 	for (i = 0; i < XE->maxId + 1; ++i) {
-		if (i != id) {
-			int step = sp[i];
-			//double aij = spall[i];
-			if (step == 1) {
-				assert(aij == 1);
-				set_d_XE(XE, id, i, 1);
-			}
-			while (step > 1) {
+		int step = sp[i];
+		double aij = spall[i];
+		if (step == 1) {
+			assert(aij == 1);
+			set_d_XE(XE, i, source, 1, i, source);
+		}
+		else if (step > 1) {
+			*lNum = 0;
+			(*left)[(*lNum)++] = i;
+			while (step != 1) {
 				step--;
-				for (j = 0; j < XE->maxId + 1; ++j) {
-					if (sp[j] == step) {
-						set_d_XE(XE, j, i, 1);
+				*rNum = 0;
+
+				memset(stage, 0 ,sizeof(char)*(XE->maxId + 1));
+
+				for (k=0; k<*lNum; ++k) {
+					int id = (*left)[k];
+					//printf("id:%d\n", id);
+					for (j=0; j<XE->count[id]; ++j) {
+						int neigh = XE->edges[id][j];
+						if (sp[neigh] == step) {
+							set_d_XE(XE, id, neigh, spall[neigh]/aij, i, source);
+							if (stage[neigh] == 0) {
+								stage[neigh] = 1;
+								(*right)[(*rNum)++] = neigh;
+							}
+						}
 					}
 				}
+
+				int *tmp = *left;
+				*left = *right;
+				*right = tmp;
+				*lNum = *rNum;
+			}
+			for (k=0; k<*lNum; ++k) {
+				int id = (*left)[k];
+				set_d_XE(XE, id, source, 1/aij, i, source);
 			}
 		}
 	}
 }
 
-void get_XE_iiNet(struct iiNet *net, struct iiNet *air, struct iidNet *XE) {
+void get_XE_iiNet(struct iiNet *net, struct iidNet *XE) {
 	int *sp = malloc((net->maxId + 1)*sizeof(int));
 	assert(sp != NULL);
 	int *left = malloc((net->maxId + 1)*sizeof(int));
@@ -671,22 +696,14 @@ void get_XE_iiNet(struct iiNet *net, struct iiNet *air, struct iidNet *XE) {
 		}
 		sp[i] = -1;
 		lNum = 0;
-		for (j = 0; j < net->count[i]; ++j) {
-			int to = net->edges[i][j];
+		for (j = 0; j < XE->count[i]; ++j) {
+			int to = XE->edges[i][j];
 			left[lNum++] = to;
 			sp[to] = 1;
 			++spall[to];
 		}
-		if (i < air->maxId + 1) {
-			for (j = 0; j < air->count[i]; ++j) {
-				int to = air->edges[i][j];
-				left[lNum++] = to;
-				sp[to] = 1;
-				++spall[to];
-			}
-		}
-		XE_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, air, &STEP_END, spall);
-		calculate_XE(i, sp, spall, XE);
+		XE_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, XE, &STEP_END, spall);
+		calculate_XE(i, sp, stage, &left, &right, &lNum, &rNum, net, XE, spall);
 		sp[i] = 0;
 		for (j = 0; j < net->maxId + 1; ++j) {
 			allsp += sp[j];

@@ -53,6 +53,33 @@ static struct LineFile *create_newlf(int *id1, int *id2, int idNum) {
 	return lf;
 }
 
+double calculate_gini(struct iidNet *net) {
+	int i,j;
+	int m,n;
+	double diff = 0.0;
+	double total = 0.0;
+	for (i = 0; i < net->maxId + 1; ++i) {
+		for (j = 0; j < net->count[i]; ++j) {
+			if (i<net->edges[i][j]) {
+				double x1 = net->d[i][j];	
+				total += x1;
+				for (m = 0; m < net->maxId + 1; ++m) {
+					for (n = 0; n < net->count[m]; ++n) {
+						if (m < net->edges[m][n]) {
+							double x2 = net->d[m][n];
+							diff += fabs(x1 - x2);
+						}
+					}
+				}
+			}
+		}
+	}
+	double E = (double)net->edgesNum;
+	total /= net->edgesNum;
+	double G = diff/(2*E*E*total);
+	return G;
+}
+
 int main (int argc, char **argv) {
 	/********************************************************************************************************/
 	print_time();
@@ -157,8 +184,21 @@ int main (int argc, char **argv) {
 		struct LineFile *together = add_LineFile(file, newlf);
 		double *xe = malloc(together->linesNum * sizeof(double));
 		assert(xe != NULL);
+		int i;
+		for (i = 0; i < together->linesNum; ++i) {
+			xe[i] = 0.0;
+		}
 		together->d1 = xe;
+		struct iidNet *XE = create_iidNet(together);
+		free_LineFile(together);
 		free_LineFile(newlf);
+		//double *xx = malloc(file->linesNum * sizeof(double));
+		//assert(xx != NULL);
+		//for (i = 0; i < file->linesNum; ++i) {
+		//	xx[i] = 0.0;
+		//}
+		//file->d1 = xx;
+		//XE = create_iidNet(file);
 		free_LineFile(file);
 		/********************************************************************************************************/
 
@@ -166,15 +206,17 @@ int main (int argc, char **argv) {
 		//print_iiNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
-		double coupling, avesp;
-		struct iidNet *XE = create_iidNet(together);
-		free_LineFile(together);
-		get_XE_iiNet(net, newnet, XE);
+		get_XE_iiNet(net, XE);
+		double gini = calculate_gini(XE);
+		printf("gini: %f\n", gini);
+		//print_iidNet(XE, "XEfile");
 		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
-		printf("result:\t%ld\t%f\t%f\t%f\n", limit/N, alpha, avesp, coupling);
+		//printf("result:\t%ld\t%f\t%f\t%f\n", limit/N, alpha, avesp, coupling);
 		free_iiNet(net);
 		free_iiNet(newnet);
+		free_iidNet(XE);
 		/********************************************************************************************************/
+		return 0;
 
 	}
 

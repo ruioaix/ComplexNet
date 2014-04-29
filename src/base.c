@@ -7,8 +7,8 @@ void print_time(void) {
 	printf("%s", ctime(&t)); 
 	(void)fflush(stdout);
 }
-void print_label(void) {
-	printf("xxxx====xxxx\n");
+void print_label(int i) {
+	printf("xxxx==%d==xxxx\n", i);
 	fflush(stdout);
 }
 /********************************************************************************************************/
