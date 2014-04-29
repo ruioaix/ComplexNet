@@ -56,26 +56,26 @@ static struct LineFile *create_newlf(int *id1, int *id2, int idNum) {
 int main (int argc, char **argv) {
 	/********************************************************************************************************/
 	print_time();
-	set_timeseed_MTPR();
 	int L;
-	double alpha = 2;
-	if (argc == 2) {
+	int seed;
+	if (argc == 3) {
 		char *p;
 		L = strtol(argv[1], &p, 10);
-		//alpha = strtod(argv[2], &p);
+		seed = strtol(argv[2], &p, 10);
 	}
 	else if (argc == 1) {
 		L = 10;
-		//alpha = 2;
+		seed = 1;
 	}
 	else {
 		isError("wrong args");
 	}
+	set_seed_MTPR(seed);
 	/********************************************************************************************************/
 
 	int kk;
 	for (kk = 0; kk < 41; ++kk) {
-		alpha = kk * 0.1;
+		double alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
 		//struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
@@ -154,20 +154,20 @@ int main (int argc, char **argv) {
 
 		/*******add new links to net, get new net****************************************************************/
 		struct LineFile *newlf = create_newlf(id1, id2, idNum);
-		struct iiNet *newnet = create_iiNet(newlf);
+		struct iiNet *air = create_iiNet(newlf);
 		free_LineFile(newlf);
 		/********************************************************************************************************/
 
 		//print_iiNet(net, "net");
-		//print_iiNet(newnet, "newnet");
+		//print_iiNet(air, "air");
 
 		/*******************get average shortest path************************************************************/
 		double coupling, avesp;
-		get_coupling_iiNet(net, newnet, &coupling, &avesp);
+		get_coupling_iiNet(net, air, &coupling, &avesp);
 		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
 		printf("result:\t%ld\t%f\t%f\t%f\n", limit/N, alpha, avesp, coupling);
 		free_iiNet(net);
-		free_iiNet(newnet);
+		free_iiNet(air);
 		/********************************************************************************************************/
 
 	}

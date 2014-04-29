@@ -450,11 +450,10 @@ void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, do
 static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, double *spa, double *spb, double *spab) {
 	int i,j;
 	int STEP = 1;
+	memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
-
-		memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
 
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
@@ -486,17 +485,10 @@ static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, i
 				}
 			}
 		}
-
-		//for (j = 0; j < net->maxId + 1; ++j) {
-		//	if (1 == stage[j]) {
-		//		sp[j] = STEP;
-		//	}
-		//}
 		for (j = 0; j < *rNum; ++j) {
 			sp[(*right)[j]] = STEP;
+			stage[(*right)[j]] = 0;
 		}
-		//printf("******************************************\n");
-		//if (kk++ == 4) exit(0);
 		int *tmp = *left;
 		*left = *right;
 		*right = tmp;
@@ -505,28 +497,18 @@ static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, i
 }
 
 void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, double *avesp) {
-	int *sp = malloc((net->maxId + 1)*sizeof(int));
-	assert(sp != NULL);
-	int *left = malloc((net->maxId + 1)*sizeof(int));
-	assert(left != NULL);
-	int *right = malloc((net->maxId + 1)*sizeof(int));
-	assert(right != NULL);
-	double *spa = malloc((net->maxId + 1) * sizeof(double));
-	assert(spa != NULL);
-	double *spb = malloc((net->maxId + 1) * sizeof(double));
-	assert(spb != NULL);
-	double *spab = malloc((net->maxId + 1) * sizeof(double));
-	assert(spab != NULL);
-	char *stage = malloc((net->maxId + 1) * sizeof(char));
-	assert(stage != NULL);
+	int *sp = smalloc((net->maxId + 1)*sizeof(int));
+	int *left = smalloc((net->maxId + 1)*sizeof(int));
+	int *right = smalloc((net->maxId + 1)*sizeof(int));
+	double *spa = smalloc((net->maxId + 1) * sizeof(double));
+	double *spb = smalloc((net->maxId + 1) * sizeof(double));
+	double *spab = smalloc((net->maxId + 1) * sizeof(double));
+	char *stage = smalloc((net->maxId + 1) * sizeof(char));
 	int lNum, rNum;
 
 	int i,j;
 	int STEP_END = -1;
-	double coup = 0, all = 0;
-	double allsp = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
-		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
 		for (j=0; j<net->maxId + 1; ++j) {
 			sp[j] = 0;
 			spa[j] = 0;
@@ -550,26 +532,19 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 			}
 		}
 		coupling_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, air, &STEP_END, spa, spb, spab);
-		sp[i] = 0;
-		for (j = 0; j < net->maxId + 1; ++j) {
-			allsp += sp[j];
-			coup += spab[j];
-			all += spa[j];
-			all += spb[j];
-			all += spab[j];
+		for (j = i+1; j < net->maxId + 1; ++j) {
+			*avesp += sp[j];
+			*coupling += spab[j]/(spa[j] + spb[j] + spab[j]);
 		}
 	}
 
-	free(left);
-	free(right);
+	free(left); free(right);
+	free(spa); free(spb); free(spab);
 	free(sp);
-	free(spa);
-	free(spb);
-	free(spab);
 	free(stage);
-	*coupling = coup/all;
-	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
-	//printf("result:\t%f\t%f\t%f\t%f\n", *avesp, *coupling, coup, all);
+	double ij = (double)(net->maxId + 1)*net->maxId/2;
+	*avesp /= ij;
+	*coupling /= ij;
 }
 
 #include "iidnet.h"
