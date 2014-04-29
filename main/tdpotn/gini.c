@@ -206,9 +206,10 @@ int main (int argc, char **argv) {
 		//print_iiNet(newnet, "newnet");
 
 		/*******************get average shortest path************************************************************/
-		get_XE_iiNet(net, XE);
+		double avesp;
+		get_XE_iiNet(net, XE, &avesp);
 		double gini = calculate_gini(XE);
-		printf("gini: %f\n", gini);
+		printf("result: \t%f\t%f\t%f\n", alpha, avesp, gini);
 		//print_iidNet(XE, "XEfile");
 		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
 		//printf("result:\t%ld\t%f\t%f\t%f\n", limit/N, alpha, avesp, coupling);
@@ -216,7 +217,6 @@ int main (int argc, char **argv) {
 		free_iiNet(newnet);
 		free_iidNet(XE);
 		/********************************************************************************************************/
-		return 0;
 
 	}
 

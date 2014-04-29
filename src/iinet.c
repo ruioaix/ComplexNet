@@ -679,7 +679,7 @@ static void calculate_XE(int source, int *sp, char *stage, int **left, int **rig
 	}
 }
 
-void get_XE_iiNet(struct iiNet *net, struct iidNet *XE) {
+void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp) {
 	int *sp = malloc((net->maxId + 1)*sizeof(int));
 	assert(sp != NULL);
 	int *left = malloc((net->maxId + 1)*sizeof(int));
@@ -722,6 +722,5 @@ void get_XE_iiNet(struct iiNet *net, struct iidNet *XE) {
 	free(sp);
 	free(spall);
 	free(stage);
-	double avesp = allsp/((double)(net->maxId + 1)*net->maxId);
-	printf("result:\t%f\n", avesp);
+	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
 }
