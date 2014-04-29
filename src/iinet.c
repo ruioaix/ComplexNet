@@ -635,6 +635,7 @@ static void calculate_XE(int source, int *sp, char *stage, int **left, int **rig
 	int j;
 	int k;
 	*rNum = 0;
+	memset(stage, 0 ,sizeof(char)*(XE->maxId + 1));
 	for (i = 0; i < XE->maxId + 1; ++i) {
 		int step = sp[i];
 		double aij = spall[i];
@@ -649,13 +650,12 @@ static void calculate_XE(int source, int *sp, char *stage, int **left, int **rig
 				step--;
 				*rNum = 0;
 
-				memset(stage, 0 ,sizeof(char)*(XE->maxId + 1));
 
 				for (k=0; k<*lNum; ++k) {
 					int id = (*left)[k];
 					//printf("id:%d\n", id);
-					for (j=0; j<XE->count[id]; ++j) {
-						int neigh = XE->edges[id][j];
+					for (j=0; j<net->count[id]; ++j) {
+						int neigh = net->edges[id][j];
 						if (sp[neigh] == step) {
 							set_d_XE(XE, id, neigh, spall[neigh]/aij, i, source);
 							if (stage[neigh] == 0) {
@@ -664,6 +664,11 @@ static void calculate_XE(int source, int *sp, char *stage, int **left, int **rig
 							}
 						}
 					}
+				}
+
+				for (k = 0; k < *rNum; ++k) {
+					int id = (*right)[k];
+					stage[id] = 0;	
 				}
 
 				int *tmp = *left;

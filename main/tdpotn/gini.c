@@ -105,8 +105,8 @@ int main (int argc, char **argv) {
 		alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
-		//struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
-		struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
+		struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
+		//struct LineFile *file = line1d_DS(L, CYCLE, NON_DIRECT);
 		struct iiNet *net = create_iiNet(file);
 		int N = net->maxId + 1;
 		long limit = (long)N*5;
