@@ -449,7 +449,7 @@ void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, do
 
 static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END, double *spa, double *spb, double *spab) {
 	int i,j;
-	int STEP = 0;
+	int STEP = 1;
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
@@ -465,7 +465,10 @@ static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, i
 					spab[neigh] += spab[id];
 					spab[neigh] += spa[id];
 					spb[neigh] += spb[id];
-					stage[neigh] = 1;
+					if (stage[neigh] == 0) {
+						stage[neigh] = 1;
+						(*right)[(*rNum)++] = neigh;
+					}
 				}
 			}
 			if(id < air->maxId + 1) {
@@ -475,18 +478,22 @@ static void coupling_core_iiNet(int *sp, char *stage, int **left, int **right, i
 						spab[neigh] += spab[id];
 						spab[neigh] += spb[id];
 						spa[neigh] += spa[id];
-						stage[neigh] = 1;
+						if (stage[neigh] == 0) {
+							stage[neigh] = 1;
+							(*right)[(*rNum)++] = neigh;
+						}
 					}
 				}
 			}
 		}
 
-		//static int kk = 0;
-		for (j = 0; j < net->maxId + 1; ++j) {
-			if (1 == stage[j]) {
-				sp[j] = STEP;
-				(*right)[(*rNum)++] = j;
-			}
+		//for (j = 0; j < net->maxId + 1; ++j) {
+		//	if (1 == stage[j]) {
+		//		sp[j] = STEP;
+		//	}
+		//}
+		for (j = 0; j < *rNum; ++j) {
+			sp[(*right)[j]] = STEP;
 		}
 		//printf("******************************************\n");
 		//if (kk++ == 4) exit(0);
