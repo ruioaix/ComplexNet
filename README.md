@@ -56,6 +56,7 @@ In complex network, there are two concepts which always available:
 * net->countMax is the max degree in network.
 * net->countMin is the min degree in network.
 * net->edges[23][33] == 174, then there is a link between 23 and 174. (174 is the 34th linked id of 23)
+
 ####trip
 * struct LineFile * lf, lf->i1[11] == 23, lf->i2[11] == 174 and lf->i1[33] == 23, lf->i2[33] == 174, this is a possible situation.
 	because LineFile does not care about what is in one line of files, it just read line by line.
