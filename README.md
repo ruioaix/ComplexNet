@@ -52,7 +52,7 @@ In complex network, there are two concepts which always available:
 * net->count[34] is the degree of node 34.
 * the length of net->count is (net->maxId + 1), so net->count[net->maxId] is the last element.
 * net->idNum is the number of meanful ids. the meanful id is the id of node which has at least one link.
-* net->edgesNum is the number of edges. (...ok, it's nonsence)
+* net->edgesNum is the number of edges. (...ok, it's obvious)
 * net->countMax is the max degree in network.
 * net->countMin is the min degree in network.
 * net->edges[23][33] == 174, then there is a link between 23 and 174. (174 is the 34th linked id of 23)
