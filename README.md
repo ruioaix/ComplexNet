@@ -31,9 +31,13 @@ In complex network, there are two concepts which always available:
 * lf->linesNum is the number of lines in a file.
 * lf->memNum is the size of memory which have been allocated.
 * lf->memNum >= lf->linesNum.
-* if a file named "xx" contain 5 parts, the first one is int, second is double, third is char, forth is long, fifth is char * ,
-	then struct LineFile * lf = create_LineFile("xx", 1, 2, 3, 4, 5, -1).
+* if a file named "xx" contain 5 parts in each line, the first one is int, second is double, third is char, forth is long, fifth is char * ,
+	then struct LineFile * lf = create_LineFile("xx", 1, 2, 3, 4, 5, -1) is the right usage.
+	and lf->i1, lf->d1, lf->c1, lf->l1, lf->cc1 will be used to store the data.
 * 1 means int type, 2 means double, 3 means char, 4 means long, 5 means char * .
 * -1 means stop.
 * if you use lf = create_LineFile("xx", 1, 2, -1), then only the first two parts of the file are read into struct LineFile.
 * if you use lf = create_LineFile("xx", 1, 1, 1, -1), then the first three parts will be read as int type.
+* if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 1, -1), then lf->i2 will be filled with -1.
+* if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 2, -1), then lf->d2 will be filled with -1.0.
+* if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 5, -1), then lf->cc2 will be filled with NULL.
