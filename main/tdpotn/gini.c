@@ -53,7 +53,7 @@ static struct LineFile *create_newlf(int *id1, int *id2, int idNum) {
 	return lf;
 }
 
-double calculate_gini(struct iidNet *net) {
+double calculate_gini(struct iidNet *net, struct iiNet *base) {
 	int i,j;
 	int m,n;
 	double diff = 0.0;
@@ -75,34 +75,33 @@ double calculate_gini(struct iidNet *net) {
 		}
 	}
 	double E = (double)net->edgesNum;
-	total /= net->edgesNum;
-	double G = diff/(2*E*E*total);
+	double G = diff/(2*E*total);
 	return G;
 }
 
 int main (int argc, char **argv) {
 	/********************************************************************************************************/
 	print_time();
-	set_timeseed_MTPR();
 	int L;
-	double alpha = 2;
-	if (argc == 2) {
+	int seed;
+	if (argc == 3) {
 		char *p;
 		L = strtol(argv[1], &p, 10);
-		//alpha = strtod(argv[2], &p);
+		seed = strtol(argv[2], &p, 10);
 	}
 	else if (argc == 1) {
 		L = 10;
-		//alpha = 2;
+		seed = 1;
 	}
 	else {
 		isError("wrong args");
 	}
+	set_seed_MTPR(seed);
 	/********************************************************************************************************/
 
 	int kk;
 	for (kk = 0; kk < 41; ++kk) {
-		alpha = kk * 0.1;
+		double alpha = kk * 0.1;
 
 		/************get initial net.****************************************************************************/
 		struct LineFile *file = lattice2d_DS(L, CYCLE, NON_DIRECT);
@@ -180,7 +179,7 @@ int main (int argc, char **argv) {
 
 		/*******add new links to net, get new net****************************************************************/
 		struct LineFile *newlf = create_newlf(id1, id2, idNum);
-		struct iiNet *newnet = create_iiNet(newlf);
+		struct iiNet *air = create_iiNet(newlf);
 		struct LineFile *together = add_LineFile(file, newlf);
 		double *xe = malloc(together->linesNum * sizeof(double));
 		assert(xe != NULL);
@@ -192,29 +191,22 @@ int main (int argc, char **argv) {
 		struct iidNet *XE = create_iidNet(together);
 		free_LineFile(together);
 		free_LineFile(newlf);
-		//double *xx = malloc(file->linesNum * sizeof(double));
-		//assert(xx != NULL);
-		//for (i = 0; i < file->linesNum; ++i) {
-		//	xx[i] = 0.0;
-		//}
-		//file->d1 = xx;
-		//XE = create_iidNet(file);
 		free_LineFile(file);
 		/********************************************************************************************************/
 
 		//print_iiNet(net, "net");
-		//print_iiNet(newnet, "newnet");
+		//print_iiNet(air, "air");
 
 		/*******************get average shortest path************************************************************/
 		double avesp;
 		get_XE_iiNet(net, XE, &avesp);
-		double gini = calculate_gini(XE);
+		double gini = calculate_gini(XE, net);
 		printf("result: \t%f\t%f\t%f\n", alpha, avesp, gini);
 		//print_iidNet(XE, "XEfile");
 		//printf("useRate: %ld\t%f\t%f\n", limit/N, alpha, Brate);
 		//printf("result:\t%ld\t%f\t%f\t%f\n", limit/N, alpha, avesp, coupling);
 		free_iiNet(net);
-		free_iiNet(newnet);
+		free_iiNet(air);
 		free_iidNet(XE);
 		/********************************************************************************************************/
 

@@ -551,15 +551,13 @@ void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, 
 static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *XE, int *STEP_END, double *spall) {
 	int i,j;
 	int STEP = 1;
+	memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
 
-		memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
-
 		for (i=0; i<*lNum; ++i) {
 			int id = (*left)[i];
-			//printf("id:%d\n", id);
 			for (j=0; j<XE->count[id]; ++j) {
 				int neigh = XE->edges[id][j];
 				if (!sp[neigh]) {
@@ -572,21 +570,15 @@ static void XE_core_iiNet(int *sp, char *stage,  int **left, int **right, int *l
 			}
 		}
 
-		//static int kk = 0;
 		for (j = 0; j < *rNum; ++j) {
 			sp[(*right)[j]] = STEP;
+			stage[(*right)[j]] = 0;
 		}
-		//printf("******************************************\n");
-		//if (kk++ == 4) exit(0);
 		int *tmp = *left;
 		*left = *right;
 		*right = tmp;
 		*lNum = *rNum;
 	}
-	//for (i = 0; i < net->maxId + 1; ++i) {
-	//	printf("%d\t%d\t%f\n", i, sp[i], spall[i]);
-	//}
-	//print_label(1);
 }
 
 static void set_d_XE(struct iidNet *net, int from, int to, double d, int des, int sou) {
@@ -625,12 +617,13 @@ static void calculate_XE(int source, int *sp, char *stage, int **left, int **rig
 				step--;
 				*rNum = 0;
 
-
 				for (k=0; k<*lNum; ++k) {
 					int id = (*left)[k];
 					//printf("id:%d\n", id);
-					for (j=0; j<net->count[id]; ++j) {
-						int neigh = net->edges[id][j];
+					for (j=0; j<XE->count[id]; ++j) {
+						int neigh = XE->edges[id][j];
+					//for (j=0; j<net->count[id]; ++j) {
+					//	int neigh = net->edges[id][j];
 						if (sp[neigh] == step) {
 							set_d_XE(XE, id, neigh, spall[neigh]/aij, i, source);
 							if (stage[neigh] == 0) {
@@ -691,8 +684,7 @@ void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp) {
 		}
 		XE_core_iiNet(sp, stage, &left, &right, &lNum, &rNum, net, XE, &STEP_END, spall);
 		calculate_XE(i, sp, stage, &left, &right, &lNum, &rNum, net, XE, spall);
-		sp[i] = 0;
-		for (j = 0; j < net->maxId + 1; ++j) {
+		for (j = i+1; j < net->maxId + 1; ++j) {
 			allsp += sp[j];
 		}
 	}
@@ -702,5 +694,5 @@ void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp) {
 	free(sp);
 	free(spall);
 	free(stage);
-	*avesp = allsp/((double)(net->maxId + 1)*net->maxId);
+	*avesp = allsp*2.0/((double)(net->maxId + 1)*net->maxId);
 }
