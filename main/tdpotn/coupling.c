@@ -31,7 +31,6 @@ int main (int argc, char **argv) {
 		printf("result:\t%d\t%f\t%f\t%f\n", limitN, alpha, avesp, coupling);
 		free_iiNet(base);
 		free_iiNet(air);
-		/********************************************************************************************************/
 
 	}
 
