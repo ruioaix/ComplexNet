@@ -14,6 +14,7 @@ struct iidNet{
 	int **edges;
 	double **d;
 };
+
 void free_iidNet(struct iidNet *net);
 struct iidNet *create_iidNet(const struct LineFile * const file);
 

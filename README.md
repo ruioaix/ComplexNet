@@ -41,6 +41,29 @@ In complex network, there are two concepts which always available:
 * if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 1, -1), then lf->i2 will be filled with -1.
 * if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 2, -1), then lf->d2 will be filled with -1.0.
 * if you use lf = create_LineFile("xx", 1, 2, 3, 4, 5, 5, -1), then lf->cc2 will be filled with NULL.
+* More information in src/linefile.h&c
+
+###Generate certain network
+* struct LineFile is related structure.
+* struct LineFile * lf = line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd);
+	this will create a dataset of line(maybe ring if cc==CICLE), directed or undirected.
+	the dataset will be in lf, if you want to write it into a file, use print_LineFile(lf, "a name of file");
+* struct LineFile * lf = lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd);
+	this will create a dataset of lattice, cicle or non-cicle, directed or undirected.
+	the dataset will be in lf, if you want to write it into a file, use print_LineFile(lf, "a name of file");
+* More information in src/dataset.h&c
+
+###Pseude random number generater
+* I use Mersenne Twister.
+* for example, int r = get_i31_MTPR(), r will get a 31bits prn(I assume int is 32bit, so r is no problem).
+	r= get_i31_MTPR(), you get another 31bits prn.
+* you don't need to set seed before using get_i31_MTPR(), I seed a default seed already. 
+	but if you use the default seed, then you always get the same prn sequence.
+* you can set seed with set_seed_MTPR(unsigned long seed).
+* you also can use set_timeseed_MTPR(void), this will use the unix timestamp as seed.
+* More information in src/mtprand.h&c
+
+##Network
 
 ###unweighted and undirected network
 * struct iiNet is related structure.
@@ -60,6 +83,33 @@ In complex network, there are two concepts which always available:
 	because LineFile does not care about what is in one line of files, it just read line by line.
 	then, if this lf is used to create struct iiNet * net, the net is a problem.
 	make sure the lf is profect, and this is your and my responsibility.
+* information is stored twice in the iiNet, if there is net->edges[23][33] == 174, there will be net->edges[174][xx] = 23.
+	this is a choice.
+* More information in src/iinet.h&c
 
-###struct iidNet 
-TODO
+###weighted and undirected network
+* struct iidNet is related structure.
+* it's very similar to struct iiNet, only contains a net->d member more than iiNet.
+* struct iidNet * net = create_iidNet(struct LineFile * lf);
+* lf->i1 and lf->i2 and lf->d1 will be used.
+	for example: lf->i1[23] == 44 and lf->i2[23] == 554 and lf->d1[23] = 3.14, then there is a link between 44 and 554, and there is 
+	property on this link, maybe weight, maybe time, and it's 3.14.
+* all others is same with the previous iiNet.
+* though the title of this section is weighted and undirected network, but the net->d can be used to represent a lot of things.
+* More information in src/iidnet.h&c
+
+###bipartite network
+* struct Bip is related structure.
+* it's very similar to struct iiNet, only contains a bip->score member more thean iiNet.
+* struct Bip * bip = create_Bip(struct LineFile * lf, int index).
+* lf->i1 and lf->i2 will be used, lf->i3 may be used.
+	the research on bipartite network basicly focus on recommendation, in most casees, we don't conside about the score which a user
+	gives to a item. but I have a paper about improving the score of recommendation result. so I add the bip->score.
+* Bip is different from iiNet, if bip->edges[23][33] == 174, it means the user whose id is 23 chooses the item whose id is 174.
+	23 and 174 is not in same id-space. but for iiNet, 23 and 174 is in the same id-space.
+* when you use create_Bip(lf, 1), you create a Bip in which bip->count[23] == 45 means the degree of 23 user is 45.(I assume lf->i1 is the user, i2 is item).
+	means the 23 user chooses 45 items.
+* when you use create_Bip(lf, 2), you create a Bip in which bip->count[23] == 45 means the degree of 23 item is 45.(I assume lf->i1 is the user, i2 is item).
+	means the 23 item is choosed by 45 users.
+* in most casees, you need to create two bips in order to get all detail information about a bipartite network.
+* More information in src/bip.h&c
