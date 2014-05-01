@@ -45,7 +45,6 @@ struct LineFile {
 
 	long linesNum;
 	long memNum;
-
 	char *filename;
 };
 

@@ -27,4 +27,13 @@ double *get_kind02_SP(struct iiNet *net, struct iidNet *air, int id);
  */
 double *dijkstra_1toall_SP(struct iidNet *net, int nid);
 
+//this spath01 is for unweighted and undirect shortest path.
+int *spath01_1A_iiNet(struct iiNet *net, int originId);
+int *spath01_step_1A_iiNet(struct iiNet *net, int originId, int step, int *Num);
+double avesp_spath01_iiNet(struct iiNet *net);
+
+//this spath02 is FW algorithm for unweighted and undirected net.
+int **spath02_AA_iiNet(struct iiNet *net);
+
+
 #endif
