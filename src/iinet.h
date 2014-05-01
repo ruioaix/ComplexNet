@@ -23,10 +23,6 @@ void print_iiNet(struct iiNet *net, char *filename);
 //of course, you can use this in the main thread.
 void *verify_iiNet(void *arg);
 
-void get_useRate_iiNet(struct iiNet *net, struct iiNet *air, double *useRate, double *sameRate, double *cleanRate);
-
-void get_coupling_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, double *avesp);
-
 #include "iidnet.h"
 void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp);
 

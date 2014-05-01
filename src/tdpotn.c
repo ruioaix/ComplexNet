@@ -6,14 +6,15 @@
 #include <stdlib.h>
 #include "spath.h"
 
-void tdpotn_argcv(int argc, char **argv, int *L, int *seed, int *D_12, int *limitN, double *theta) {
-	if (argc == 6) {
+void tdpotn_argcv(int argc, char **argv, int *L, int *seed, int *D_12, int *limitN, double *theta, double *lambda) {
+	if (argc == 7) {
 		char *p;
 		*L = strtol(argv[1], &p, 10);
 		*seed = strtol(argv[2], &p, 10);
 		*D_12 = strtol(argv[3], &p, 10);
 		*limitN = strtol(argv[4], &p, 10);
 		*theta = strtod(argv[5], &p);
+		*lambda = strtod(argv[6], &p);
 	}
 	else if (argc == 1) {
 		*L = 50;
@@ -21,6 +22,7 @@ void tdpotn_argcv(int argc, char **argv, int *L, int *seed, int *D_12, int *limi
 		*D_12 = 1;
 		*limitN = 5;
 		*theta = 1;
+		*lambda = 0;
 	}
 	else {
 		isError("wrong args");
@@ -75,7 +77,7 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 	}
 }
 
-struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, double theta) {
+struct LineFile *tdpotn_create_air(struct iiNet * net, double alpha, int limitN, double theta, double lambda) {
 	if (theta < 0.5) isError("theta should be [0.5, +00)");
 
 	int N = net->maxId + 1;
@@ -92,6 +94,7 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, do
 	/****************get new links***************************************************************************/
 	int *id1 = malloc(limitN*N*sizeof(int));
 	int *id2 = malloc(limitN*N*sizeof(int));
+	double *weight = malloc(limitN*N*sizeof(double));
 	int *hash1 = calloc((net->maxId + 1)*3, sizeof(int));
 	int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
 	int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
@@ -133,6 +136,7 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, do
 			//printf("%.4f%%\r", (double)totalL*100/limit);
 			id1[idNum] = i1;
 			id2[idNum] = i2;
+			weight[idNum] = pow(splength, lambda);
 			++idNum;
 			totalL += dsplength;
 		}
@@ -150,8 +154,9 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, do
 	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;
 	lf->i2 = id2;
+	lf->d1 = weight;
 	lf->linesNum = idNum;
-	lf->memNum = idNum;
+	lf->memNum = limitN*N*sizeof(int);
 	lf->filename = "air";
 
 	return lf;

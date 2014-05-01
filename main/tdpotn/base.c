@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "base.h"
 #include "iinet.h"
 #include "spath.h"
@@ -11,8 +12,8 @@ int main (int argc, char **argv) {
 	print_time();
 
 	int L, seed, D_12, limitN;
-	double theta;
-	tdpotn_argcv(argc, argv, &L, &seed, &D_12, &limitN, &theta);
+	double theta, lambda;
+	tdpotn_argcv(argc, argv, &L, &seed, &D_12, &limitN, &theta, &lambda);
 
 	set_seed_MTPR(seed);
 
@@ -22,15 +23,18 @@ int main (int argc, char **argv) {
 
 		struct LineFile *baself = tdpotn_lf(L, D_12);
 		struct iiNet *base = create_iiNet(baself);
-		struct LineFile *airlf = tdpotn_air_all(base, alpha, limitN, theta);
+		struct LineFile *airlf = tdpotn_create_air(base, alpha, limitN, theta, lambda);
 		free_iiNet(base);
+		free(airlf->d1);
+		airlf->d1 = NULL;
 		struct LineFile *alllf = add_LineFile(baself, airlf);
 		free_LineFile(baself);
 		free_LineFile(airlf);
 		struct iiNet *all = create_iiNet(alllf);
 		free_LineFile(alllf);
 
-		double avesp = avesp_spath01_iiNet(all);
+		double avesp;
+	   	avesp_spath01_iiNet(all, &avesp);
 		free_iiNet(all);
 
 		printf("result =>>\talpha:\t%f\tavesp:\t%f\n", alpha, avesp);
