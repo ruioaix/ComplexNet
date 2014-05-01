@@ -28,7 +28,7 @@ CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 
 
-.PHONY : dir all clean test
+.PHONY : dir all clean test tar
 
 #all : dir test
 #all: dir tdpotn-wair
@@ -40,6 +40,10 @@ all: dir tdpotn-gini
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
+
+tar: main src Makefile
+	@tar zcf complexnet.tar.gz $^
+
 
 #################################################################
 MAIN_SCORE_SRC = $(wildcard main/score/*.c)
@@ -100,5 +104,5 @@ clean :
 	$(RM) $(SRC_OBJ)
 	$(RM) $(MAIN_ALL_EXEC)
 	$(RM) -r $(OBJ_DIR)
-	$(RM) tags test/run
+	$(RM) tags test/run complexnet.tar.gz
 #################################################################
