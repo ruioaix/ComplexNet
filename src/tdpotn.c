@@ -75,85 +75,85 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 	}
 }
 
-
 struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, double theta) {
+	if (theta < 0.5) isError("theta should be [0.5, +00)");
 
-		int N = net->maxId + 1;
-		double limit = (double)N*limitN;
+	int N = net->maxId + 1;
+	double limit = (double)N*limitN;
 
-		/**************get degree prossiblity, used to choose new links******************************************/
-		//the point 0 can get all kinds of degree in both cycle or non_cycle net.
-		int *sp = spath01_1A_iiNet(net, 0);
-		int *alld, alldNum; double *p_alld;
-		get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
-		free(sp);
-		/********************************************************************************************************/
+	/**************get degree prossiblity, used to choose new links******************************************/
+	//the point 0 can get all kinds of degree in both cycle or non_cycle net.
+	int *sp = spath01_1A_iiNet(net, 0);
+	int *alld, alldNum; double *p_alld;
+	get_all_degree(sp, net->maxId + 1, &alld, &alldNum, &p_alld, alpha);
+	free(sp);
+	/********************************************************************************************************/
 
-		/****************get new links***************************************************************************/
-		int *id1 = malloc(limitN*N*sizeof(int));
-		int *id2 = malloc(limitN*N*sizeof(int));
-		int *hash1 = calloc((net->maxId + 1)*3, sizeof(int));
-		int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
-		int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
-		int idNum = 0;
-		int badluck = 0;
-		double totalL = 0;
-		while (1) {
-			double chooseSPL = get_d_MTPR();
-			int splength = 0;
-			int i;
-			for (i=0; i<alldNum; ++i) {
-				if (p_alld[i] > chooseSPL) {
-					splength = alld[i];
-					break;
-				}
-			}
-			double dsplength = pow(splength, theta);
-			double tmp = totalL + dsplength;
-			if (tmp > limit) {
+	/****************get new links***************************************************************************/
+	int *id1 = malloc(limitN*N*sizeof(int));
+	int *id2 = malloc(limitN*N*sizeof(int));
+	int *hash1 = calloc((net->maxId + 1)*3, sizeof(int));
+	int *hash2 = calloc((net->maxId + 1)*2, sizeof(int));
+	int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
+	int idNum = 0;
+	int badluck = 0;
+	double totalL = 0;
+	while (1) {
+		double chooseSPL = get_d_MTPR();
+		int splength = 0;
+		int i;
+		for (i=0; i<alldNum; ++i) {
+			if (p_alld[i] > chooseSPL) {
+				splength = alld[i];
 				break;
 			}
-			int i1 = get_i31_MTPR()%(net->maxId + 1);
-			int lNum;
-			int *left = spath01_step_1A_iiNet(net, i1, splength, &lNum);
-			if (lNum > 0) {
-				int random = get_i31_MTPR()%lNum;
-				int i2 = left[random];
-				int min = imin(i1, i2);
-				int max = imax(i1, i2);
-				if (hash1[min + 2*max] && hash2[min + max] && hash3[min*2 + max]) {
-					//printf("not lucky, drop on same positon. try again.\n");
-					badluck ++;
-					free(left);
-					continue;
-				}
-				hash1[min + 2*max] = 1;
-				hash2[min + max] = 1;
-				hash3[min*2 + max] = 1;
-				//printf("%.4f%%\r", (double)totalL*100/limit);
-				id1[idNum] = i1;
-				id2[idNum] = i2;
-				++idNum;
-				totalL += dsplength;
-			}
-			free(left);
 		}
-		free(hash1);
-		free(hash2);
-		free(hash3);
-		free(p_alld);
-		free(alld);
-		printf("badluck: %d, NumofAddedLinks: %d\n", badluck, idNum);
-		/********************************************************************************************************/
+		double dsplength = pow(splength, theta);
+		double tmp = totalL + dsplength;
+		if (tmp > limit) {
+			break;
+		}
+		int i1 = get_i31_MTPR()%(net->maxId + 1);
+		int lNum;
+		int *left = spath01_step_1A_iiNet(net, i1, splength, &lNum);
+		if (lNum > 0) {
+			int random = get_i31_MTPR()%lNum;
+			int i2 = left[random];
+			int min = imin(i1, i2);
+			int max = imax(i1, i2);
+			if (hash1[min + 2*max] && hash2[min + max] && hash3[min*2 + max]) {
+				//printf("not lucky, drop on same positon. try again.\n");
+				badluck ++;
+				free(left);
+				continue;
+			}
+			hash1[min + 2*max] = 1;
+			hash2[min + max] = 1;
+			hash3[min*2 + max] = 1;
+			//printf("%.4f%%\r", (double)totalL*100/limit);
+			id1[idNum] = i1;
+			id2[idNum] = i2;
+			++idNum;
+			totalL += dsplength;
+		}
+		free(left);
+	}
+	free(hash1);
+	free(hash2);
+	free(hash3);
+	free(p_alld);
+	free(alld);
+	printf("badluck: %d, NumofAddedLinks: %d\n", badluck, idNum);
+	/********************************************************************************************************/
 
-		/*******create a air struct LineFile ********************************************************************/
-		struct LineFile *lf = create_LineFile(NULL);
-		lf->i1 = id1;
-		lf->i2 = id2;
-		lf->linesNum = idNum;
-		lf->memNum = idNum;
-		lf->filename = "air";
+	/*******create a air struct LineFile ********************************************************************/
+	struct LineFile *lf = create_LineFile(NULL);
+	lf->i1 = id1;
+	lf->i2 = id2;
+	lf->linesNum = idNum;
+	lf->memNum = idNum;
+	lf->filename = "air";
 
-		return lf;
-		/********************************************************************************************************/
+	return lf;
+	/********************************************************************************************************/
 }
