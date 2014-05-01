@@ -6,8 +6,8 @@
 #include "mtprand.h"
 #include "tdpotn.h"
 
-//paper: ./tdpotn-base 50 1 1 5 1.0
-//N = 50, seed = 1, D_12 = 1, limitN = 5, theta = 1.0
+//paper: ./tdpotn-base 50 1 1 5 1.0 1
+//N = 50, seed = 1, D_12 = 1, limitN = 5, theta = 1.0, lambda = 1(it 's not important for base.c).
 int main (int argc, char **argv) {
 	print_time();
 
