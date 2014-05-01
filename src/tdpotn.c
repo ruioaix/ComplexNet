@@ -6,19 +6,21 @@
 #include <stdlib.h>
 #include "spath.h"
 
-void tdpotn_argcv(int argc, char **argv, int *L, int *seed, int *D_12, int *limitN) {
-	if (argc == 5) {
+void tdpotn_argcv(int argc, char **argv, int *L, int *seed, int *D_12, int *limitN, double *theta) {
+	if (argc == 6) {
 		char *p;
 		*L = strtol(argv[1], &p, 10);
 		*seed = strtol(argv[2], &p, 10);
 		*D_12 = strtol(argv[3], &p, 10);
 		*limitN = strtol(argv[4], &p, 10);
+		*theta = strtod(argv[5], &p);
 	}
 	else if (argc == 1) {
 		*L = 50;
 		*seed = 1;
 		*D_12 = 1;
 		*limitN = 5;
+		*theta = 1;
 	}
 	else {
 		isError("wrong args");
@@ -74,10 +76,10 @@ static void get_all_degree(int *sp, int N, int **alld, int *alldNum, double **p_
 }
 
 
-struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN) {
+struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN, double theta) {
 
 		int N = net->maxId + 1;
-		long limit = (long)N*limitN;
+		double limit = (double)N*limitN;
 
 		/**************get degree prossiblity, used to choose new links******************************************/
 		//the point 0 can get all kinds of degree in both cycle or non_cycle net.
@@ -95,7 +97,7 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN) {
 		int *hash3 = calloc((net->maxId + 1)*3, sizeof(int));
 		int idNum = 0;
 		int badluck = 0;
-		long totalL = 0;
+		double totalL = 0;
 		while (1) {
 			double chooseSPL = get_d_MTPR();
 			int splength = 0;
@@ -106,8 +108,8 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN) {
 					break;
 				}
 			}
-			long tmp = totalL + splength;
-			//printf("out: %d, %ld\n", splength, tmp);
+			double dsplength = pow(splength, theta);
+			double tmp = totalL + dsplength;
 			if (tmp > limit) {
 				break;
 			}
@@ -129,11 +131,10 @@ struct LineFile *tdpotn_air_all(struct iiNet * net, double alpha, int limitN) {
 				hash2[min + max] = 1;
 				hash3[min*2 + max] = 1;
 				//printf("%.4f%%\r", (double)totalL*100/limit);
-				//printf("out: %d, i1: %d, i2: %d, %ld\n", splength, i1, i2, totalL);
 				id1[idNum] = i1;
 				id2[idNum] = i2;
 				++idNum;
-				totalL += splength;
+				totalL += dsplength;
 			}
 			free(left);
 		}

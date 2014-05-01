@@ -31,7 +31,7 @@ CFLAG :=  -g -Wall -Wunused
 .PHONY : dir all clean test tar
 
 #all : dir test
-all: dir tdpotn-all
+all: dir tdpotn-base
 #all: dir tdpotn-wair
 #all: dir tdpotn-coupling
 #all: dir tdpotn-gini 
