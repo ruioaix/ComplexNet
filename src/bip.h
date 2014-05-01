@@ -2,71 +2,67 @@
  * recommandation is carried on between user and item, always two part.
  * maybe a biparte can contain the third part, like score that a user give to a item. but the third part (even another forth part) can be treated as a param.
  * this is more flexible.
- * In the following part, bipii means there is only two part, two int; bipiid means there is the third part which is a double.
- * this is similar to xxlinefile, e.g. bipi3 means there is the third part which is a int.
  *
- * for bipii:
- * 		the origin bipartite is coming from a struct iiLineFile with using create_Bipii(struct iiLineFile) function.
- * 		(BTW, the origin iiLineFile is getting from a file which contain two int integer in an line, 
- * 		to a line containing three or more integers, only fetch two.  using create_iiLineFile(char *filename) function)
+ * for bip:
+ * 		the origin bipartite is coming from a struct LineFile with using create_Bip(struct LineFile) function.
+ * 		(BTW, the origin LineFile is getting from a file which contain at least two int integer in an line, 
+ * 		to a line containing three or more integers, only fetch two.  using create_LineFile(char *filename, 1, 1, -1))
  *
- * 		struct Bipii contains only half information of the bipartite. 
- * 		(I mean one struct Bipii can store a iiLineFile completely, but it doesn't store detail information.)
- * 		you need two struct Bipii to store all detail information of a Bipartite.
- * 		one is indexed by i1.(user)
- * 		one is indexed by i2.(item)
+ * 		struct Bip contains only half information of the bipartite. 
+ * 		(I mean one struct Bip can store a LineFile completely, but it doesn't store detail information.)
+ * 		you need two struct Bip to store all detail information of a Bipartite.
+ * 		one is indexed by i1(user).
+ * 		one is indexed by i2(item).
  *
- * struct Metrics_Bipii contains the result(all metrics) fo all kinds of recommendation algorithm.
+ * struct Metrics_Bip contains the result(all metrics) for all kinds of recommendation algorithm.
  *
  */
 #ifndef CN_BIP_H
 #define CN_BIP_H
 
-#include "iilinefile.h"
-#include "iidlinefile.h"
+#include "linefile.h"
 #include "iidnet.h"
-
-
-/************************************************************************************************************/
-/*******************************following is about Bipii*****************************************************/
-/************************************************************************************************************/
 
 //this struct is just one way for describing Bipartite.
 //other ways like (int ***xx) is also usefully.
 //Bipartite contains two parts. e.g. user and item.
 //but here, create_Bipartite only create user Bipartite or item Bipartite.
-//if you want both, create two time with different i1toi2 arg.
-struct Bipii {
+//if you want both, create two time with different index arg.
+struct Bip {
 	int maxId;
 	int minId;
 	int idNum;
 	long countMax;
 	long countMin;
 	long *count;
-	int **id;
+	int **edges;
 	long edgesNum;
+	int **score;
 };
 
-//if i1toi2 is not zero, means the  column 1 is the index, and column 2 is the data saved into (int **id).
-//column 1 and column 2 is the data in origin file.
-//if i1toi2 is zero, means column 2 is the index.
-struct Bipii *create_Bipii(const struct iiLineFile * const file, int i1toi2);
-void free_Bipii(struct Bipii *bip);
-struct Bipii * clone_Bipii(struct Bipii *bip);
+//if index is 1, means the i1 is the index, and i2 is the data saved into (int **edges).
+//i1 and i2 is the data in LineFile.
+//if index is 2, means i2 is the index.
+struct Bip *create_Bip(const struct LineFile * const file, int index);
+void sort_desc_Bip(struct Bip *bip);
+void free_Bip(struct Bip *bip);
+struct Bip * clone_Bip(struct Bip *bip);
+void verify_Bip(struct Bip *bipi1, struct Bip *bipi2);
+void print_Bip(struct Bip *bip, char *filename);
 
 //the dividation will guarantee that: 
-//	for each available user(degree of this user is at least one), at least there will be a link in big part.
-//	for each available item(degree of this item is at least one), at least there will be a link in big part.
+//	for each available user(degree of this user is at least one), at least there will be an edge in big part.
+//	for each available item(degree of this item is at least one), at least there will be an edge in big part.
 //so maybe some users are not existed in the small part.
-void divide_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, double rate, struct iiLineFile **small_part, struct iiLineFile **big_part);
+void divide_Bip(struct Bip *bipi1, struct Bip *bipi2, double rate, struct LineFile **small_part, struct LineFile **big_part);
 
-//if i1ori2 == 1, then calculate i1(user)'s similarity.
-//if i1ori2 == 0, then calculate i2(item)'s similarity.
-struct iidLineFile *similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2, int i1ori2);
-struct iidLineFile *mass_similarity_Bipii(struct Bipii *bipi1, struct Bipii *bipi2);
+//if target == 1, then calculate i1(mostly could be user)'s similarity.
+//if target == 2, then calculate i2(mostly could be item)'s similarity.
+struct LineFile *similarity_Bip(struct Bip *bipi1, struct Bip *bipi2, int target);
+struct LineFile *mass_similarity_Bip(struct Bip *bipi1, struct Bip *bipi2);
 
 
-struct Metrics_Bipii {
+struct Metrics_Bip {
 	double R;
 	double PL;
 	double HL;
@@ -75,36 +71,35 @@ struct Metrics_Bipii {
 	int *topL;
 	int L;
 };
-struct Metrics_Bipii *create_MetricsBipii(void);
-void clean_MetricsBipii(struct Metrics_Bipii *lp);
-void free_MetricsBipii(struct Metrics_Bipii *bip);
+struct Metrics_Bip *create_MetricsBip(void);
+void clean_MetricsBip(struct Metrics_Bip *m);
+void free_MetricsBip(struct Metrics_Bip *m);
 
 //recommend methods
 
-struct Metrics_Bipii *mass_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim);
-struct Metrics_Bipii *mass_topR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int mass_topR);
-struct Metrics_Bipii *mass_topR5_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int mass_topR5);
-struct Metrics_Bipii *mass_topR5RE_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int mass_topR5RE, double RENBI_param);
-struct Metrics_Bipii *mass_topS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_topS);
-struct Metrics_Bipii *mass_corR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corR);
-struct Metrics_Bipii *mass_corS_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_corS);
-struct Metrics_Bipii *mass_expR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR);
-struct Metrics_Bipii *mass_expRI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, double mass_expR, double *mass_expRI_itemAveDre, double mass_expRI_itemAveDreMax);
-struct Metrics_Bipii *mass_bestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *itemSim, struct iidNet *userSim, int *mass_bestR);
+struct Metrics_Bip *mass_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *trainSim);
 
-struct Metrics_Bipii *heats_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim);
+struct Metrics_Bip *heats_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *trainSim);
 
-struct Metrics_Bipii *HNBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double HNBI_param);
+struct Metrics_Bip *HNBI_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *trainSim, double HNBI_param);
 
-struct Metrics_Bipii *RENBI_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double RENBI_param);
+struct Metrics_Bip *RENBI_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *trainSim, double RENBI_param);
 
-struct Metrics_Bipii *hybrid_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *trainSim, double hybrid_param);
+struct Metrics_Bip *hybrid_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *trainSim, double hybrid_param);
 
-int *mass_GetBestR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
-int *mass_GetNR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim, int N);
+int *mass_getBK_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *userSim, double rate);
 
-int mass_GetTopR_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
-void experiment_knn_Bipii(struct Bipii *traini1, struct Bipii *traini2, struct Bipii *testi1, struct Bipii *testi2, struct iidNet *userSim);
+struct Metrics_Bip *mass_topk_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk);
+struct Metrics_Bip *mass_hs_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *userSim, struct iidNet *itemSim, int topk);
 
+//score bip
+struct Metrics_Bip *mass_score_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, int maxscore, double mass_score);
+struct Metrics_Bip *mass_scoret3step_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim, double mass_score);
+struct Metrics_Bip *mass_degree_Bip(struct Bip *traini1, struct Bip *traini2, struct Bip *testi1, struct Bip *testi2, struct iidNet *itemSim,  double mass_score);
+
+//rank
+double *mass_score_rank_Bip(struct Bip *traini1, struct Bip *traini2, int maxscore, double mass_score);
+double *mass_scoret3step_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score);
+double *mass_degree_rank_Bip(struct Bip *traini1, struct Bip *traini2, double mass_score);
 
 #endif

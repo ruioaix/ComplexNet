@@ -18,8 +18,8 @@ void qsort_i_desc(int s[], int l, int r)
 				s[j--] = s[i];
 		}
 		s[i] = x;
-		qsort_i_desc(s, l, i - 1);
-		qsort_i_desc(s, i + 1, r);
+		qsort_i_asc(s, l, i - 1);
+		qsort_i_asc(s, i + 1, r);
 	}
 }
 

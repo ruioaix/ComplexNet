@@ -5,9 +5,13 @@
 5
 6
 
-data/*
-result/*
-script/*
+data/
+result/
+script/
+temp/
+backup/
+obj/
+test/run
 
 *.eps
 *.swp
@@ -15,19 +19,13 @@ script/*
 *.d
 
 bip
-onion
 reappearLLY
 selectRandomUsers
 similarity
-onion_*
-generatenet-*
+onion-*
+tool-*
 tdpotn-*
-
-temp/*
-backup/*
-obj/*
-
-output*
-*output
+score-*
+test-*
 
 tags

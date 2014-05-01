@@ -15,11 +15,7 @@ MAIN_ALL_DIR = $(sort $(dir $(MAIN_ALL_SRC)))
 MAIN_ALL_OBJ = $(patsubst %.c, obj/%.o, $(MAIN_ALL_SRC))
 MAIN_ALL_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ALL_SRC)))
 
-TEST_SRC = $(wildcard test/*.c test/*/*.c)
-TEST_DIR = $(sort $(dir $(TEST_SRC)))
-TEST_OBJ = $(patsubst %.c, obj/%.o, $(TEST_SRC))
-
-OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR) $(TEST_DIR))
+OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR))
 
 #include dir
 INCLUDE_DIR := $(patsubst %, -I%, $(SRC_DIR) $(MAIN_ALL_DIR))
@@ -28,29 +24,14 @@ CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 
 
-.PHONY : dir all clean test tar
+.PHONY : dir all clean
 
-#all : dir test
-#all: dir tdpotn-wair
-#all: dir tdpotn-coupling
-all: dir tdpotn-gini 
-#all: dir test-linefile
-#all: dir score-3methods
-#all: dir test-dividebip
+all: dir tdpotn-two
 #all: dir $(MAIN_ALL_EXEC)
 
 dir: $(OBJ_DIR)
 
-tar: main src Makefile
-	@tar zcf complexnet.tar.gz $^
-
-
 #################################################################
-MAIN_SCORE_SRC = $(wildcard main/score/*.c)
-MAIN_SCORE_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_SCORE_SRC)))
-$(MAIN_SCORE_EXEC) : score-% : $(SRC_OBJ) obj/main/score/%.o 
-	$(CC) $(CFLAG) -lm $^ -o $@ 
-
 MAIN_TDPOTN_SRC = $(wildcard main/tdpotn/*.c)
 MAIN_TDPOTN_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TDPOTN_SRC)))
 $(MAIN_TDPOTN_EXEC) : tdpotn-% : $(SRC_OBJ) obj/main/tdpotn/%.o 
@@ -61,9 +42,9 @@ MAIN_ONION_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ONION_SRC)))
 $(MAIN_ONION_EXEC) : onion-% : $(SRC_OBJ) obj/main/onion/%.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
-MAIN_TOOL_SRC = $(wildcard main/tool/*.c)
-MAIN_TOOL_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TOOL_SRC)))
-$(MAIN_TOOL_EXEC) : tool-% : $(SRC_OBJ) obj/main/tool/%.o 
+MAIN_GENERATENET_SRC = $(wildcard main/generatenet/*.c)
+MAIN_GENERATENET_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_GENERATENET_SRC)))
+$(MAIN_GENERATENET_EXEC) : generatenet-% : $(SRC_OBJ) obj/main/generatenet/%.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
 MAIN_SRC = $(wildcard main/*.c) 
@@ -73,23 +54,12 @@ $(MAIN_EXEC) : % : $(SRC_OBJ) obj/main/%.o
 #################################################################
 
 
-#################################################################
-test : test/run
-#	-@./test/main
-
-test/run : $(SRC_OBJ) $(TEST_OBJ)
-	$(CC) -lm $^ -o $@
-#################################################################
-
 
 #################################################################
 obj/src/%.o : src/%.c src/%.h 
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 obj/main/%.o: main/%.c 
-	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
-
-obj/test/%.o : test/%.c test/test.h 
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 $(OBJ_DIR) :
@@ -104,5 +74,4 @@ clean :
 	$(RM) $(SRC_OBJ)
 	$(RM) $(MAIN_ALL_EXEC)
 	$(RM) -r $(OBJ_DIR)
-	$(RM) tags test/run complexnet.tar.gz
 #################################################################
