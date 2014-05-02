@@ -28,11 +28,11 @@ CC := gcc
 CFLAG :=  -g -Wall -Wunused 
 
 
-.PHONY : dir all clean test tar
+.PHONY : dir all clean test tar tdpotn
 
 #all : dir test
-all: dir tdpotn-base
 #all: dir tdpotn-wair
+all: dir tdpotn
 #all: dir tdpotn-coupling
 #all: dir tdpotn-gini 
 #all: dir test-linefile
@@ -73,6 +73,7 @@ $(MAIN_EXEC) : % : $(SRC_OBJ) obj/main/%.o
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 #################################################################
 
+tdpotn : $(MAIN_TDPOTN_EXEC)
 
 #################################################################
 test : test/run

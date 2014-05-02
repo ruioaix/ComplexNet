@@ -405,7 +405,7 @@ void avesp_spath03_Net(struct iiNet *net, struct iidNet *air, double *avesp) {
 //to find how many shortest pathes use only base or only air or both.
 static void spath04_core_iiNet(int *sp, char *use, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iiNet *air, int *STEP_END) {
 	int i,j;
-	int STEP = 0;
+	int STEP = 1;
 	while (*lNum && STEP != *STEP_END) {
 		++STEP;
 		*rNum = 0;
@@ -605,6 +605,7 @@ void coupling_spath05_iiNet(struct iiNet *net, struct iiNet *air, double *coupli
 
 	int i,j;
 	int STEP_END = -1;
+	*avesp = 0;
 	for (i=0; i<net->maxId + 1; ++i) {
 		for (j=0; j<net->maxId + 1; ++j) {
 			sp[j] = 0;
