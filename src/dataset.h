@@ -21,8 +21,10 @@ struct LineFile * line1d_DS(int L, enum CICLENET cc, enum DIRECTNET dd);
 
 void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, int ccn);
 
-
-
+//ER random network
+struct LineFile * ER_DS(int N);
+//scare free network
+struct LineFile * SF_DS(int N);
 
 
 #endif

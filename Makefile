@@ -32,7 +32,7 @@ CFLAG :=  -g -Wall -Wunused
 
 #all : dir test
 #all: dir tdpotn-wair
-all: dir tdpotn
+all: dir robust-test
 #all: dir tdpotn-coupling
 #all: dir tdpotn-gini 
 #all: dir test-linefile
@@ -55,6 +55,11 @@ $(MAIN_SCORE_EXEC) : score-% : $(SRC_OBJ) obj/main/score/%.o
 MAIN_TDPOTN_SRC = $(wildcard main/tdpotn/*.c)
 MAIN_TDPOTN_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_TDPOTN_SRC)))
 $(MAIN_TDPOTN_EXEC) : tdpotn-% : $(SRC_OBJ) obj/main/tdpotn/%.o 
+	$(CC) $(CFLAG) -lm $^ -o $@ 
+
+MAIN_ROBUST_SRC = $(wildcard main/robust/*.c)
+MAIN_ROBUST_EXEC = $(subst /,-, $(patsubst main/%.c, %, $(MAIN_ROBUST_SRC)))
+$(MAIN_ROBUST_EXEC) : robust-% : $(SRC_OBJ) obj/main/robust/%.o 
 	$(CC) $(CFLAG) -lm $^ -o $@ 
 
 MAIN_ONION_SRC = $(wildcard main/onion/*.c)
