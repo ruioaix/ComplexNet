@@ -202,7 +202,6 @@ void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, i
 struct LineFile *ER_DS(int N, int seed) {
 	assert(N>2);
 	set_seed_MTPR(seed);
-	struct LineFile *lf = create_LineFile(NULL);
 	double p = 3.0*log(N)/N;
 	long L = (long)(p*N*N);
 	int *id1 = smalloc(L*sizeof(int));
@@ -224,11 +223,78 @@ struct LineFile *ER_DS(int N, int seed) {
 			}
 		}
 	}
+	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;
 	lf->i2 = id2;
 	lf->linesNum = linesNum;
 	lf->memNum = memNum;
 	lf->filename = "ER random network";
 	printf("Generate ER random network => N: %d, linesNum: %ld, memNum: %ld\n", N, linesNum, memNum);fflush(stdout);
+	return lf;
+}
+
+#define MM0 1
+struct LineFile *SF_DS(int N, int seed) {
+	assert(N>2);
+	set_seed_MTPR(seed);
+	int m, m0;
+	m = m0 = MM0;
+	long linesNum = 0;
+	long memNum = (long)m*N;
+	int *id1 = smalloc(memNum * sizeof(int));
+	int *id2 = smalloc(memNum * sizeof(int));
+	int i;
+	for (i = 0; i < MM0 - 1; ++i) {
+		id1[i] = i;
+		id2[i] = i+1;
+	}
+	id1[MM0 - 1] = MM0 - 1;
+	id2[MM0 - 1] = 0;
+	linesNum = MM0;
+	long *count = calloc(N, sizeof(long));
+	for (i = 0; i < MM0; ++i) {
+		count[i] = 2;
+	}
+	long countSum = MM0*2;
+	int maxId = MM0 - 1;
+	char *fg = calloc(N, sizeof(char));
+	int fgM[MM0];
+	int j;
+	while(maxId != N -1 && linesNum + MM0 < memNum) {
+		maxId++;
+		for (j = 0; j < MM0; ) {
+			int i2 = get_i31_MTPR()%countSum;
+			int k = 0;
+			for (i = 0; i < maxId; ++i) {
+				k += count[i];
+				if (k>i2 && fg[i] == 0) {
+					fgM[j++] = i;
+					fg[i] = 1;
+					break;
+				}
+			}
+		}
+		for (j = 0; j < MM0; ++j) {
+			int i2 = fgM[j];
+			//printf("%d\t%d\n", j, i2);
+			id1[linesNum + j] = maxId;
+			id2[linesNum + j] = i2;
+			//print_label(i2);
+			count[i2]++;
+			count[maxId]++;
+			countSum += 2;
+			fg[i2] = 0;
+		}
+		linesNum += MM0;
+	}
+	free(fg);
+	free(count);
+	struct LineFile *lf = create_LineFile(NULL);
+	lf->i1 = id1;
+	lf->i2 = id2;
+	lf->linesNum = linesNum;
+	lf->memNum = memNum;
+	lf->filename = "ER random network";
+	printf("Generate SF network => N: %d, linesNum: %ld, memNum: %ld\n", N, linesNum, memNum);fflush(stdout);
 	return lf;
 }

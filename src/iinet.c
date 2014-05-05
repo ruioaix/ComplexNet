@@ -347,4 +347,7 @@ void verify_connectedness_iiNet(struct iiNet *net) {
 	else {
 		printf("verily iinet =>> connectedness.\n");
 	}
+	free(fg);
+	free(left);
+	free(right);
 }
