@@ -312,3 +312,39 @@ void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp) {
 	free(stage);
 	*avesp = allsp*2.0/((double)(net->maxId + 1)*net->maxId);
 }
+
+void verify_connectedness_iiNet(struct iiNet *net) {
+	char *fg = calloc(net->maxId + 1, sizeof(char));
+	int i;
+	int *left = calloc(net->maxId + 1, sizeof(int));
+	int *right = calloc(net->maxId + 1, sizeof(int));
+	int lN = 0, rN = 0;
+	left[lN++] = 0;
+	fg[0] = 1;
+	int conn = 1;
+	long j;
+	while(lN && conn != net->idNum) {
+		rN = 0;
+		for (i = 0; i < lN; ++i) {
+			int id = left[i];
+			for (j = 0; j < net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (fg[neigh] == 0) {
+					fg[neigh] = 1;
+					conn++;
+					right[rN++] = neigh;
+				}
+			}
+		}
+		int *tmp = left;
+		left = right;
+		right = tmp;
+		lN = rN;
+	}
+	if (conn != net->idNum) {
+		printf("verily iinet =>> not connectedness.\n");
+	}
+	else {
+		printf("verily iinet =>> connectedness.\n");
+	}
+}

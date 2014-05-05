@@ -23,6 +23,8 @@ void print_iiNet(struct iiNet *net, char *filename);
 //of course, you can use this in the main thread.
 void *verify_iiNet(void *arg);
 
+void verify_connectedness_iiNet(struct iiNet *net);
+
 #include "iidnet.h"
 void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp);
 

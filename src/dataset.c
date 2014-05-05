@@ -199,39 +199,36 @@ void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, i
 	fclose(fp);
 }
 
-struct LineFile *ER_DS(int N) {
+struct LineFile *ER_DS(int N, int seed) {
 	assert(N>2);
-	int m = 5;
-	set_seed_MTPR(13);
+	set_seed_MTPR(seed);
 	struct LineFile *lf = create_LineFile(NULL);
-	//double p = log(N)/N;
-	int *hash1 = calloc(3*m*N,sizeof(int));
-	int *hash2 = calloc(2*m*N,sizeof(int));
-	int *hash3 = calloc(3*m*N,sizeof(int));
-	int *id1 = malloc(m*N*sizeof(int));
-	int *id2 = malloc(m*N*sizeof(int));
+	double p = 3.0*log(N)/N;
+	long L = (long)(p*N*N);
+	int *id1 = smalloc(L*sizeof(int));
+	int *id2 = smalloc(L*sizeof(int));
 	long linesNum = 0;
-	long linesMax = (long)m * N;
-	int badluck = 0;
-	while(linesNum < linesMax) {
-		int i1 = get_i31_MTPR()%N;
-		int i2 = get_i31_MTPR()%N;
-		if (hash1[i1 + 2*i2] == 1 && hash2[i1 + i2] == 1 && hash3[2*i1 + i2] == 1) {
-			badluck ++;
-			continue;
+	long memNum = L;
+	int i, j;
+	for (i = 0; i < N; ++i) {
+		for (j = i+1; j < N; ++j) {
+			if (get_d01_MTPR() < p) {
+				id1[linesNum] = i;
+				id2[linesNum] = j;
+				++linesNum;
+				if (linesNum == memNum) {
+					srealloc(id1, (memNum + L)*sizeof(int));
+					srealloc(id2, (memNum + L)*sizeof(int));
+					memNum += L;
+				}
+			}
 		}
-		hash1[i1 + 2*i2] = 1;
-		hash2[i1 + i2] = 1;
-		hash3[2*i1 + i2] = 1;
-		id1[linesNum] = i1;
-		id2[linesNum] = i2;
-		++linesNum;
 	}
-	printf("%d\t%ld\n", badluck, linesNum);	
 	lf->i1 = id1;
 	lf->i2 = id2;
 	lf->linesNum = linesNum;
-	lf->memNum = linesNum;
+	lf->memNum = memNum;
 	lf->filename = "ER random network";
+	printf("Generate ER random network => N: %d, linesNum: %ld, memNum: %ld\n", N, linesNum, memNum);fflush(stdout);
 	return lf;
 }

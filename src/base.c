@@ -65,4 +65,9 @@ void *smalloc(size_t size) {
 	assert(tmp != NULL);
 	return tmp;
 }
+void srealloc(void *p, size_t size) {
+	void *tmp = realloc(p, size);
+	assert(tmp != NULL);
+	p = tmp;
+}
 /********************************************************************************************************/
