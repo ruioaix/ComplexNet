@@ -24,7 +24,7 @@ void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, i
 //ER random network
 struct LineFile *ER_DS(int N, int seed);
 //scare free network
-struct LineFile * SF_DS(int N, int seed);
+struct LineFile *SF_DS(int N, int seed, int MM0);
 
 
 #endif

@@ -233,8 +233,7 @@ struct LineFile *ER_DS(int N, int seed) {
 	return lf;
 }
 
-#define MM0 11
-struct LineFile *SF_DS(int N, int seed) {
+struct LineFile *SF_DS(int N, int seed, int MM0) {
 	assert(N>2);
 	set_seed_MTPR(seed);
 	int m, m0;
@@ -258,7 +257,7 @@ struct LineFile *SF_DS(int N, int seed) {
 	long countSum = MM0*2;
 	int maxId = MM0 - 1;
 	char *fg = calloc(N, sizeof(char));
-	int fgM[MM0];
+	int *fgM = malloc(MM0*sizeof(int));
 	int j;
 	while(maxId != N -1 && linesNum + MM0 < memNum) {
 		maxId++;
@@ -288,6 +287,7 @@ struct LineFile *SF_DS(int N, int seed) {
 		linesNum += MM0;
 	}
 	free(fg);
+	free(fgM);
 	free(count);
 	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;

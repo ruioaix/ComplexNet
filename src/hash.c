@@ -18,7 +18,7 @@ struct HT *create_HT(int height)
 	}
 
 	ht->count=calloc(height, sizeof(int));
-	assert(count!=NULL);
+	assert(ht->count!=NULL);
 
 	return ht;
 }

@@ -387,20 +387,20 @@ int robust_iiNet(struct iiNet *net) {
 	int *right = calloc(net->maxId + 1, sizeof(int));
 	int lN = 0, rN = 0;
 
-	while (N-already > maxru) {
-		for (i = 0; i < net->maxId + 1; ++i) {
-			if (fg[i] == 0 && net->count[i]) {
-				lN = 0;
-				left[lN++] = i;
-				fg[i] = 1;
-				int conn = extract_backbone_iiNet(net, fg, left, right, lN, rN);
-				printf("%d\t", conn);
-				already += conn;
-				maxru = imax(conn, maxru);
-			}
+	for (i = 0; i < net->maxId + 1; ++i) {
+		if (fg[i] == 0 && net->count[i]) {
+			lN = 0;
+			left[lN++] = i;
+			fg[i] = 1;
+			int conn = extract_backbone_iiNet(net, fg, left, right, lN, rN);
+			already += conn;
+			maxru = imax(conn, maxru);
+			if (maxru >= N-already) break;
+			//printf("%d,%d,%d,%d<|||||||>", conn, maxru, already, N-already);
 		}
 	}
-	printf("\n");
+
+	//printf("\n");
 
 	free(fg);
 	free(left);
