@@ -3,6 +3,7 @@
 #include "iinet.h"
 #include "dataset.h"
 #include "sort.h"
+#include "mtprand.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,8 +27,8 @@ int main(int argc, char **argv)
 		isError("wrong arg");
 	}
 
-	struct LineFile *lf = SF_DS(N, seed, MM0);
-	//struct LineFile *lf = ER_DS(N, seed);
+	//struct LineFile *lf = SF_DS(N, seed, MM0);
+	struct LineFile *lf = ER_DS(N, seed);
 	struct iiNet *net = create_iiNet(lf);
 	free_LineFile(lf);
 	int i;
@@ -48,14 +49,20 @@ int main(int argc, char **argv)
 	for (i = 0; i < net->maxId + 1; ++i) {
 		id[i] = i;
 	}
-	qsort_li_desc(count, 0, net->maxId, id);
-	for (i = 0; i < net->maxId + 1; ++i) {
-		int subthisid = id[i];
+	//qsort_li_desc(count, 0, net->maxId, id);
+	//for (i = 0; i < net->maxId + 1; ++i) {
+	int kk = net->maxId + 1;
+	i = 1;
+	while (kk > 0) {
+		//int subthisid = id[i];
+		int tmp = get_i31_MTPR()%kk;
+		int subthisid = id[tmp];
+		id[tmp] = id[--kk];
 		//printf("%d\t%ld\n", id[i], count[i]);
 		delete_node_iiNet(net, subthisid);
 		int a = robust_iiNet(net);
 		//if (a > net->idNum) {
-			printf("result: CQ:\t%d\t%d\t%ld\t%d\t%d\t%d\n", i, id[i], count[i], a, net->maxId + 1, net->idNum);
+			printf("result: CQ:\t%d\t%d\t%ld\t%d\t%d\t%d\n", i++, id[subthisid], count[subthisid], a, net->maxId + 1, net->idNum);
 		//}
 	}
 	free(count);
