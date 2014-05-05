@@ -15,8 +15,9 @@ int main(int argc, char **argv)
 		cd[net->count[i]]++;
 	}
 	for (i = 0; i < net->countMax + 1; ++i) {
-		printf("%d\t%ld\n", i, cd[i]);
+		//printf("%d\t%ld\n", i, cd[i]);
 	}
+	verify_iiNet(net);
 	verify_connectedness_iiNet(net);
 	free_LineFile(lf);
 	free_iiNet(net);

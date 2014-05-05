@@ -347,3 +347,33 @@ void qsort_iid_asc(int s[], int l, int r, int in[], double in1[]) {
 //	}
 //	return -1;
 //}
+
+void qsort_li_desc(long s[], int l, int r, int in[])
+{
+	if (l < r)
+	{
+		int i = l, j = r; 
+		long x = s[l];
+		int in_x=in[l];
+		while (i < j)
+		{
+			while(i < j && s[j] < x)
+				j--; 
+			if(i < j) {
+				in[i]=in[j];
+				s[i++] = s[j];
+			}
+
+			while(i < j && s[i] >= x)
+				i++; 
+			if(i < j) {
+				in[j]=in[i];
+				s[j--] = s[i];
+			}
+		}
+		s[i] = x;
+		in[i]=in_x;
+		qsort_li_desc(s, l, i - 1, in);
+		qsort_li_desc(s, i + 1, r, in);
+	}
+}

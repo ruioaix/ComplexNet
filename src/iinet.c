@@ -351,3 +351,84 @@ void verify_connectedness_iiNet(struct iiNet *net) {
 	free(left);
 	free(right);
 }
+
+static int extract_backbone_iiNet(struct iiNet *net, char *fg, int *left, int *right, int lN, int rN) {
+	int conn = 1;
+	int i;
+	long j;
+	while(lN) {
+		rN = 0;
+		for (i = 0; i < lN; ++i) {
+			int id = left[i];
+			for (j = 0; j < net->count[id]; ++j) {
+				int neigh = net->edges[id][j];
+				if (fg[neigh] == 0) {
+					fg[neigh] = 1;
+					conn++;
+					right[rN++] = neigh;
+				}
+			}
+		}
+		int *tmp = left;
+		left = right;
+		right = tmp;
+		lN = rN;
+	}
+	return conn;
+}
+
+int robust_iiNet(struct iiNet *net) {
+	int N = net->idNum;
+	int maxru = 0;
+	int already = 0;
+	char *fg = calloc(net->maxId + 1, sizeof(char));
+	int i;
+	int *left = calloc(net->maxId + 1, sizeof(int));
+	int *right = calloc(net->maxId + 1, sizeof(int));
+	int lN = 0, rN = 0;
+
+	while (N-already > maxru) {
+		for (i = 0; i < net->maxId + 1; ++i) {
+			if (fg[i] == 0 && net->count[i]) {
+				lN = 0;
+				left[lN++] = i;
+				fg[i] = 1;
+				int conn = extract_backbone_iiNet(net, fg, left, right, lN, rN);
+				printf("%d\t", conn);
+				already += conn;
+				maxru = imax(conn, maxru);
+			}
+		}
+	}
+	printf("\n");
+
+	free(fg);
+	free(left);
+	free(right);
+	return maxru;
+}
+
+void delete_node_iiNet(struct iiNet *net, int nid) {
+	long i, j;
+	if (net->count[nid] == 0) return;
+	for (i = 0; i < net->count[nid]; ++i) {
+		int neigh = net->edges[nid][i];
+		assert(net->count[neigh] != 0);
+		for (j = 0; j < net->count[neigh]; ++j) {
+			if (net->edges[neigh][j] == nid) {
+				net->edges[neigh][j] = net->edges[neigh][--(net->count[neigh])];
+				break;
+			}
+		}
+		if (net->count[neigh] == 0) {
+			net->idNum--;
+			free(net->edges[neigh]);
+			net->edges[neigh] = NULL;
+		}
+	}
+	free(net->edges[nid]);
+	net->edges[nid] = NULL;
+	net->count[nid] = 0;
+	net->idNum--;
+	//printf("delete node %d from iiNet =>> done\n", nid);
+}

@@ -233,14 +233,14 @@ struct LineFile *ER_DS(int N, int seed) {
 	return lf;
 }
 
-#define MM0 1
+#define MM0 11
 struct LineFile *SF_DS(int N, int seed) {
 	assert(N>2);
 	set_seed_MTPR(seed);
 	int m, m0;
 	m = m0 = MM0;
 	long linesNum = 0;
-	long memNum = (long)m*N;
+	long memNum = (long)m*N + MM0;
 	int *id1 = smalloc(memNum * sizeof(int));
 	int *id2 = smalloc(memNum * sizeof(int));
 	int i;

@@ -25,6 +25,11 @@ void *verify_iiNet(void *arg);
 
 void verify_connectedness_iiNet(struct iiNet *net);
 
+int robust_iiNet(struct iiNet *net);
+
+void delete_node_iiNet(struct iiNet *net, int id);
+
+
 #include "iidnet.h"
 void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp);
 
