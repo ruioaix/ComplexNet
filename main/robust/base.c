@@ -27,6 +27,7 @@ int main(int argc, char **argv)
 	}
 
 	struct LineFile *lf = SF_DS(N, seed, MM0);
+	//struct LineFile *lf = ER_DS(N, seed);
 	struct iiNet *net = create_iiNet(lf);
 	free_LineFile(lf);
 	int i;
