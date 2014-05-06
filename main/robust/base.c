@@ -23,17 +23,17 @@ int main(int argc, char **argv)
 	long *dd = degree_distribution_iiNet(net);
 	int i;
 	for (i = 0; i < net->countMax + 1; ++i) {
-		printf("result:\t%d\t%d\t%ld\n", 1, i, dd[i]);
+		printf("result:\tdegree\t%d\t%ld\n", i, dd[i]);
 	}
 	free(dd);
 
 	int *dl = robust_deletelist(net, kor);
-	for (i = 0; i < net->maxId + 1; ++i) {
+	for (i = 0; i < net->maxId; ++i) {
 		int subthisid = dl[i];
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
 		int robust = robust_iiNet(net);
-		printf("result:\t%d\t%d\tsubthisid:\t%d\tcount:\t%ld\t%d\trobust:\t%d\tidNum:\t%d\tidNum-robust:\t%d\tmaxid+1-robust:\t%dmaxId+1-idNum:\t%d\n", 2, i, subthisid, count_subthisid, net->maxId + 1, robust, net->idNum, net->idNum-robust, net->maxId + 1 - robust, net->maxId + 1 - net->idNum);
+		printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i));
 	}
 	free(dl);
 

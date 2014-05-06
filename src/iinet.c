@@ -96,6 +96,31 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 	return net;
 }
 
+void delete_node_iiNet(struct iiNet *net, int nid) {
+	long i, j;
+	if (net->count[nid] == 0) return;
+	for (i = 0; i < net->count[nid]; ++i) {
+		int neigh = net->edges[nid][i];
+		assert(net->count[neigh] != 0);
+		for (j = 0; j < net->count[neigh]; ++j) {
+			if (net->edges[neigh][j] == nid) {
+				net->edges[neigh][j] = net->edges[neigh][--(net->count[neigh])];
+				break;
+			}
+		}
+		if (net->count[neigh] == 0) {
+			net->idNum--;
+			free(net->edges[neigh]);
+			net->edges[neigh] = NULL;
+		}
+	}
+	free(net->edges[nid]);
+	net->edges[nid] = NULL;
+	net->count[nid] = 0;
+	net->idNum--;
+	//printf("delete node %d from iiNet =>> done\n", nid);
+}
+
 void *verify_iiNet(void *arg) {
 	struct iiNet *net = arg;
 	long i;
@@ -408,30 +433,6 @@ int robust_iiNet(struct iiNet *net) {
 	return maxru;
 }
 
-void delete_node_iiNet(struct iiNet *net, int nid) {
-	long i, j;
-	if (net->count[nid] == 0) return;
-	for (i = 0; i < net->count[nid]; ++i) {
-		int neigh = net->edges[nid][i];
-		assert(net->count[neigh] != 0);
-		for (j = 0; j < net->count[neigh]; ++j) {
-			if (net->edges[neigh][j] == nid) {
-				net->edges[neigh][j] = net->edges[neigh][--(net->count[neigh])];
-				break;
-			}
-		}
-		if (net->count[neigh] == 0) {
-			net->idNum--;
-			free(net->edges[neigh]);
-			net->edges[neigh] = NULL;
-		}
-	}
-	free(net->edges[nid]);
-	net->edges[nid] = NULL;
-	net->count[nid] = 0;
-	net->idNum--;
-	//printf("delete node %d from iiNet =>> done\n", nid);
-}
 
 long *degree_distribution_iiNet(struct iiNet *net) {
 	long *cd = calloc(net->countMax + 1, sizeof(long));

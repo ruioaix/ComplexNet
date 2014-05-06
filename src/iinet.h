@@ -16,6 +16,7 @@ struct iiNet{
 
 void free_iiNet(struct iiNet *net);
 struct iiNet *create_iiNet(const struct LineFile * const file);
+void delete_node_iiNet(struct iiNet *net, int id);
 
 void print_iiNet(struct iiNet *net, char *filename);
 
@@ -27,7 +28,6 @@ void verify_connectedness_iiNet(struct iiNet *net);
 
 int robust_iiNet(struct iiNet *net);
 
-void delete_node_iiNet(struct iiNet *net, int id);
 
 long *degree_distribution_iiNet(struct iiNet *net);
 
