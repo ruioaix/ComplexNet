@@ -432,3 +432,12 @@ void delete_node_iiNet(struct iiNet *net, int nid) {
 	net->idNum--;
 	//printf("delete node %d from iiNet =>> done\n", nid);
 }
+
+long *degree_distribution_iiNet(struct iiNet *net) {
+	long *cd = calloc(net->countMax + 1, sizeof(long));
+	int i;
+	for (i = 0; i < net->maxId + 1; ++i) {
+		cd[net->count[i]]++;
+	}
+	return cd;
+}
