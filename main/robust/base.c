@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
 		int robust = robust_iiNet(net);
-		printf("result:\t%d\t%d\tsubthisid:\t%d\tcount:\t%ld\t%d\trobust:\t%d\tidNum:\t%d\tidNum-robust:\t%d\tmaxid+1-robust:\t%d\n", 2, i, subthisid, count_subthisid, net->maxId + 1, robust, net->idNum, net->idNum-robust, net->maxId + 1 - robust );
+		printf("result:\t%d\t%d\tsubthisid:\t%d\tcount:\t%ld\t%d\trobust:\t%d\tidNum:\t%d\tidNum-robust:\t%d\tmaxid+1-robust:\t%dmaxId+1-idNum:\t%d\n", 2, i, subthisid, count_subthisid, net->maxId + 1, robust, net->idNum, net->idNum-robust, net->maxId + 1 - robust, net->maxId + 1 - net->idNum);
 	}
 	free(dl);
 
