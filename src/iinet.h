@@ -31,8 +31,4 @@ int robust_iiNet(struct iiNet *net);
 
 long *degree_distribution_iiNet(struct iiNet *net);
 
-
-#include "iidnet.h"
-void get_XE_iiNet(struct iiNet *net, struct iidNet *XE, double *avesp);
-
 #endif

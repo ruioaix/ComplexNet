@@ -22,31 +22,6 @@
  * 	if lambda = 1, all air edges has no advance to base net. it's the worst experience.
  * 	lambda affect the the value of airlf->d1, and in the program, airlf->d1 is not used. so it's not important for base.c.
  */
-double calculate_gini(struct iidNet *net, struct iiNet *base) {
-	int i,j;
-	int m,n;
-	double diff = 0.0;
-	double total = 0.0;
-	for (i = 0; i < net->maxId + 1; ++i) {
-		for (j = 0; j < net->count[i]; ++j) {
-			if (i<net->edges[i][j]) {
-				double x1 = net->d[i][j];	
-				total += x1;
-				for (m = 0; m < net->maxId + 1; ++m) {
-					for (n = 0; n < net->count[m]; ++n) {
-						if (m < net->edges[m][n]) {
-							double x2 = net->d[m][n];
-							diff += fabs(x1 - x2);
-						}
-					}
-				}
-			}
-		}
-	}
-	double E = (double)net->edgesNum;
-	double G = diff/(2*E*total);
-	return G;
-}
 
 int main (int argc, char **argv) {
 
@@ -82,8 +57,8 @@ int main (int argc, char **argv) {
 		free_LineFile(baself);
 
 		double avesp;
-		get_XE_iiNet(base, all, &avesp);
-		double gini = calculate_gini(all, base);
+		double gini;
+		gini_spath06_Net(base, all, &avesp, &gini);
 		printf("result: \t%f\t%f\t%f\n", alpha, avesp, gini);
 		free_iiNet(base);
 		free_iidNet(all);

@@ -1,6 +1,7 @@
 #include "spath.h"
 #include "base.h"
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -643,4 +644,180 @@ void coupling_spath05_iiNet(struct iiNet *net, struct iiNet *air, double *coupli
 	double ij = (double)(net->maxId + 1)*net->maxId/2;
 	*avesp /= ij;
 	*coupling /= ij;
+}
+
+//this spath06 is for unweighted_undirected base and weighted_undirected air network.
+//to find gini of two net: base and air.
+static void spath06_core01_Net(int *sp, char *stage,  int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *XE, int *STEP_END, double *spall) {
+	int i,j;
+	int STEP = 1;
+	memset(stage, 0 ,sizeof(char)*(net->maxId + 1));
+	while (*lNum && STEP != *STEP_END) {
+		++STEP;
+		*rNum = 0;
+
+		for (i=0; i<*lNum; ++i) {
+			int id = (*left)[i];
+			for (j=0; j<XE->count[id]; ++j) {
+				int neigh = XE->edges[id][j];
+				if (!sp[neigh]) {
+					spall[neigh] += spall[id];
+					if (stage[neigh] == 0) {
+						stage[neigh] = 1;
+						(*right)[(*rNum)++] = neigh;
+					}
+				}
+			}
+		}
+
+		for (j = 0; j < *rNum; ++j) {
+			sp[(*right)[j]] = STEP;
+			stage[(*right)[j]] = 0;
+		}
+		int *tmp = *left;
+		*left = *right;
+		*right = tmp;
+		*lNum = *rNum;
+	}
+}
+static void set_d_XE(struct iidNet *net, int from, int to, double d, int des, int sou) {
+	if (from > net->maxId || to > net->maxId || from < 0 || to <0) return;
+	//int sm = imin(from, to);
+	//int bg = imax(from, to);
+	int sm = from;
+	int bg = to;
+	int i;
+	for (i = 0; i < net->count[sm]; ++i) {
+		if (bg == net->edges[sm][i]) {
+			net->d[sm][i] += d;
+			//printf("%d\t%d\t%f\t%d\t%d\n", from, to, d, des, sou);
+			break;
+		}
+	}
+}
+static void spath06_core02_Net(int source, int *sp, char *stage, int **left, int **right, int *lNum, int *rNum, struct iiNet *net, struct iidNet *XE, double *spall) {
+	int i;
+	int j;
+	int k;
+	*rNum = 0;
+	memset(stage, 0 ,sizeof(char)*(XE->maxId + 1));
+	for (i = 0; i < XE->maxId + 1; ++i) {
+		int step = sp[i];
+		double aij = spall[i];
+		if (step == 1) {
+			assert(aij == 1);
+			set_d_XE(XE, i, source, 1, i, source);
+		}
+		else if (step > 1) {
+			*lNum = 0;
+			(*left)[(*lNum)++] = i;
+			while (step != 1) {
+				step--;
+				*rNum = 0;
+
+				for (k=0; k<*lNum; ++k) {
+					int id = (*left)[k];
+					//printf("id:%d\n", id);
+					for (j=0; j<XE->count[id]; ++j) {
+						int neigh = XE->edges[id][j];
+					//for (j=0; j<net->count[id]; ++j) {
+					//	int neigh = net->edges[id][j];
+						if (sp[neigh] == step) {
+							set_d_XE(XE, id, neigh, spall[neigh]/aij, i, source);
+							if (stage[neigh] == 0) {
+								stage[neigh] = 1;
+								(*right)[(*rNum)++] = neigh;
+							}
+						}
+					}
+				}
+
+				for (k = 0; k < *rNum; ++k) {
+					int id = (*right)[k];
+					stage[id] = 0;	
+				}
+
+				int *tmp = *left;
+				*left = *right;
+				*right = tmp;
+				*lNum = *rNum;
+			}
+			for (k=0; k<*lNum; ++k) {
+				int id = (*left)[k];
+				set_d_XE(XE, id, source, 1/aij, i, source);
+			}
+		}
+	}
+}
+
+double spath06_core03_Net(struct iidNet *net, struct iiNet *base) {
+	int i,j;
+	int m,n;
+	double diff = 0.0;
+	double total = 0.0;
+	for (i = 0; i < net->maxId + 1; ++i) {
+		for (j = 0; j < net->count[i]; ++j) {
+			if (i<net->edges[i][j]) {
+				double x1 = net->d[i][j];	
+				total += x1;
+				for (m = 0; m < net->maxId + 1; ++m) {
+					for (n = 0; n < net->count[m]; ++n) {
+						if (m < net->edges[m][n]) {
+							double x2 = net->d[m][n];
+							diff += fabs(x1 - x2);
+						}
+					}
+				}
+			}
+		}
+	}
+	double E = (double)net->edgesNum;
+	double G = diff/(2*E*total);
+	return G;
+}
+void gini_spath06_Net(struct iiNet *net, struct iidNet *XE, double *avesp, double *gini) {
+	int *sp = malloc((net->maxId + 1)*sizeof(int));
+	assert(sp != NULL);
+	int *left = malloc((net->maxId + 1)*sizeof(int));
+	assert(left != NULL);
+	int *right = malloc((net->maxId + 1)*sizeof(int));
+	assert(right != NULL);
+	double *spall = malloc((net->maxId + 1) * sizeof(double));
+	assert(spall != NULL);
+	char *stage = malloc((net->maxId + 1) * sizeof(char));
+	assert(stage != NULL);
+	int lNum, rNum;
+
+	int i,j;
+	int STEP_END = -1;
+	double allsp = 0;
+	for (i=0; i<net->maxId + 1; ++i) {
+		//printf("complete: %.4f%%\r", (double)i*100/(net->maxId + 1));fflush(stdout);
+		for (j=0; j<net->maxId + 1; ++j) {
+			sp[j] = 0;
+			spall[j] = 0;
+		}
+		sp[i] = -1;
+		lNum = 0;
+		for (j = 0; j < XE->count[i]; ++j) {
+			int to = XE->edges[i][j];
+			left[lNum++] = to;
+			sp[to] = 1;
+			++spall[to];
+		}
+		spath06_core01_Net(sp, stage, &left, &right, &lNum, &rNum, net, XE, &STEP_END, spall);
+		spath06_core02_Net(i, sp, stage, &left, &right, &lNum, &rNum, net, XE, spall);
+		for (j = i+1; j < net->maxId + 1; ++j) {
+			allsp += sp[j];
+		}
+	}
+
+	free(left);
+	free(right);
+	free(sp);
+	free(spall);
+	free(stage);
+	*avesp = allsp*2.0/((double)(net->maxId + 1)*net->maxId);
+	*gini = spath06_core03_Net(XE, net);
+
 }

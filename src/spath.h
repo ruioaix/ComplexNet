@@ -44,4 +44,8 @@ void useRate_spath04_iiNet(struct iiNet *net, struct iiNet *air, double *useRate
 //this spath05 is for unweighted and undirected net.
 //to find coupling of two net: base and air.
 void coupling_spath05_iiNet(struct iiNet *net, struct iiNet *air, double *coupling, double *avesp);
+
+//this spath06 is for unweighted_undirected base and weighted_undirected XE network.
+//to find gini of two net: base and XE.
+void gini_spath06_Net(struct iiNet *base, struct iidNet *XE, double *avesp, double *gini);
 #endif
