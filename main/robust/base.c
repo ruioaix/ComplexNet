@@ -1,3 +1,4 @@
+//./robust-base 2 12345 1 20 1
 #include "base.h"
 #include "linefile.h"
 #include "iinet.h"

@@ -199,15 +199,26 @@ void parts45_DS(char *filename, long linesNum, int in, int dn, int cn, int ln, i
 	fclose(fp);
 }
 
+/**
+ * this function generate a ER random network.
+ * N is the nodes number, it has to be larger than 9.(actually it should be larger than 100, that make more sence)
+ * seed is the MT PRNG seed.
+ *
+ * I set p = 3.0*log(N)/N, so that the network will be full connected in most and most cases.(but not 100%)
+ *
+ */
 struct LineFile *ER_DS(int N, int seed) {
-	assert(N>2);
+	if (N < 10) {
+		isError("ER_DS N is too small");
+	}
 	set_seed_MTPR(seed);
 	double p = 3.0*log(N)/N;
-	long L = (long)(p*N*N);
+	long L = (long)(p*N*(N-1)/2.0);
 	int *id1 = smalloc(L*sizeof(int));
 	int *id2 = smalloc(L*sizeof(int));
 	long linesNum = 0;
 	long memNum = L;
+	long STP = 0.1 * L;
 	int i, j;
 	for (i = 0; i < N; ++i) {
 		for (j = i+1; j < N; ++j) {
@@ -216,9 +227,9 @@ struct LineFile *ER_DS(int N, int seed) {
 				id2[linesNum] = j;
 				++linesNum;
 				if (linesNum == memNum) {
-					srealloc(id1, (memNum + L)*sizeof(int));
-					srealloc(id2, (memNum + L)*sizeof(int));
-					memNum += L;
+					srealloc(id1, (memNum + STP)*sizeof(int));
+					srealloc(id2, (memNum + STP)*sizeof(int));
+					memNum += STP;
 				}
 			}
 		}
@@ -233,35 +244,52 @@ struct LineFile *ER_DS(int N, int seed) {
 	return lf;
 }
 
+/**
+ * this function generate scale-free network using BA model.
+ * N is the nodes number, it has to be larger than 9.(actually it should be larger than 100, that make more sence)
+ * seed is the MT PRNG seed.
+ * MM0 has to be larger than 0.
+ *
+ * MM0 is the m in BA model. it decides the edges number of network.
+ * I am not sure about the whether the network is full connected or not, but it looks like in 
+ * most cases the generated network is full connected.
+ *
+ */
 struct LineFile *SF_DS(int N, int seed, int MM0) {
-	assert(N>2);
+	if (N < 10) {
+		isError("SF_DS N is too small");
+	}
+	if (MM0 < 1) {
+		isError("SF_DS MM0 is too small");
+	}
 	set_seed_MTPR(seed);
-	int m, m0;
-	m = m0 = MM0;
-	long linesNum = 0;
-	long memNum = (long)m*N + MM0;
+
+	int m = MM0, m0 = MM0 + 10;
+	long memNum = (long)m*(N-m0) + m0;
+
 	int *id1 = smalloc(memNum * sizeof(int));
 	int *id2 = smalloc(memNum * sizeof(int));
 	int i;
-	for (i = 0; i < MM0 - 1; ++i) {
+	for (i = 0; i < m0 - 1; ++i) {
 		id1[i] = i;
 		id2[i] = i+1;
 	}
-	id1[MM0 - 1] = MM0 - 1;
-	id2[MM0 - 1] = 0;
-	linesNum = MM0;
+	id1[m0 - 1] = m0 - 1;
+	id2[m0 - 1] = 0;
+	long linesNum = m0;
+
 	long *count = calloc(N, sizeof(long));
-	for (i = 0; i < MM0; ++i) {
+	for (i = 0; i < m0; ++i) {
 		count[i] = 2;
 	}
-	long countSum = MM0*2;
-	int maxId = MM0 - 1;
+	long countSum = m0*2;
+	int maxId = m0 - 1;
 	char *fg = calloc(N, sizeof(char));
-	int *fgM = malloc(MM0*sizeof(int));
+	int *fgM = malloc(m*sizeof(int));
 	int j;
-	while(maxId != N -1 && linesNum + MM0 < memNum) {
+	while(maxId != N -1 && linesNum < memNum) {
 		maxId++;
-		for (j = 0; j < MM0; ) {
+		for (j = 0; j < m; ) {
 			int i2 = get_i31_MTPR()%countSum;
 			int k = 0;
 			for (i = 0; i < maxId; ++i) {
@@ -273,22 +301,21 @@ struct LineFile *SF_DS(int N, int seed, int MM0) {
 				}
 			}
 		}
-		for (j = 0; j < MM0; ++j) {
+		for (j = 0; j < m; ++j) {
 			int i2 = fgM[j];
-			//printf("%d\t%d\n", j, i2);
 			id1[linesNum + j] = maxId;
 			id2[linesNum + j] = i2;
-			//print_label(i2);
 			count[i2]++;
 			count[maxId]++;
 			countSum += 2;
 			fg[i2] = 0;
 		}
-		linesNum += MM0;
+		linesNum += m;
 	}
 	free(fg);
 	free(fgM);
 	free(count);
+
 	struct LineFile *lf = create_LineFile(NULL);
 	lf->i1 = id1;
 	lf->i2 = id2;
