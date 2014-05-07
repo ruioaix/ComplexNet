@@ -96,6 +96,24 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 	return net;
 }
 
+void print_iiNet(struct iiNet *net, char *filename) {
+	FILE *fp = fopen(filename, "w");
+	fileError(fp, "print_iiNet");
+	int i;
+	long j;
+	for (i=0; i<net->maxId + 1; ++i) {
+		if (net->count[i] > 0) {
+			for (j=0; j<net->count[i]; ++j) {
+				if (i < net->edges[i][j]) {
+					fprintf(fp, "%d\t%d\n", i, net->edges[i][j]);
+				}
+			}
+		}
+	}
+	fclose(fp);
+	printf("print_iiNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
+}
+
 void delete_node_iiNet(struct iiNet *net, int nid) {
 	long i, j;
 	if (net->count[nid] == 0) return;
@@ -130,114 +148,41 @@ long *degree_distribution_iiNet(struct iiNet *net) {
 	return cd;
 }
 
-void *verify_iiNet(void *arg) {
-	struct iiNet *net = arg;
+void verify_duplicatePairs_iiNet(struct iiNet *net) {
 	long i;
 	int j,k;
 	int *place = malloc((net->maxId+1)*sizeof(int));
-	FILE *fp = fopen("data/duplicatePairsinNet", "w");
-	fileError(fp, "data/duplicatePairsinNet");
-	FILE *fp2 = fopen("data/NoDuplicatePairsNetFile", "w");
-	fileError(fp2, "data/NoDuplicatePairsNetFile");
-	fprintf(fp, "the following pairs are duplicate in the net file\n");
-	char sign=0;
+	for (k=0; k<net->maxId + 1; ++k) {
+		place[k] = -1;
+	}
+	long dpairsNum=0;
 	for (j=0; j<net->maxId+1; ++j) {
-		if (net->count[j]>0) {
-			for (k=0; k<net->maxId + 1; ++k) {
-				place[k] = -1;
+		for (i=0; i < net->count[j]; ++i) {
+			int neigh = net->edges[j][i];
+			if (place[neigh] == -1) {
+				place[neigh] = 1;
 			}
-			for (i=0; i<net->count[j]; ++i) {
-				int origin = net->edges[j][i];
-				int next = place[origin];
-				if (next == -1) {
-					place[origin]=origin;
-					fprintf(fp2, "%d\t%d\n", j,origin);
-				}
-				else {
-					fprintf(fp, "%d\t%d\n", j, next);
-					sign=1;
-				}
+			else {
+				printf("duplicate pairs %ld:\t%d\t%d\n", ++dpairsNum, j, neigh);
 			}
 		}
-		if (j%10000 == 0) {
-			printf("%d\n", j);
-			fflush(stdout);
+		for (i = 0; i < net->count[j]; ++i) {
+			int neigh = net->edges[j][i];
+			place[neigh] = -1;
 		}
 	}
 	free(place);
-	fclose(fp);
-	fclose(fp2);
-	if (sign == 1) {
-		isError("the file has duplicate pairs, you can check data/duplicatePairsinNet.\nwe generate a net file named data/NoDuplicatePairsNetFile which doesn't contain any duplicate pairsr.\nyou should use this file instead the origin wrong one.\n");
+	if (!dpairsNum) {
+		printf("verify duplicatePairs iiNet =>> no duplicate pairs.\n");
 	}
-	else {
-		printf("verify_iiNet: perfect network.\n");
-	}
-	return (void *)0;
+	fflush(stdout);
 }
 
-
-void print_iiNet(struct iiNet *net, char *filename) {
-	FILE *fp = fopen(filename, "w");
-	fileError(fp, "print_iiNet");
-	int i;
-	long j;
-	for (i=0; i<net->maxId + 1; ++i) {
-		if (net->count[i] > 0) {
-			for (j=0; j<net->count[i]; ++j) {
-				if (i < net->edges[i][j]) {
-					fprintf(fp, "%d\t%d\n", i, net->edges[i][j]);
-				}
-			}
-		}
-	}
-	fclose(fp);
-	printf("print_iiNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
-}
-
-
-
-
-void verify_connectedness_iiNet(struct iiNet *net) {
-	char *fg = calloc(net->maxId + 1, sizeof(char));
-	int i;
-	int *left = calloc(net->maxId + 1, sizeof(int));
-	int *right = calloc(net->maxId + 1, sizeof(int));
+static int extract_backbone_iiNet(int nid, struct iiNet *net, char *fg, int *left, int *right) {
+	if (fg[nid] == 1) isError("extract_backbone_iiNet");
 	int lN = 0, rN = 0;
-	left[lN++] = 0;
-	fg[0] = 1;
-	int conn = 1;
-	long j;
-	while(lN && conn != net->idNum) {
-		rN = 0;
-		for (i = 0; i < lN; ++i) {
-			int id = left[i];
-			for (j = 0; j < net->count[id]; ++j) {
-				int neigh = net->edges[id][j];
-				if (fg[neigh] == 0) {
-					fg[neigh] = 1;
-					conn++;
-					right[rN++] = neigh;
-				}
-			}
-		}
-		int *tmp = left;
-		left = right;
-		right = tmp;
-		lN = rN;
-	}
-	if (conn != net->idNum) {
-		printf("verily iinet =>> not connectedness.\n");
-	}
-	else {
-		printf("verily iinet =>> connectedness.\n");
-	}
-	free(fg);
-	free(left);
-	free(right);
-}
-
-static int extract_backbone_iiNet(struct iiNet *net, char *fg, int *left, int *right, int lN, int rN) {
+	left[lN++] = nid;
+	fg[nid] = 1;
 	int conn = 1;
 	int i;
 	long j;
@@ -249,7 +194,7 @@ static int extract_backbone_iiNet(struct iiNet *net, char *fg, int *left, int *r
 				int neigh = net->edges[id][j];
 				if (fg[neigh] == 0) {
 					fg[neigh] = 1;
-					conn++;
+					++conn;
 					right[rN++] = neigh;
 				}
 			}
@@ -262,33 +207,49 @@ static int extract_backbone_iiNet(struct iiNet *net, char *fg, int *left, int *r
 	return conn;
 }
 
+//if net->count[nid] == 0, then I presume nid node is not existed.
 int robust_iiNet(struct iiNet *net) {
 	int N = net->idNum;
 	int maxru = 0;
 	int already = 0;
-	char *fg = calloc(net->maxId + 1, sizeof(char));
-	int i;
-	int *left = calloc(net->maxId + 1, sizeof(int));
-	int *right = calloc(net->maxId + 1, sizeof(int));
-	int lN = 0, rN = 0;
 
+	char *fg = calloc(net->maxId + 1, sizeof(char));
+	int *left = malloc((net->maxId + 1) * sizeof(int));
+	int *right = malloc((net->maxId + 1) * sizeof(int));
+
+	int i;
 	for (i = 0; i < net->maxId + 1; ++i) {
 		if (fg[i] == 0 && net->count[i]) {
-			lN = 0;
-			left[lN++] = i;
-			fg[i] = 1;
-			int conn = extract_backbone_iiNet(net, fg, left, right, lN, rN);
+			int conn = extract_backbone_iiNet(i, net, fg, left, right);
 			already += conn;
 			maxru = imax(conn, maxru);
 			if (maxru >= N-already) break;
-			//printf("%d,%d,%d,%d<|||||||>", conn, maxru, already, N-already);
 		}
 	}
-
-	//printf("\n");
 
 	free(fg);
 	free(left);
 	free(right);
 	return maxru;
+}
+
+void verify_fullyConnected_iiNet(struct iiNet *net) {
+	char *fg = calloc(net->maxId + 1, sizeof(char));
+	int *left = malloc((net->maxId + 1) * sizeof(int));
+	int *right = malloc((net->maxId + 1) * sizeof(int));
+	int i;
+	for (i = 0; i < net->maxId + 1; ++i) {
+		if (net->count[i]) break;
+	}
+	int conn = extract_backbone_iiNet(i, net, fg, left, right);
+	free(fg);
+	free(left);
+	free(right);
+	if (conn != net->idNum) {
+		printf("verily fullyConnected iinet =>> not connectedness.\n");
+	}
+	else {
+		printf("verily fullyConnected iinet =>> connectedness.\n");
+	}
+	fflush(stdout);
 }

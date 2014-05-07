@@ -28,6 +28,9 @@ int main(int argc, char **argv)
 	}
 	free(dd);
 
+	int robust = robust_iiNet(net);
+	printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", 0.0, -1, -1L, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId + 1 -robust)/(net->maxId + 1));
+
 	int *dl = robust_deletelist(net, kor);
 	for (i = 0; i < net->maxId; ++i) {
 		int subthisid = dl[i];
