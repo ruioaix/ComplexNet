@@ -20,21 +20,23 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 	return lf;
 }
 
-void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor) {
+void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q) {
 	if (argc == 1) {
 		*es = 2;
 		*N = 1000;
 		*seed = 1;
-		*MM0 = 2;
+		*MM0 = 5;
 		*kor = 1;
+		*q = 0.1;
 	}
-	else if (argc == 6) {
+	else if (argc == 7) {
 		char *p;
 		*es = strtol(argv[1], &p, 10);
 		*N = strtol(argv[2], &p, 10);
 		*seed = strtol(argv[3], &p, 10);
 		*MM0 = strtol(argv[4], &p, 10);
 		*kor = strtol(argv[5], &p, 10);
+		*q = strtod(argv[6], &p);
 	}
 	else {
 		isError("wrong arg");

@@ -31,8 +31,9 @@ CFLAG :=  -g -Wall -Wunused
 .PHONY : dir all clean test tar tdpotn
 
 #all : dir test
+#all: dir robust-base
+all: dir robust-linkcp
 #all: dir tdpotn-wair
-all: dir robust-base
 #all: dir tdpotn-coupling
 #all: dir tdpotn-gini 
 #all: dir test-linefile

@@ -15,7 +15,8 @@ int main(int argc, char **argv)
 	print_time();
 
 	int es, N, seed, MM0, kor;
-	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor);
+	double q;
+	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q);
 
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
 	struct iiNet *net = create_iiNet(lf);
