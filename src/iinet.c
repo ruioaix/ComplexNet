@@ -139,6 +139,9 @@ void delete_node_iiNet(struct iiNet *net, int nid) {
 	//printf("delete node %d from iiNet =>> done\n", nid);
 }
 
+void delete_link_iiNet(struct iiNet *net, int id, int neigh) {
+}
+
 long *degree_distribution_iiNet(struct iiNet *net) {
 	long *cd = calloc(net->countMax + 1, sizeof(long));
 	int i;
