@@ -139,7 +139,32 @@ void delete_node_iiNet(struct iiNet *net, int nid) {
 	//printf("delete node %d from iiNet =>> done\n", nid);
 }
 
-void delete_link_iiNet(struct iiNet *net, int id, int neigh) {
+void delete_link_iiNet(struct iiNet *net, int x, int y) {
+	if (net->count[x] == 0 || net->count[y] == 0) return;
+	long i;
+	for (i = 0; i < net->count[x]; ++i) {
+		if (net->edges[x][i] == y) {
+			net->edges[x][i] = net->edges[x][--(net->count[x])];
+			net->edgesNum--;
+			if (net->count[x] == 0) {
+				free(net->edges[x]);
+				net->edges[x] = NULL;
+				net->idNum--;
+			}
+			break;
+		}
+	}
+	for (i = 0; i < net->count[y]; ++i) {
+		if (net->edges[y][i] == x) {
+			net->edges[y][i] = net->edges[y][--(net->count[y])];
+			if (net->count[y] == 0) {
+				free(net->edges[y]);
+				net->edges[y] = NULL;
+				net->idNum--;
+			}
+			break;
+		}
+	}
 }
 
 long *degree_distribution_iiNet(struct iiNet *net) {

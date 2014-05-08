@@ -113,7 +113,7 @@ static int extract_backbone_iiNet(int nid, struct iiNet *net, char *fg, int *lef
 	return conn;
 }
 
-int max_robust_iiNet(struct iiNet *net) {
+int max_robust_iiNet(struct iiNet *net, int *rob) {
 	int N = net->idNum;
 	int maxru = 0;
 	int already = 0;
@@ -140,6 +140,7 @@ int max_robust_iiNet(struct iiNet *net) {
 	free(left);
 	free(right);
 
+	*rob = maxru;
 	return maxi;
 }
 
@@ -153,10 +154,12 @@ int find_lineNum_LF(int id, int neigh, struct i3Net *lcpnet) {
 	return -1;
 }
 
-static void check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpnet, int *lfg) {
+static int check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpnet, int *lfg, struct LineFile*lf) {
 	char *fg = calloc(net->maxId + 1, sizeof(char));
 	int *left = malloc((net->maxId + 1) * sizeof(int));
 	int *right = malloc((net->maxId + 1) * sizeof(int));
+
+	int lk = 0;
 
 	if (fg[nid] == 1) isError("extract_backbone_iiNet");
 	int lN = 0, rN = 0;
@@ -176,7 +179,11 @@ static void check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpn
 					++conn;
 					right[rN++] = neigh;
 					int lineNum = find_lineNum_LF(id, neigh, lcpnet);
-					if (lineNum != -1) lfg[lineNum] = 1;
+					if (lineNum != -1) {
+						printf("%d\t%d\t%d\t%d\n", id, lf->i1[lineNum], neigh, lf->i2[lineNum]);
+						lfg[lineNum] = 1;
+						lk++;
+					}
 				}
 			}
 		}
@@ -189,18 +196,14 @@ static void check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpn
 	free(fg);
 	free(left);
 	free(right);
-
+	return lk;
 }
 
-double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, struct i3Net *lcpnet, int maxg, int *lcpCount, int **lcp) {
-	int maxi = max_robust_iiNet(net);
-	int *lfg = calloc(lf->linesNum, sizeof(int));
-	check_maxrobust_iiNet(maxi, net, lcpnet, lfg);
+void delete_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, int maxg, int *lcpCount, int **lcp, int *lfg) {
 	int i, j;
 	for (i = 0; i < lf->linesNum; ++i) {
 		if (lfg[i] == 1) {
-			int ssi;
-			ssi = 0;
+			int ssi = 0;
 			for (j = 0; j < lcpCount[fg[i]]; ++j) {
 				int id = lcp[fg[i]][j];
 				if (lfg[id] != 1) {
@@ -216,7 +219,28 @@ double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, stru
 			}
 		}
 	}
-	return 0.0;
+}
+
+double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, struct i3Net *lcpnet, int maxg, int *lcpCount, int **lcp) {
+	int rob;
+	int maxi = max_robust_iiNet(net, &rob);
+	printf("maxi&rob: %d\t%d\n", maxi, rob);
+	int *lfg = calloc(lf->linesNum, sizeof(int));
+	int n = check_maxrobust_iiNet(maxi, net, lcpnet, lfg, lf);
+	printf("%d\n", n);
+
+	while (n) {
+		delete_linkcp_iiNet(net, lf, fg, maxg, lcpCount, lcp, lfg);
+		printf("%d\t%ld\n", net->idNum, net->edgesNum);
+		maxi = max_robust_iiNet(net, &rob);
+		print_label(1);
+		free(lfg);
+		lfg = calloc(lf->linesNum, sizeof(int));
+		n = check_maxrobust_iiNet(maxi, net, lcpnet, lfg, lf);
+		printf("%d\n", n);
+	}
+
+	return rob;
 }
 
 int main(int argc, char **argv)
@@ -227,6 +251,7 @@ int main(int argc, char **argv)
 	double q;
 	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q);
 
+	/***************create net; lf, lcpnet, fg; maxg, lcpCount, lcp, .***************************************/
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
 	struct iiNet *net = create_iiNet(lf);
 	int *fg = robust_get_fg(lf, q);
@@ -238,7 +263,9 @@ int main(int argc, char **argv)
 		i3[j] = j;	
 	}
 	lf->i3 = i3;
+	lf->filename = "coupling links";
 	struct i3Net *lcpnet = create_i3Net(lf);
+	/********************************************************************************************************/
 
 
 	int *dl = robust_deletelist(net, kor);
@@ -248,6 +275,7 @@ int main(int argc, char **argv)
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
 		int robust = robust_linkcp_iiNet(net, lf, fg, lcpnet, maxg, lcpCount, lcp);
+
 		printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i));
 	}
 	free(dl);

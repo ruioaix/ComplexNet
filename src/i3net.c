@@ -106,7 +106,7 @@ struct i3Net *create_i3Net(const struct LineFile * const lf) {
 	net->count=count;
 	net->edges=edges;
 	net->i3 = ii3;
-	printf("create %s iidnet =>> Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", lf->filename, maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
+	printf("create %s i3net =>> Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", lf->filename, maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
 	return net;
 }
 
