@@ -270,8 +270,8 @@ int main(int argc, char **argv)
 	/********************************************************************************************************/
 	
 	/********************************************************************************************************/
-	int robust = robust_linkcp_iiNet(net, lf, fg, lcpnet, maxg, lcpCount, lcp);
-	printf("result:CQ\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
+	//int robust = robust_linkcp_iiNet(net, lf, fg, lcpnet, maxg, lcpCount, lcp);
+	//printf("result:CQ\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
 	/********************************************************************************************************/
 
 	int *dl = robust_deletelist(net, kor);

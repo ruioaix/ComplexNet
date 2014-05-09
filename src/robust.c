@@ -23,11 +23,20 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q) {
 	if (argc == 1) {
 		*es = 2;
-		*N = 1000;
+		*N = 10000;
 		*seed = 1;
 		*MM0 = 5;
 		*kor = 1;
 		*q = 0.1;
+	}
+	else if (argc == 2) {
+		char *p;
+		*es = 2;
+		*N = 10000;
+		*seed = 1;
+		*MM0 = 5;
+		*kor = 2;
+		*q = strtod(argv[1], &p);
 	}
 	else if (argc == 7) {
 		char *p;
