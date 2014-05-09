@@ -31,7 +31,7 @@ int delete_link_iiNet(struct iiNet *net, int id, int neigh);
 void verify_duplicatePairs_iiNet(struct iiNet *net);
 void verify_fullyConnected_iiNet(struct iiNet *net);
 
-int robust_iiNet(struct iiNet *net);
+int robust_iiNet(struct iiNet *net, int *robust);
 
 
 #endif

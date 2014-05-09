@@ -120,13 +120,14 @@ int delete_node_iiNet(struct iiNet *net, int nid) {
 	net->edgesNum -= net->count[nid];
 	for (i = 0; i < net->count[nid]; ++i) {
 		int neigh = net->edges[nid][i];
+		long count = net->count[neigh];
 		for (j = 0; j < net->count[neigh]; ++j) {
 			if (net->edges[neigh][j] == nid) {
 				net->edges[neigh][j] = net->edges[neigh][--(net->count[neigh])];
 				break;
 			}
 		}
-		if (j == net->count[neigh]) {
+		if (j == count) {
 			isError("delete_node_iiNet net wrong");
 		}
 		if (net->count[neigh] == 0) {
@@ -252,10 +253,11 @@ static int extract_backbone_iiNet(int nid, struct iiNet *net, char *fg, int *lef
 }
 
 //if net->count[nid] == 0, then I presume nid node is not existed.
-int robust_iiNet(struct iiNet *net) {
+int robust_iiNet(struct iiNet *net, int *robust) {
 	int N = net->idNum;
 	int maxru = 0;
 	int already = 0;
+	int maxi = 0;
 
 	char *fg = calloc(net->maxId + 1, sizeof(char));
 	int *left = malloc((net->maxId + 1) * sizeof(int));
@@ -266,7 +268,10 @@ int robust_iiNet(struct iiNet *net) {
 		if (fg[i] == 0 && net->count[i]) {
 			int conn = extract_backbone_iiNet(i, net, fg, left, right);
 			already += conn;
-			maxru = imax(conn, maxru);
+			if (maxru < conn) {
+				maxru = conn;
+				maxi = i;
+			}
 			if (maxru >= N-already) break;
 		}
 	}
@@ -274,7 +279,8 @@ int robust_iiNet(struct iiNet *net) {
 	free(fg);
 	free(left);
 	free(right);
-	return maxru;
+	*robust = maxru;
+	return maxi;
 }
 
 void verify_fullyConnected_iiNet(struct iiNet *net) {
