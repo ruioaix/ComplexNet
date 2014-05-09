@@ -180,7 +180,6 @@ static int check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpne
 					right[rN++] = neigh;
 					int lineNum = find_lineNum_LF(id, neigh, lcpnet);
 					if (lineNum != -1) {
-						printf("%d\t%d\t%d\t%d\n", id, lf->i1[lineNum], neigh, lf->i2[lineNum]);
 						lfg[lineNum] = 1;
 						lk++;
 					}
@@ -199,8 +198,9 @@ static int check_maxrobust_iiNet(int nid, struct iiNet *net, struct i3Net *lcpne
 	return lk;
 }
 
-void delete_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, int maxg, int *lcpCount, int **lcp, int *lfg) {
+int delete_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, int maxg, int *lcpCount, int **lcp, int *lfg) {
 	int i, j;
+	int k = 0, t = 0;
 	for (i = 0; i < lf->linesNum; ++i) {
 		if (lfg[i] == 1) {
 			int ssi = 0;
@@ -212,13 +212,16 @@ void delete_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, int ma
 				}
 			}
 			if (ssi == 1) {
+				k+=lcpCount[fg[i]];
 				for (j = 0; j < lcpCount[fg[i]]; ++j) {
 					int id = lcp[fg[i]][j];
-					delete_link_iiNet(net, lf->i1[id], lf->i2[id]);
+					lfg[id] = -1;
+					t += delete_link_iiNet(net, lf->i1[id], lf->i2[id]);
 				}
 			}
 		}
 	}
+	return k;
 }
 
 double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, struct i3Net *lcpnet, int maxg, int *lcpCount, int **lcp) {
@@ -227,17 +230,19 @@ double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, stru
 	printf("maxi&rob: %d\t%d\n", maxi, rob);
 	int *lfg = calloc(lf->linesNum, sizeof(int));
 	int n = check_maxrobust_iiNet(maxi, net, lcpnet, lfg, lf);
-	printf("%d\n", n);
+	printf("nnn: %d\n", n);
 
-	while (n) {
-		delete_linkcp_iiNet(net, lf, fg, maxg, lcpCount, lcp, lfg);
-		printf("%d\t%ld\n", net->idNum, net->edgesNum);
+	int dk;
+	while (n && dk) {
+		printf("befor: %d\t%ld\n", net->idNum, net->edgesNum);
+		dk = delete_linkcp_iiNet(net, lf, fg, maxg, lcpCount, lcp, lfg);
+		printf("after: %d\t%ld\n", net->idNum, net->edgesNum);
 		maxi = max_robust_iiNet(net, &rob);
 		print_label(1);
 		free(lfg);
 		lfg = calloc(lf->linesNum, sizeof(int));
 		n = check_maxrobust_iiNet(maxi, net, lcpnet, lfg, lf);
-		printf("%d\n", n);
+		printf("nn: %d\n", n);
 	}
 
 	return rob;
@@ -266,6 +271,13 @@ int main(int argc, char **argv)
 	lf->filename = "coupling links";
 	struct i3Net *lcpnet = create_i3Net(lf);
 	/********************************************************************************************************/
+	
+	/********************************************************************************************************/
+	int robust = robust_linkcp_iiNet(net, lf, fg, lcpnet, maxg, lcpCount, lcp);
+	printf("result:CQ\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
+	/********************************************************************************************************/
+
+	return 0;
 
 
 	int *dl = robust_deletelist(net, kor);
@@ -279,23 +291,6 @@ int main(int argc, char **argv)
 		printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i));
 	}
 	free(dl);
-
-	/*
-	   free_LineFile(lf);
-
-	   long *dd = degree_distribution_iiNet(net);
-	   int i;
-	   for (i = 0; i < net->countMax + 1; ++i) {
-	   printf("result:\tdegree\t%d\t%ld\n", i, dd[i]);
-	   }
-	   free(dd);
-
-	   int robust = robust_iiNet(net);
-	   printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", 0.0, -1, -1L, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId + 1 -robust)/(net->maxId + 1));
-
-
-	   free_iiNet(net);
-	   */
 
 	free_iiNet(net);
 	free_i3Net(lcpnet);

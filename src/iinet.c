@@ -117,6 +117,7 @@ void print_iiNet(struct iiNet *net, char *filename) {
 void delete_node_iiNet(struct iiNet *net, int nid) {
 	long i, j;
 	if (net->count[nid] == 0) return;
+	net->edgesNum -= net->count[nid];
 	for (i = 0; i < net->count[nid]; ++i) {
 		int neigh = net->edges[nid][i];
 		assert(net->count[neigh] != 0);
@@ -139,13 +140,17 @@ void delete_node_iiNet(struct iiNet *net, int nid) {
 	//printf("delete node %d from iiNet =>> done\n", nid);
 }
 
-void delete_link_iiNet(struct iiNet *net, int x, int y) {
-	if (net->count[x] == 0 || net->count[y] == 0) return;
+int delete_link_iiNet(struct iiNet *net, int x, int y) {
+	if (net->count[x] == 0 || net->count[y] == 0) return 0;
 	long i;
+	int re = 0;
+			//printf("=====delete link: %d\t%d\t%ld\t%ld\n", x, y, net->count[x], net->count[y]);
 	for (i = 0; i < net->count[x]; ++i) {
 		if (net->edges[x][i] == y) {
+			re++;
 			net->edges[x][i] = net->edges[x][--(net->count[x])];
 			net->edgesNum--;
+			//printf("delete link: %d\t%d\n", x, y);
 			if (net->count[x] == 0) {
 				free(net->edges[x]);
 				net->edges[x] = NULL;
@@ -165,6 +170,7 @@ void delete_link_iiNet(struct iiNet *net, int x, int y) {
 			break;
 		}
 	}
+	return re;
 }
 
 long *degree_distribution_iiNet(struct iiNet *net) {

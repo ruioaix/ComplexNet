@@ -20,7 +20,7 @@ void print_iiNet(struct iiNet *net, char *filename);
 
 long *degree_distribution_iiNet(struct iiNet *net);
 void delete_node_iiNet(struct iiNet *net, int id);
-void delete_link_iiNet(struct iiNet *net, int id, int neigh);
+int delete_link_iiNet(struct iiNet *net, int id, int neigh);
 
 void verify_duplicatePairs_iiNet(struct iiNet *net);
 void verify_fullyConnected_iiNet(struct iiNet *net);
