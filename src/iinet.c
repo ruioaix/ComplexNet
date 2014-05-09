@@ -114,18 +114,20 @@ void print_iiNet(struct iiNet *net, char *filename) {
 	printf("print_iiNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
 }
 
-void delete_node_iiNet(struct iiNet *net, int nid) {
+int delete_node_iiNet(struct iiNet *net, int nid) {
 	long i, j;
-	if (net->count[nid] == 0) return;
+	if (nid < 0 || nid > net->maxId || net->count[nid] == 0) return 0;
 	net->edgesNum -= net->count[nid];
 	for (i = 0; i < net->count[nid]; ++i) {
 		int neigh = net->edges[nid][i];
-		assert(net->count[neigh] != 0);
 		for (j = 0; j < net->count[neigh]; ++j) {
 			if (net->edges[neigh][j] == nid) {
 				net->edges[neigh][j] = net->edges[neigh][--(net->count[neigh])];
 				break;
 			}
+		}
+		if (j == net->count[neigh]) {
+			isError("delete_node_iiNet net wrong");
 		}
 		if (net->count[neigh] == 0) {
 			net->idNum--;
@@ -137,20 +139,17 @@ void delete_node_iiNet(struct iiNet *net, int nid) {
 	net->edges[nid] = NULL;
 	net->count[nid] = 0;
 	net->idNum--;
-	//printf("delete node %d from iiNet =>> done\n", nid);
+	return 1;
 }
 
 int delete_link_iiNet(struct iiNet *net, int x, int y) {
 	if (net->count[x] == 0 || net->count[y] == 0) return 0;
 	long i;
-	int re = 0;
-			//printf("=====delete link: %d\t%d\t%ld\t%ld\n", x, y, net->count[x], net->count[y]);
+	int find_x_in_y = 0, find_y_in_x = 0;
 	for (i = 0; i < net->count[x]; ++i) {
 		if (net->edges[x][i] == y) {
-			re++;
 			net->edges[x][i] = net->edges[x][--(net->count[x])];
-			net->edgesNum--;
-			//printf("delete link: %d\t%d\n", x, y);
+			find_y_in_x = 1;
 			if (net->count[x] == 0) {
 				free(net->edges[x]);
 				net->edges[x] = NULL;
@@ -162,6 +161,7 @@ int delete_link_iiNet(struct iiNet *net, int x, int y) {
 	for (i = 0; i < net->count[y]; ++i) {
 		if (net->edges[y][i] == x) {
 			net->edges[y][i] = net->edges[y][--(net->count[y])];
+			find_x_in_y = 1;
 			if (net->count[y] == 0) {
 				free(net->edges[y]);
 				net->edges[y] = NULL;
@@ -170,7 +170,17 @@ int delete_link_iiNet(struct iiNet *net, int x, int y) {
 			break;
 		}
 	}
-	return re;
+	int find = find_x_in_y + find_y_in_x;
+	if (find == 0) {
+		return 0;
+	}
+	else if (find == 2) {
+		net->edgesNum--;
+		return 1;
+	}
+	isError("delete_node_iiNet net wrong");
+	//can not get here.
+	return -1;
 }
 
 long *degree_distribution_iiNet(struct iiNet *net) {

@@ -245,13 +245,24 @@ double robust_linkcp_iiNet(struct iiNet *net, struct LineFile *lf, int *fg, stru
 	return rob;
 }
 
+struct CoupLink {
+	struct LineFile *links;
+	struct i3Net *i12_lid;
+	int *gid;
+	int gidMax;
+	int *gidCount;
+	int **gid_lids;
+};
+
 int main(int argc, char **argv)
 {
 	print_time();
 
+	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;
 	double q;
 	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q);
+	/********************************************************************************************************/
 
 	/***************create net; lf, lcpnet, fg; maxg, lcpCount, lcp, .***************************************/
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
@@ -267,6 +278,13 @@ int main(int argc, char **argv)
 	lf->i3 = i3;
 	lf->filename = "coupling links";
 	struct i3Net *lcpnet = create_i3Net(lf);
+	struct CoupLink *couplink = malloc(sizeof(struct CoupLink));
+	couplink->links = lf;
+	couplink->i12_lid = lcpnet;
+	couplink->gid = fg;
+	couplink->gidMax = maxg;
+	couplink->gidCount = lcpCount;
+	couplink->gid_lids = lcp;
 	/********************************************************************************************************/
 	
 	/********************************************************************************************************/
@@ -295,6 +313,7 @@ int main(int argc, char **argv)
 		free(lcp[i]);
 	}
 	free(lcp);
+	free(couplink);
 
 	print_time();
 	return 0;
