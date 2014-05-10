@@ -26,7 +26,7 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*N = 10000;
 		*seed = 1;
 		*MM0 = 5;
-		*kor = 1;
+		*kor = 2;
 		*q = 0.5;
 	}
 	else if (argc == 2) {

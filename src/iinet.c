@@ -138,6 +138,7 @@ int delete_node_iiNet(struct iiNet *net, int nid) {
 	}
 	free(net->edges[nid]);
 	net->edges[nid] = NULL;
+	//printf("delete node %d, node %d count is %ld, now the edgesNum is %ld\n", nid, nid, net->count[nid], net->edgesNum);
 	net->count[nid] = 0;
 	net->idNum--;
 	return 1;

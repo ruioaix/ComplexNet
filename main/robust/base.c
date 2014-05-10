@@ -29,7 +29,8 @@ int main(int argc, char **argv)
 	}
 	free(dd);
 
-	int robust = robust_iiNet(net);
+	int robust;
+	robust_iiNet(net, &robust);
 	printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", 0.0, -1, -1L, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId + 1 -robust)/(net->maxId + 1));
 
 	int *dl = robust_deletelist(net, kor);
@@ -37,7 +38,8 @@ int main(int argc, char **argv)
 		int subthisid = dl[i];
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
-		int robust = robust_iiNet(net);
+		int robust;
+		robust_iiNet(net, &robust);
 		printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\t%d\tQ(p):\t%f\tC(p):\t%f\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, net->maxId + 1, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i));
 	}
 	free(dl);

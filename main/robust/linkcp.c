@@ -151,7 +151,7 @@ int delete_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk, int *lstate) {
 	int **gid_lids = cplk->gid_lids;
 	int *gidCount = cplk->gidCount;
 	
-	int k = 0, t=0;
+	int t=0;
 	int i, j;
 	for (i = 0; i < lf->linesNum; ++i) {
 		if (lstate[i] == 1) {
@@ -164,7 +164,6 @@ int delete_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk, int *lstate) {
 				}
 			}
 			if (ssi == 1) {
-				k += gidCount[lid_gid[i]];
 				for (j = 0; j < gidCount[lid_gid[i]]; ++j) {
 					int id = gid_lids[lid_gid[i]][j];
 					if (lstate[id] == 2) {
@@ -183,8 +182,7 @@ int delete_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk, int *lstate) {
 			}
 		}
 	}
-	if (k != t) isError("delete_linkcp_iiNet");
-	return k;
+	return t;
 }
 
 
@@ -195,7 +193,6 @@ int robust_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk) {
 	int rob, maxi;
 	int cplkinRobustNum = -1, dk = -1;
 	int i;
-	printf("%d\t%d\t%ld\n", cplkinRobustNum, dk, net->edgesNum);
 	while (cplkinRobustNum && dk) {
 		//for (i = 0; i < cplk->lid_i12->linesNum; ++i) {
 		//	if (lstate[i] != 0) {
@@ -205,7 +202,7 @@ int robust_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk) {
 		maxi = robust_iiNet(net, &rob);
 		cplkinRobustNum = get_cplk_in_maxRobust(maxi, net, lstate, cplk->i12_lid);
 		dk = delete_linkcp_iiNet(net, cplk, lstate);
-		printf("%d\t%d\t%ld\n", cplkinRobustNum, dk, net->edgesNum);
+		printf("cplk in Robust is %d, delete cplk is %d, now edgesNum is %ld\n", cplkinRobustNum, dk, net->edgesNum);
 	}
 	printf("/********************************************************************************************************/\n");
 
@@ -248,7 +245,7 @@ int main(int argc, char **argv)
 	
 	/********************************************************************************************************/
 	int robust = robust_linkcp_iiNet(net, cplk);
-	printf("result:\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
+	//printf("result:\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
 	/********************************************************************************************************/
 
 	/********************************************************************************************************/
@@ -259,7 +256,6 @@ int main(int argc, char **argv)
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
 		int robust = robust_linkcp_iiNet(net, cplk);
-
 		//printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\tQ(p):\t%f\tC(p):\t%f\t%d\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i), robust);
 	}
 	free(dl);

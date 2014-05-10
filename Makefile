@@ -32,7 +32,7 @@ CFLAG :=  -g -Wall -Wunused
 
 #all : dir test
 #all: dir robust-base
-all: dir robust-linkcp
+all: dir robust-base robust-linkcp
 #all: dir tdpotn-wair
 #all: dir tdpotn-coupling
 #all: dir tdpotn-gini 
