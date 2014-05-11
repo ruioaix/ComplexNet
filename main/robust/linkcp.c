@@ -192,7 +192,6 @@ int robust_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk) {
 
 	int rob, maxi;
 	int cplkinRobustNum = -1, dk = -1;
-	int i;
 	while (cplkinRobustNum && dk) {
 		//for (i = 0; i < cplk->lid_i12->linesNum; ++i) {
 		//	if (lstate[i] != 0) {
@@ -202,9 +201,9 @@ int robust_linkcp_iiNet(struct iiNet *net, struct CoupLink *cplk) {
 		maxi = robust_iiNet(net, &rob);
 		cplkinRobustNum = get_cplk_in_maxRobust(maxi, net, lstate, cplk->i12_lid);
 		dk = delete_linkcp_iiNet(net, cplk, lstate);
-		printf("cplk in Robust is %d, delete cplk is %d, now edgesNum is %ld\n", cplkinRobustNum, dk, net->edgesNum);
+		//printf("cplk in Robust is %d, delete cplk is %d, now edgesNum is %ld\n", cplkinRobustNum, dk, net->edgesNum);
 	}
-	printf("/********************************************************************************************************/\n");
+	//printf("/********************************************************************************************************/\n");
 
 	free(lstate);
 	return rob;
@@ -244,7 +243,7 @@ int main(int argc, char **argv)
 	/********************************************************************************************************/
 	
 	/********************************************************************************************************/
-	int robust = robust_linkcp_iiNet(net, cplk);
+	//int robust = robust_linkcp_iiNet(net, cplk);
 	//printf("result:\t%d\tQ(p):\t%f\n", net->maxId + 1, (double)robust/(net->maxId + 1));
 	/********************************************************************************************************/
 
@@ -256,7 +255,7 @@ int main(int argc, char **argv)
 		long count_subthisid = net->count[subthisid];
 		delete_node_iiNet(net, subthisid);
 		int robust = robust_linkcp_iiNet(net, cplk);
-		//printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\tQ(p):\t%f\tC(p):\t%f\t%d\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i), robust);
+		printf("result:CQ\tp:\t%f\tsubthisid:\t%d\tcount:\t%ld\tQ(p):\t%f\tC(p):\t%f\t%d\n", (double)(i+1)/(net->maxId + 1), subthisid, count_subthisid, (double)robust/(net->maxId + 1), (double)(net->maxId - i -robust)/(net->maxId - i), robust);
 	}
 	free(dl);
 	/********************************************************************************************************/
