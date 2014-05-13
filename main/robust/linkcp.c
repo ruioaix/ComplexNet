@@ -60,9 +60,43 @@ int *robust_get_fg(struct LineFile *lf, double q) {
 	return fg;
 }
 
+int *robust_get_fg_1(struct LineFile *lf, double q, int coupNum) {
+	int * fg = malloc(lf->linesNum * sizeof(int));
+	long *clean = malloc(lf->linesNum * sizeof(long));
+	long cleanNum = lf->linesNum;
+	int gid = 0;
+	long i;
+	for (i = 0; i < lf->linesNum; ++i) {
+		fg[i] = -1;
+		clean[i] = i;
+	}
+	int j;
+	for (i = 0; i < lf->linesNum; ++i) {
+		if (cleanNum == 0) break;
+		if (fg[i] != -1) continue;
+		double psb = get_d_MTPR();
+		if (psb < q) {
+			for (j = 0; j < coupNum; ++j) {
+				int index = get_i31_MTPR()%cleanNum;
+				int eid = clean[index];
+				fg[eid] = gid;
+				clean[index] = clean[--cleanNum];
+				//printf("gid: %d, eid: %d, fg[eid]: %d\n", gid, eid, fg[eid]);
+				if (cleanNum == 0) {
+					break;
+				}
+			}
+			gid++;
+		}
+		//printf("\n");
+	}
+	free(clean);
+	return fg;
+}
+
 void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts, int ***lcps) {
 	long rlNum = 0;
-	long i;
+	int i;
 	int maxg = -1;
 	for (i = 0; i < lf->linesNum; ++i) {
 		if (fg[i] == -1) continue;
@@ -73,12 +107,16 @@ void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts
 		++rlNum;
 	}
 	lf->linesNum = rlNum;
+	//for (i = 0; i < rlNum; ++i) {
+	//	//printf("i,fg[i]: %d\t%d\n", i, fg[i]);
+	//}
 	int *lcpCount = calloc(maxg + 1, sizeof(int));
 	for (i = 0; i < rlNum; ++i) {
 		++(lcpCount[fg[i]]);
 	}
 	int **lcp = malloc((maxg + 1)*sizeof(int *));
 	for (i = 0; i < maxg + 1; ++i) {
+		//printf("lcpcount: %d\t%d\n", i, lcpCount[i]);
 		lcp[i] = malloc(lcpCount[i]*sizeof(int));
 	}
 	int *tmpCount = calloc(maxg + 1, sizeof(int));
@@ -92,12 +130,15 @@ void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts
 }
 
 int find_lid_from_i12(int id, int neigh, struct i3Net *lcpnet) {
+	//printf("%d\t%d\n", id, neigh);fflush(stdout);
+	if (id > lcpnet->maxId) return -1;
 	int i;
 	for (i = 0; i < lcpnet->count[id]; ++i) {
 		if (lcpnet->edges[id][i] == neigh) {
 			return lcpnet->i3[id][i];
 		}
 	}
+	//printf("end: %d\t%d\n", id, neigh);fflush(stdout);
 	return -1;
 }
 
@@ -216,17 +257,21 @@ int main(int argc, char **argv)
 	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;
 	double q;
-	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q);
+	int coupNum;
+	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q, &coupNum);
 	/********************************************************************************************************/
 
 	/***************create net; lf, lcpnet, fg; maxg, lcpCount, lcp, .***************************************/
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
 	struct iiNet *net = create_iiNet(lf);
-	int *fg = robust_get_fg(lf, q);
+	int *fg = robust_get_fg_1(lf, q, coupNum);
 	int maxg, *lcpCount, **lcp;
 	robust_get_linkcp(lf, fg, &maxg, &lcpCount, &lcp);
-	int *i3 = malloc(lf->linesNum * sizeof(int));
 	int j;
+	//for (j = 0; j < maxg; ++j) {
+	//	printf("%d\t%d\n", j, lcpCount[j]);
+	//}
+	int *i3 = malloc(lf->linesNum * sizeof(int));
 	for (j = 0; j < lf->linesNum; ++j) {
 		i3[j] = j;	
 	}

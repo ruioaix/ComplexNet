@@ -20,7 +20,7 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 	return lf;
 }
 
-void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q) {
+void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *coupNum) {
 	if (argc == 1) {
 		*es = 2;
 		*N = 10000;
@@ -28,6 +28,7 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = 5;
 		*kor = 2;
 		*q = 0.5;
+		*coupNum = 3;
 	}
 	else if (argc == 2) {
 		char *p;
@@ -37,8 +38,9 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = 5;
 		*kor = 2;
 		*q = strtod(argv[1], &p);
+		*coupNum = 3;
 	}
-	else if (argc == 7) {
+	else if (argc == 8) {
 		char *p;
 		*es = strtol(argv[1], &p, 10);
 		*N = strtol(argv[2], &p, 10);
@@ -46,6 +48,7 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = strtol(argv[4], &p, 10);
 		*kor = strtol(argv[5], &p, 10);
 		*q = strtod(argv[6], &p);
+		*coupNum = strtol(argv[7], &p, 10);
 	}
 	else {
 		isError("wrong arg");
