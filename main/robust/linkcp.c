@@ -20,6 +20,74 @@ struct CoupLink {
 	int **gid_lids;
 };
 
+int *robust_get_fg_2(struct LineFile *lf, double q, int **gidCounts) {
+	if (q<0 || q>1) isError("robust_get_fg_2");
+	
+	long cplkNum = (long)(q*lf->linesNum);
+
+	//printf("%d\n", cplkNum);
+
+	int * fg = malloc(lf->linesNum * sizeof(int));
+	int *gidCount = calloc(cplkNum, sizeof(int));
+	int gid = 0;
+	long i;
+	for (i = 0; i < lf->linesNum; ++i) {
+		fg[i] = -1;
+	}
+	long cpNum = 0;
+	while (cpNum < cplkNum) {
+		int id1 = get_i31_MTPR()%(lf->linesNum);
+		int id2 = get_i31_MTPR()%(lf->linesNum);
+		if (id1 == id2) continue;
+		if (fg[id1] == -1 && fg[id2] == -1) {
+			fg[id1] = fg[id2] = gid;
+			gidCount[gid] += 2;
+			cpNum += 2;
+			++gid;
+		}
+		else if (fg[id1] == -1 && fg[id2] != -1) {
+			fg[id1] = fg[id2];
+			++gidCount[fg[id2]];
+			++cpNum;
+		}
+		else if (fg[id1] != -1 && fg[id2] == -1) {
+			fg[id2] = fg[id1];
+			++gidCount[fg[id1]];
+			++cpNum;
+		}
+		else if (fg[id1] == fg[id2]) {
+			continue;
+		}
+		else {
+			int sgid, bgid;
+			if (gidCount[fg[id1]] > gidCount[fg[id2]]) {
+				sgid = fg[id2];
+				bgid = fg[id1];
+			}
+			else {
+				sgid = fg[id1];
+				bgid = fg[id2];
+			}
+			for (i = 0; i < lf->linesNum; ++i) {
+				if (fg[i] == sgid) {
+					fg[i] = bgid;
+					--gidCount[sgid];
+					++gidCount[bgid];
+					if (gidCount[sgid] == 0) {
+						break;
+					}
+				}
+			}
+		}
+	}
+		
+	//for (i = 0; i < cplkNum; ++i) {
+	//	printf("gidCount: %ld\t%d\n", i, gidCount[i]);
+	//}
+	*gidCounts = gidCount;
+	return fg;
+}
+
 int *robust_get_fg(struct LineFile *lf, double q) {
 	int * fg = malloc(lf->linesNum * sizeof(int));
 	long *clean = malloc(lf->linesNum * sizeof(long));
@@ -94,7 +162,7 @@ int *robust_get_fg_1(struct LineFile *lf, double q, int coupNum) {
 	return fg;
 }
 
-void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts, int ***lcps) {
+void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int *lcpCount, int ***lcps) {
 	long rlNum = 0;
 	int i;
 	int maxg = -1;
@@ -110,13 +178,8 @@ void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts
 	//for (i = 0; i < rlNum; ++i) {
 	//	//printf("i,fg[i]: %d\t%d\n", i, fg[i]);
 	//}
-	int *lcpCount = calloc(maxg + 1, sizeof(int));
-	for (i = 0; i < rlNum; ++i) {
-		++(lcpCount[fg[i]]);
-	}
 	int **lcp = malloc((maxg + 1)*sizeof(int *));
 	for (i = 0; i < maxg + 1; ++i) {
-		//printf("lcpcount: %d\t%d\n", i, lcpCount[i]);
 		lcp[i] = malloc(lcpCount[i]*sizeof(int));
 	}
 	int *tmpCount = calloc(maxg + 1, sizeof(int));
@@ -124,7 +187,6 @@ void robust_get_linkcp(struct LineFile *lf, int *fg, int *maxgs, int **lcpCounts
 		lcp[fg[i]][(tmpCount[fg[i]])++] = i;
 	}
 	free(tmpCount);
-	*lcpCounts = lcpCount;
 	*lcps = lcp;	
 	*maxgs = maxg;
 }
@@ -264,12 +326,16 @@ int main(int argc, char **argv)
 	/***************create net; lf, lcpnet, fg; maxg, lcpCount, lcp, .***************************************/
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
 	struct iiNet *net = create_iiNet(lf);
-	int *fg = robust_get_fg_1(lf, q, coupNum);
-	int maxg, *lcpCount, **lcp;
-	robust_get_linkcp(lf, fg, &maxg, &lcpCount, &lcp);
+	int *gidCount;
+	int *fg = robust_get_fg_2(lf, q, &gidCount);
+	int maxg, **lcp;
+	robust_get_linkcp(lf, fg, &maxg, gidCount, &lcp);
 	int j;
 	//for (j = 0; j < maxg; ++j) {
-	//	printf("%d\t%d\n", j, lcpCount[j]);
+	//	if (lcpCount[j] != gidCount[j]) {
+	//		printf("%d\t%d\t%d\n", j, lcpCount[j], gidCount[j]);
+	//		isError("xx");
+	//	}
 	//}
 	int *i3 = malloc(lf->linesNum * sizeof(int));
 	for (j = 0; j < lf->linesNum; ++j) {
@@ -283,7 +349,7 @@ int main(int argc, char **argv)
 	cplk->i12_lid = lcpnet;
 	cplk->lid_gid = fg;
 	cplk->gidMax = maxg;
-	cplk->gidCount = lcpCount;
+	cplk->gidCount = gidCount;
 	cplk->gid_lids = lcp;
 	/********************************************************************************************************/
 	
@@ -310,7 +376,7 @@ int main(int argc, char **argv)
 	free_i3Net(lcpnet);
 	free_LineFile(lf);
 	free(fg);
-	free(lcpCount);
+	free(gidCount);
 	for (i = 0; i < maxg + 1; ++i) {
 		free(lcp[i]);
 	}
