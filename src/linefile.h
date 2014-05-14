@@ -23,6 +23,7 @@
 #define CN_LINEFILE_H
 
 struct LineFile {
+	//private
 	int ***ilist;
 	double ***dlist;
 	char ***clist;
@@ -30,6 +31,7 @@ struct LineFile {
 	char ****cclist;
 	int iNum, dNum, cNum, ccNum, lNum;
 
+	//public
 	int *i1; int *i2; int *i3; int *i4; int *i5;
 	int *i6; int *i7; int *i8; int *i9;
 	double *d1; double *d2; double *d3;

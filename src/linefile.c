@@ -3,8 +3,6 @@
 #include "sort.h"
 #include <stdlib.h>
 #include <stdarg.h>
-#include <assert.h>
-#include <stdio.h>
 #include <string.h>
 
 
@@ -77,7 +75,7 @@ static struct LineFile *init_LineFile(void) {
 	lf->cNum = 9;
 	lf->lNum = 9;
 	lf->ccNum = 9;
-	lf->ilist = malloc(lf->iNum*sizeof(void **));
+	lf->ilist = malloc(lf->iNum*sizeof(int **));
 	assert(lf->ilist != NULL);
 	lf->dlist = malloc(lf->dNum*sizeof(void **));
 	assert(lf->dlist != NULL);
@@ -87,6 +85,7 @@ static struct LineFile *init_LineFile(void) {
 	assert(lf->llist != NULL);
 	lf->cclist = malloc(lf->ccNum*sizeof(void ***));
 	assert(lf->cclist != NULL);
+
 	set_list_LineFile(lf);
 
 	int i;
@@ -125,8 +124,7 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 		switch(type) {
 			case 1:
 				if (ii < lf->iNum) {
-					int *tmp = malloc(LINES_STEP * sizeof(int));
-					assert(tmp != NULL);
+					int *tmp = smalloc(LINES_STEP * sizeof(int));
 					*(ilist[ii++]) = tmp;
 				}
 				else {
@@ -135,8 +133,7 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 2:
 				if (di < lf->dNum) {
-					double *tmp = malloc(LINES_STEP * sizeof(double));
-					assert(tmp != NULL);
+					double *tmp = smalloc(LINES_STEP * sizeof(double));
 					*(dlist[di++]) = tmp;
 				}
 				else {
@@ -145,8 +142,7 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 3:
 				if (ci < lf->cNum) {
-					char *tmp = malloc(LINES_STEP * sizeof(char));
-					assert(tmp != NULL);
+					char *tmp = smalloc(LINES_STEP * sizeof(char));
 					*(clist[ci++]) = tmp;
 				}
 				else {
@@ -155,8 +151,7 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 4:
 				if (li < lf->lNum) {
-					long *tmp = malloc(LINES_STEP * sizeof(long));
-					assert(tmp != NULL);
+					long *tmp = smalloc(LINES_STEP * sizeof(long));
 					*(llist[li++]) = tmp;
 				}
 				else {
@@ -165,8 +160,7 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 5:
 				if (cci < lf->ccNum) {
-					char **tmp = malloc(LINES_STEP * sizeof(void *));
-					assert(tmp != NULL);
+					char **tmp = smalloc(LINES_STEP * sizeof(char *));
 					*(cclist[cci++]) = tmp;
 				}
 				else {
@@ -274,7 +268,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						ip[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							printf("create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
+							fprintf(stderr, "create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -289,7 +283,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						dp[j+lf->linesNum] = strtod(p[j], &pend);
 						if (pend[0]!='\0') {
-							printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -304,7 +298,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						cp[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -319,7 +313,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						lp[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							printf("create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -353,15 +347,21 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	//the return lf.
 	struct LineFile *lf = init_LineFile();
+	print2l("%s =>> init_LineFile done.\n", __func__);
 
 	//get typelist.
-	int *typelist = malloc((lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum)*sizeof(int));
-	assert(typelist != NULL);
+	int argMax = lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum;
+	int *typelist = smalloc(argMax*sizeof(int));
 	va_list vl;
 	va_start(vl, filename);
 	int vn = 0, type = -2;
 	while (1 == (type = va_arg(vl, int)) || 2 == type || 3 == type || 4 == type || 5 == type) {
-		typelist[vn++] = type;
+		if (vn < argMax) {
+			typelist[vn++] = type;
+		}
+		else {
+			isError("create_LineFile too much args");
+		}
 	}
 	va_end(vl);
 
@@ -375,15 +375,16 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	FILE *fp = fopen(filename, "r");
 	fileError(fp, "create_LineFile");
 
+	print2l("%s =>> read args & open %s done.\n", __func__, filename);
+
 	//set lf memory with typelist.
 	init_memory_LineFile(lf, vn, typelist);
+	print2l("%s =>> allocate the first piece of memory done.\n", __func__);
 
 	//buffer used to read file.
 	char isok = 1;
-	char *buffer = malloc(LINE_LENGTH * LINES_READIN * sizeof(char));
-	assert(buffer != NULL);
-	char **allparts = malloc(vn * LINES_READIN * sizeof(void *));
-	assert(allparts != NULL);
+	char *buffer = smalloc(LINE_LENGTH * LINES_READIN * sizeof(char));
+	char **allparts = smalloc(vn * LINES_READIN * sizeof(char *));
 	int lread = LINES_READIN;
 	while (lread == LINES_READIN) {
 		set_buffer_LineFile(fp, buffer, &lread);
@@ -392,6 +393,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 			add_memory_LineFile(lf);
 		}
 		set_lf_LineFile(lf, allparts, typelist, lread, vn, &isok);
+		print2l("%s =>> already read in %ld lines.\n", __func__, lf->linesNum);
 	}
 	free(typelist);
 	fclose(fp);
@@ -399,11 +401,11 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	free(allparts);
 
 	if (!isok) {
-		printf("create Linefile =>> %s has some non-valid lines, program stop.\n", lf->filename);
-		exit(-1);
+		fprintf(stderr, "create Linefile =>> %s has some non-valid lines, program stop.\n", lf->filename);
+		exit(EXIT_FAILURE);
 	}
 
-	printf("create Linefile =>> read %s successfully.\n", lf->filename);
+	print1l("create Linefile =>> read %s successfully.\n", lf->filename);
 	return lf;
 }
 

@@ -25,7 +25,7 @@ OBJ_DIR = obj $(patsubst %,obj/%, $(MAIN_ALL_DIR) $(SRC_DIR) $(TEST_DIR))
 INCLUDE_DIR := $(patsubst %, -I%, $(SRC_DIR) $(MAIN_ALL_DIR))
 
 CC := gcc
-CFLAG :=  -g -Wall -Wunused 
+CFLAG :=  -std=c99 -g -Wall -Wunused 
 
 
 .PHONY : dir all clean test tar tdpotn

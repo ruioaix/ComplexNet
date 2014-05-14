@@ -346,6 +346,10 @@ void set_2_lstate(int *lstate, struct iiNet *net, int subthisid, struct LineFile
 int main(int argc, char **argv)
 {
 	print_time();
+	prerequisite();
+	struct LineFile *dd = create_LineFile("1", 1 ,1 ,-1);
+	return 0;
+
 
 	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;
@@ -357,6 +361,8 @@ int main(int argc, char **argv)
 	/***************create net; lf, lcpnet, fg; maxg, lcpCount, lcp, .***************************************/
 	struct LineFile *lf = robust_ER_or_SF(es, N, seed, MM0);
 	struct iiNet *net = create_iiNet(lf);
+
+	return 0;
 	//verify_duplicatePairs_iiNet(net);
 	//verify_fullyConnected_iiNet(net);
 	int *gidCount;
