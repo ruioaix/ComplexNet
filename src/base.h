@@ -4,7 +4,6 @@
  *
  * Author: RuiXiao <xrfind@gmail.com>
  */
-
 #ifndef CN_BASE_H
 #define CN_BASE_H
 
@@ -20,8 +19,8 @@ void print_label(int i);
 
 /********************************************************************************************************/
 #include <stdio.h> //for FILE, perror, fprintf, stderr
-void fileError(FILE *fp, const char * const filename);
-void isError(const char * const errormsg);
+void fileError(FILE *fp, char* format, ...);
+void isError(char *format, ...);
 /********************************************************************************************************/
 
 /********************************************************************************************************/
@@ -44,7 +43,7 @@ void prerequisite(void);
 /********************************************************************************************************/
 
 /********************************************************************************************************/
-#define VERBOSE_LEVEL_2
+#define VERBOSE_LEVEL_3
 //VERBOSE_LEVEL_0 means no-output, this only should be used when you can make sure the program is right,
 //	and what you want is only the result output.
 //VERBOSE_LEVEL_1 means only output the content of print1l. output the information of program running.
@@ -64,6 +63,7 @@ void prerequisite(void);
 } while(0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
+#define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_2
@@ -71,9 +71,11 @@ void prerequisite(void);
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("   ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) ((void)0)
+#define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_3
@@ -81,19 +83,33 @@ void prerequisite(void);
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("   ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
+		printf("      ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define printnl(format, ...) ((void)0)
+#endif
+
+#ifdef VERBOSE_LEVEL_N
+#define print1l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print2l(format, ...) do {\
+		printf("   ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print3l(format, ...) do {\
+		printf("      ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define printnl(format, ...) do {\
+		printf("\t\t");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #endif
-
-
-//#define print1l(format, ...) (void *
-
-//void print1l(char *format, ...);
-//void print2l(char *format, ...);
-//void print3l(char *format, ...);
 /********************************************************************************************************/
 
 #endif

@@ -91,7 +91,7 @@ test/run : $(SRC_OBJ) $(TEST_OBJ)
 
 
 #################################################################
-obj/src/%.o : src/%.c src/%.h 
+obj/src/%.o : src/%.c  src/%.c src/base.h
 	$(CC) $(CFLAG) $(INCLUDE_DIR) -c $< -o $@
 
 obj/main/%.o: main/%.c 

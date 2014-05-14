@@ -16,16 +16,27 @@ void print_label(int i) {
 /********************************************************************************************************/
 #include <stddef.h> //for NULL
 #include <stdlib.h> //for exit & EXIT_FAILURE
-void fileError(FILE *fp, const char * const filename)
-{
+#include <stdarg.h>
+void fileError(FILE *fp, char* format, ...) {
 	if (fp==NULL) {
-		perror(filename);
+		fflush(stdout);
+		va_list args;
+		va_start(args, format);
+		fprintf(stderr, "[ERROR]:\n\t");
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+		va_end(args);
 		exit(EXIT_FAILURE);
 	}
 }
-void isError(const char * const errormsg)
-{
-	fprintf(stderr, "[ERROR]:\n\t%s.\n", errormsg);
+void isError(char *format, ...) {
+	fflush(stdout);
+	va_list args;
+	va_start(args, format);
+	fprintf(stderr, "[ERROR]:\n\t");
+	vfprintf(stderr, format, args);
+	fprintf(stderr, "\n");
+	va_end(args);
 	exit(EXIT_FAILURE);
 }
 /********************************************************************************************************/
@@ -68,43 +79,11 @@ void srealloc(void *p, size_t size) {
 #include <limits.h>
 #include <stdint.h>
 void prerequisite(void) {
-	print1l("prerequisite =>>\n\t");
-	print1l("sizeof(int): %zd; INT_MAX: %d, 0x%X\n\t", sizeof(int), INT_MAX, (unsigned)INT_MAX);
-	print1l("sizeof(long): %zd; LONG_MAC: %ld, 0x%lX\n\t", sizeof(long), LONG_MAX, (unsigned long)LONG_MAX);
-	print1l("sizeof(size_t): %zd; SIZE_MAX: %zu, 0X%zX\n", sizeof(size_t), SIZE_MAX, SIZE_MAX);
-	sizeof(int) < 4 ? isError("sizeof int too small"):1;
-	sizeof(long) < 4 ? isError("sizeof long too small"):1;
-	sizeof(size_t) < 4 || sizeof(size_t) < sizeof(int) ? isError("sizeof size_t too small"):1;
+	print1l("%s =>> sizeof(int): %zd; INT_MAX: %d, 0x%X\n", __func__, sizeof(int), INT_MAX, (unsigned)INT_MAX);
+	print1l("%s =>> sizeof(long): %zd; LONG_MAC: %ld, 0x%lX\n", __func__, sizeof(long), LONG_MAX, (unsigned long)LONG_MAX);
+	print1l("%s =>> sizeof(size_t): %zd; SIZE_MAX: %zu, 0x%zX\n", __func__, sizeof(size_t), SIZE_MAX, SIZE_MAX);
+	sizeof(int) < 4 ? isError("%s =>> sizeof int too small.\n", __func__):1;
+	sizeof(long) < 4 ? isError("%s =>> sizeof long too small.\n", __func__):1;
+	sizeof(size_t) < 4 || sizeof(size_t) < sizeof(int) ? isError("%s =>> sizeof size_t too small.\n", __func__):1;
 }
-/********************************************************************************************************/
-
-/********************************************************************************************************/
-//#include <stdarg.h>
-//void print1l(char *format, ...) {
-//	va_list args;
-//	if (VERBOSE_LEVEL<1)
-//		return;
-//
-//	va_start(args, format);
-//	vprintf(format, args);
-//	va_end(args);
-//}
-//void print2l(char *format, ...) {
-//	va_list args;
-//	if (VERBOSE_LEVEL<2)
-//		return;
-//
-//	va_start(args, format);
-//	vprintf(format, args);
-//	va_end(args);
-//}
-//void print3l(char *format, ...) {
-//	va_list args;
-//	if (VERBOSE_LEVEL<3)
-//		return;
-//
-//	va_start(args, format);
-//	vprintf(format, args);
-//	va_end(args);
-//}
 /********************************************************************************************************/

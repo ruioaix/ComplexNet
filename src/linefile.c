@@ -226,6 +226,7 @@ static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 		line += LINE_LENGTH;
 		++(*lread);
 	}
+	print3l("%s =>> read %d lines into buffer.\n", __func__, *lread);
 }
 static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lread) {
 	int i,j;
@@ -238,6 +239,7 @@ static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lre
 		}
 		line += LINE_LENGTH;
 	}
+	print3l("%s =>> distribute buffers into char *array, size: %d.\n", __func__, lread*vn);
 }
 static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist, int lread, int vn, char *isok) {
 	int ***ilist = lf->ilist;
@@ -245,11 +247,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 	char ***clist = lf->clist;
 	long ***llist = lf->llist;
 	char ****cclist = lf->cclist;
-	int IL = 0;
-	int DL = 0;
-	int CL = 0;
-	int LL = 0;
-	int CCL = 0;
+	int IL = 0, DL = 0, CL = 0, LL = 0, CCL = 0;
 	int *ip;
 	double *dp;
 	char *cp;
@@ -268,7 +266,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						ip[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							fprintf(stderr, "create LineFile =>> %s file, line: %ld, i%d part.\n", lf->filename, j+lf->linesNum, IL);
+							print2l("%s =>> %s file, line: %ld, i%d part.\n", __func__, lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -343,11 +341,18 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 	lf->linesNum += lread;
 }
 
+static char *typetype[] = {"int", "double", "char", "long", "c-string"};
+
 struct LineFile *create_LineFile(char *filename, ...) {
 
 	//the return lf.
 	struct LineFile *lf = init_LineFile();
-	print2l("%s =>> init_LineFile done.\n", __func__);
+	print2l("%s =>> create empty linefile done.\n", __func__);
+
+	if (NULL == filename) {
+		print2l("%s =>> NULL filename, return a empty linefile.\n", __func__);
+		return lf;
+	}
 
 	//get typelist.
 	int argMax = lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum;
@@ -355,31 +360,35 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	va_list vl;
 	va_start(vl, filename);
 	int vn = 0, type = -2;
+	print2l("%s =>> detected line style: ", __func__);
 	while (1 == (type = va_arg(vl, int)) || 2 == type || 3 == type || 4 == type || 5 == type) {
 		if (vn < argMax) {
 			typelist[vn++] = type;
+			print2l("%s ", typetype[type - 1]);
 		}
 		else {
 			isError("create_LineFile too much args");
 		}
 	}
+	print2l("\n");
 	va_end(vl);
 
-	if (NULL == filename || 0 == vn || type != -1) {
+	if (0 == vn || type != -1) {
 		free(typelist);
+		print2l("%s =>> not valid types, return a empty linefile.\n", __func__);
 		return lf;
 	}
 	lf->filename = filename;
 
 	//check filename.
 	FILE *fp = fopen(filename, "r");
-	fileError(fp, "create_LineFile");
+	fileError(fp, "%s =>> can not open \"%s\" file.\n", __func__, filename);
 
-	print2l("%s =>> read args & open %s done.\n", __func__, filename);
+	print2l("%s =>> open \"%s\" done.\n", __func__, filename);
 
 	//set lf memory with typelist.
 	init_memory_LineFile(lf, vn, typelist);
-	print2l("%s =>> allocate the first piece of memory done.\n", __func__);
+	print2l("%s =>> allocate the first piece of memory, now lf->memNum: %ld.\n", __func__, lf->memNum);
 
 	//buffer used to read file.
 	char isok = 1;
@@ -391,21 +400,20 @@ struct LineFile *create_LineFile(char *filename, ...) {
 		set_allparts_LineFile(buffer, allparts, vn, lread);
 		while (lf->linesNum + lread > lf->memNum) {
 			add_memory_LineFile(lf);
+			print2l("%s =>> allocate another piece of memory, now lf->memNum: %ld.\n", __func__, lf->memNum);
 		}
 		set_lf_LineFile(lf, allparts, typelist, lread, vn, &isok);
-		print2l("%s =>> already read in %ld lines.\n", __func__, lf->linesNum);
+		print3l("%s =>> already read in %ld lines.\n", __func__, lf->linesNum);
 	}
+	print2l("%s =>> totally read in %ld lines.\n", __func__, lf->linesNum);
 	free(typelist);
 	fclose(fp);
 	free(buffer);
 	free(allparts);
 
-	if (!isok) {
-		fprintf(stderr, "create Linefile =>> %s has some non-valid lines, program stop.\n", lf->filename);
-		exit(EXIT_FAILURE);
-	}
+	isok == 0 ? isError("%s =>> file \"%s\" has some non-valid lines.", __func__, filename):1;
 
-	print1l("create Linefile =>> read %s successfully.\n", lf->filename);
+	print1l("%s =>> read file \"%s\" successfully.\n", __func__, lf->filename);
 	return lf;
 }
 

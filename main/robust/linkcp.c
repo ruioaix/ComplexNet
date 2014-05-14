@@ -348,6 +348,11 @@ int main(int argc, char **argv)
 	print_time();
 	prerequisite();
 	struct LineFile *dd = create_LineFile("1", 1 ,1 ,-1);
+	free_LineFile(dd);
+	struct LineFile *xx = create_LineFile(NULL, 4);
+	free_LineFile(xx);
+	struct LineFile *tt = create_LineFile("xx", 4);
+	free_LineFile(tt);
 	return 0;
 
 
