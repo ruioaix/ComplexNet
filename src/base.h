@@ -8,11 +8,19 @@
 #define CN_BASE_H
 /****************Configuration Section*******************************************************************/
 //#define NDEBUG
-//#define VERBOSE_LEVEL_0
-//#define VERBOSE_LEVEL_1
-//#define VERBOSE_LEVEL_2
-#define VERBOSE_LEVEL_3
-//#define VERBOSE_LEVEL_N
+//#define VERBOSE_LEVEL_0 //no output, should be used when you can make sure the program is right, and what you want is only the result output.
+//#define VERBOSE_LEVEL_1 //describe the logic of main.
+#define VERBOSE_LEVEL_2 //except above, additionally, describe all global function's calls.
+//#define VERBOSE_LEVEL_3 //except above, additionally, describe all logic in each call of global function.
+//#define VERBOSE_LEVEL_4 //except above, additionally, describe all static function's calls.
+//#define VERBOSE_LEVEL_N //printing logic in loop!!! too much...
+/*VERBOSE_LEVEL_0 means no-output, this only should be used when you can make sure the program is right,
+VERBOSE_LEVEL_1 means only output the content of print1l. output the information of program running.
+VERBOSE_LEVEL_2 means output the content of print1l&print2l. output somehow detail information.
+VERBOSE_LEVEL_3 means output the content of print1l&print2l&print3l. output all information.
+VERBOSE_LEVEL_N means output the content of print1l&print2l&print3l&printnl. 
+	printnl often in loop, so the output will be in huge size.
+later maybe we have print4l.*/
 
 /********************************************************************************************************/
 
@@ -52,18 +60,16 @@ void prerequisite(void);
 /********************************************************************************************************/
 
 /********************************************************************************************************/
-/*VERBOSE_LEVEL_0 means no-output, this only should be used when you can make sure the program is right,
-	and what you want is only the result output.
-VERBOSE_LEVEL_1 means only output the content of print1l. output the information of program running.
-VERBOSE_LEVEL_2 means output the content of print1l&print2l. output somehow detail information.
-VERBOSE_LEVEL_3 means output the content of print1l&print2l&print3l. output all information.
-VERBOSE_LEVEL_N means output the content of print1l&print2l&print3l&printnl. 
-	printnl often in loop, so the output will be in huge size.
-later maybe we have print4l.*/
+//print1l will be used in main function. and some special situation.
+//print2l will be used in each global functions' begin and end position.
+//print3l will be used to describ the logic in global function 
+//print4l will be used in the static functions' begin&end position. but if static function is used in a loop, use printnl instead.
+//printnl will be used in loop.
 #ifdef VERBOSE_LEVEL_0
 #define print1l(format, ...) ((void)0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
+#define print4l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
@@ -73,6 +79,7 @@ later maybe we have print4l.*/
 } while(0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
+#define print4l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
@@ -84,6 +91,7 @@ later maybe we have print4l.*/
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) ((void)0)
+#define print4l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
@@ -97,6 +105,23 @@ later maybe we have print4l.*/
 #define print3l(format, ...) do {\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
+#define print4l(format, ...) ((void)0)
+#define printnl(format, ...) ((void)0)
+#endif
+
+#ifdef VERBOSE_LEVEL_4
+#define print1l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print2l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print3l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print4l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
 #define printnl(format, ...) ((void)0)
 #endif
 
@@ -108,6 +133,9 @@ later maybe we have print4l.*/
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print4l(format, ...) do {\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define printnl(format, ...) do {\

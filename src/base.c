@@ -4,7 +4,7 @@
 #include <time.h>
 void print_time(void) {
 	time_t t=time(NULL); 
-	print1l("TIME =>> \t%s", ctime(&t)); 
+	print1l("time =>> %s", ctime(&t)); 
 	fflush(stdout);
 }
 void print_label(int i) {

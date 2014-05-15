@@ -346,17 +346,6 @@ void set_2_lstate(int *lstate, struct iiNet *net, int subthisid, struct LineFile
 int main(int argc, char **argv)
 {
 	print_time();
-	prerequisite();
-	struct LineFile *dd = create_LineFile("1", 1 ,1 ,-1);
-	free_LineFile(dd);
-	struct LineFile *xx = create_LineFile(NULL, 4);
-	free_LineFile(xx);
-	struct LineFile *tt = create_LineFile("xx", 4);
-	free_LineFile(tt);
-	int *t = smalloc(1000000);
-	srealloc(t, 100000000);
-	return 0;
-
 
 	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;

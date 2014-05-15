@@ -51,8 +51,9 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*coupNum = strtol(argv[7], &p, 10);
 	}
 	else {
-		isError("wrong arg");
+		isError("%s =>> wrong arg.\n", __func__);
 	}
+	print2l("%s =>> es: %d, N: %d, seed: %d, MM0: %d, kor: %d, q: %f, coupNum: %d.\n", __func__, *es, *N, *seed, *MM0, *kor, *q, *coupNum);
 }
 
 int *robust_deletelist(struct iiNet *net, int kor) {

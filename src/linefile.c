@@ -12,6 +12,7 @@
 
 //put i/d/c/l/ccx 's address into i/d/c/l/cclist
 static void set_list_LineFile(struct LineFile *lf) {
+	print4l("%s =>> begin......\n", __func__);
 	lf->ilist[0] = &(lf->i1);
 	lf->ilist[1] = &(lf->i2);
 	lf->ilist[2] = &(lf->i3);
@@ -61,10 +62,11 @@ static void set_list_LineFile(struct LineFile *lf) {
 	lf->cclist[6] = &(lf->cc7);
 	lf->cclist[7] = &(lf->cc8);
 	lf->cclist[8] = &(lf->cc9);
-	print3l("%s =>> fill lf->xxlist with the address of lf->xx1-9.\n", __func__);
+	print4l("%s =>> ......end.\n", __func__);
 }
 //create an empty but completive LineFile.
 static struct LineFile *init_LineFile(void) {
+	print4l("%s =>> begin......\n", __func__);
 	struct LineFile *lf = smalloc(sizeof(struct LineFile));
 	lf->linesNum = 0;
 	lf->memNum = 0;
@@ -99,11 +101,12 @@ static struct LineFile *init_LineFile(void) {
 	for (i = 0; i < lf->ccNum; ++i) {
 		*(lf->cclist[i]) = NULL;
 	}
-	print3l("%s =>> init and return an empty LineFile struct.\n", __func__);
+	print4l("%s =>> ......end.\n", __func__);
 	return lf;
 }
 //alloc memory according to typelist.
 static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
+	print4l("%s =>> begin......\n", __func__);
 	int ii = 0;
 	int di = 0;
 	int ci = 0;
@@ -164,10 +167,11 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 		}
 	}
 	lf->memNum += LINES_STEP;
-	print3l("%s =>> allocate the first piece of memory, now lf->memNum: %ld; lf->linesNum: %ld.\n", __func__, lf->memNum, lf->linesNum);
+	print4l("%s =>> ......end.\n", __func__);
 }
 //increase memory, not need typelist anymore, just check whether point is NULL or not.
 static void add_memory_LineFile(struct LineFile *lf) {
+	print4l("%s =>> begin......\n", __func__);
 	int ***ilist = lf->ilist;
 	double ***dlist = lf->dlist;
 	char ***clist = lf->clist;
@@ -200,7 +204,7 @@ static void add_memory_LineFile(struct LineFile *lf) {
 		}
 	}
 	lf->memNum += LINES_STEP;
-	print3l("%s =>> allocate another piece of memory, now lf->memNum: %ld; lf->linesNum: %ld.\n", __func__, lf->memNum, lf->linesNum);
+	print4l("%s =>> ......end.\n", __func__);
 }
 static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 	char *line = buffer;
@@ -327,14 +331,14 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 static char *typetype[] = {"int", "double", "char", "long", "c-string"};
 
 struct LineFile *create_LineFile(char *filename, ...) {
-	print3l("%s =>> [begin]\n", __func__);
+	print2l("%s =>> begin......\n", __func__);
 
 	//the return lf.
 	struct LineFile *lf = init_LineFile();
 
 	if (NULL == filename) {
 		print3l("%s =>> NULL filename, return an empty linefile.\n", __func__);
-		print3l("%s =>> [end]\n", __func__);
+		print2l("%s =>> ......end.\n", __func__);
 		return lf;
 	}
 
@@ -345,6 +349,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	va_start(vl, filename);
 	int vn = 0, type = -2;
 	print3l("%s =>> detected line style: ", __func__);
+	(void)typetype; //get rid of unused warning when VERBOSE_LEVEL is smaller than 3.
 	while (1 == (type = va_arg(vl, int)) || 2 == type || 3 == type || 4 == type || 5 == type) {
 		if (vn < argMax) {
 			typelist[vn++] = type;
@@ -360,7 +365,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 	if (0 == vn || type != -1) {
 		free(typelist);
 		print3l("%s =>> not valid types, return an empty linefile.\n", __func__);
-		print3l("%s =>> [end]\n", __func__);
+		print2l("%s =>> ......end.\n", __func__);
 		return lf;
 	}
 	lf->filename = filename;
@@ -373,6 +378,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	//set lf memory with typelist.
 	init_memory_LineFile(lf, vn, typelist);
+	print3l("%s =>> allocate the first piece of memory, now lf->memNum: %ld; lf->linesNum: %ld.\n", __func__, lf->memNum, lf->linesNum);
 
 	//buffer used to read file.
 	char isok = 1;
@@ -384,6 +390,7 @@ struct LineFile *create_LineFile(char *filename, ...) {
 		set_allparts_LineFile(buffer, allparts, vn, lread);
 		while (lf->linesNum + lread > lf->memNum) {
 			add_memory_LineFile(lf);
+			print3l("%s =>> allocate another piece of memory, now lf->memNum: %ld; lf->linesNum: %ld.\n", __func__, lf->memNum, lf->linesNum);
 		}
 		set_lf_LineFile(lf, allparts, typelist, lread, vn, &isok);
 	}
@@ -395,11 +402,12 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	isok == 0 ? isError("%s =>> file \"%s\" has some non-valid lines.", __func__, filename):1;
 
-	print3l("%s =>> [end]\n", __func__);
+	print2l("%s =>> ......end.\n", __func__);
 	return lf;
 }
 
 void free_LineFile(struct LineFile *lf) {
+	print2l("%s =>> begin......\n", __func__);
 	int i;
 	long j;
 	for (i = 0; i < lf->iNum; ++i) {
@@ -428,12 +436,14 @@ void free_LineFile(struct LineFile *lf) {
 	free(lf->llist);
 	free(lf->cclist);
 	free(lf);
-	print3l("%s =>> done.\n", __func__);
+	print2l("%s =>> ......end.\n", __func__);
 }
 
 void print_LineFile(struct LineFile *lf, char *filename) {
+	print2l("%s =>> begin......\n", __func__);
 	if (NULL == lf) {
 		print3l("%s =>> lf == NULL, print nothing.\n", __func__);
+		print2l("%s =>> ......end.\n", __func__);
 		return;
 	}
 	FILE *fp = fopen(filename, "w");
@@ -475,11 +485,14 @@ void print_LineFile(struct LineFile *lf, char *filename) {
 	}
 	fclose(fp);
 	print3l("%s =>> print LineFile into \"%s\".\n", __func__, filename);
+	print2l("%s =>> ......end.\n", __func__);
 }
 
 struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2) {
+	print2l("%s =>> begin......\n", __func__);
 	if (lf1 == NULL || lf2 == NULL) {
 		print3l("%s =>> lf1 or lf2 is NULL, return NULL.\n", __func__);
+		print2l("%s =>> ......end.\n", __func__);
 		return NULL;
 	}
 
@@ -592,12 +605,15 @@ struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2) {
 
 	lf->memNum = lf->linesNum;
 	lf->filename = "add_linefile";
+	print2l("%s =>> ......end.\n", __func__);
 	return lf;
 }
 
 struct LineFile *clone_LineFile(struct LineFile *lf) {
+	print2l("%s =>> begin......\n", __func__);
 	if (lf == NULL) {
 		print3l("%s =>> source LineFile is NULL, return NULL.\n", __func__);
+		print2l("%s =>> ......end.\n", __func__);
 		return NULL;
 	}
 
@@ -663,6 +679,6 @@ struct LineFile *clone_LineFile(struct LineFile *lf) {
 
 	newlf->memNum = newlf->linesNum;
 	newlf->filename = "clone_linefile";
-	print3l("%s =>> done.\n", __func__);
+	print2l("%s =>> ......end.\n", __func__);
 	return lf;
 }
