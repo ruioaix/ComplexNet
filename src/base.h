@@ -32,10 +32,11 @@ long lmin(long a, long b);
 long lmax(long a, long b);
 /********************************************************************************************************/
 
-
 /********************************************************************************************************/
-void *smalloc(size_t size);
-void srealloc(void *p, size_t size);
+void *malloc_safe(size_t size, const char *funcname, const char *filename, const int lineNum);
+void realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum);
+#define smalloc(n) malloc_safe(n, __func__, __FILE__, __LINE__)
+#define srealloc(p, n) realloc_safe(p, n, __func__, __FILE__, __LINE__)
 /********************************************************************************************************/
 
 /********************************************************************************************************/
@@ -55,6 +56,7 @@ void prerequisite(void);
 #define print1l(format, ...) ((void)0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
+#define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_1

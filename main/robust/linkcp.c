@@ -353,6 +353,8 @@ int main(int argc, char **argv)
 	free_LineFile(xx);
 	struct LineFile *tt = create_LineFile("xx", 4);
 	free_LineFile(tt);
+	int *t = smalloc(1000000);
+	srealloc(t, 100000000);
 	return 0;
 
 

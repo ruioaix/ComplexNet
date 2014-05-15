@@ -63,14 +63,18 @@ long lmax(long a, long b) {
 /********************************************************************************************************/
 
 /********************************************************************************************************/
-void *smalloc(size_t size) {
+void *malloc_safe(size_t size, const char *funcname, const char *filename, const int lineNum) {
 	void *tmp = malloc(size);
-	assert(tmp != NULL);
+	if (tmp == NULL) {
+		isError("%s => malloc failed: \"%s\" file, %d line.\n", funcname, filename, lineNum);
+	}
 	return tmp;
 }
-void srealloc(void *p, size_t size) {
+void realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum) {
 	void *tmp = realloc(p, size);
-	assert(tmp != NULL);
+	if (tmp == NULL) {
+		isError("%s => realloc failed: \"%s\" file, %d line.\n", funcname, filename, lineNum);
+	}
 	p = tmp;
 }
 /********************************************************************************************************/

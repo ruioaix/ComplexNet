@@ -124,7 +124,8 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 		switch(type) {
 			case 1:
 				if (ii < lf->iNum) {
-					int *tmp = smalloc(LINES_STEP * sizeof(int));
+					int *tmp = malloc(LINES_STEP * sizeof(int));
+					assert(tmp != NULL);
 					*(ilist[ii++]) = tmp;
 				}
 				else {
@@ -133,7 +134,8 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 2:
 				if (di < lf->dNum) {
-					double *tmp = smalloc(LINES_STEP * sizeof(double));
+					double *tmp = malloc(LINES_STEP * sizeof(double));
+					assert(tmp != NULL);
 					*(dlist[di++]) = tmp;
 				}
 				else {
@@ -142,7 +144,8 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 3:
 				if (ci < lf->cNum) {
-					char *tmp = smalloc(LINES_STEP * sizeof(char));
+					char *tmp = malloc(LINES_STEP * sizeof(char));
+					assert(tmp != NULL);
 					*(clist[ci++]) = tmp;
 				}
 				else {
@@ -151,7 +154,8 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 4:
 				if (li < lf->lNum) {
-					long *tmp = smalloc(LINES_STEP * sizeof(long));
+					long *tmp = malloc(LINES_STEP * sizeof(long));
+					assert(tmp != NULL);
 					*(llist[li++]) = tmp;
 				}
 				else {
@@ -160,7 +164,8 @@ static void init_memory_LineFile(struct LineFile *lf, int vn, int *typelist) {
 				break;
 			case 5:
 				if (cci < lf->ccNum) {
-					char **tmp = smalloc(LINES_STEP * sizeof(char *));
+					char **tmp = malloc(LINES_STEP * sizeof(char *));
+					assert(tmp != NULL);
 					*(cclist[cci++]) = tmp;
 				}
 				else {
@@ -226,7 +231,7 @@ static void set_buffer_LineFile(FILE *fp, char *buffer, int *lread) {
 		line += LINE_LENGTH;
 		++(*lread);
 	}
-	print3l("%s =>> read %d lines into buffer.\n", __func__, *lread);
+	printnl("%s =>> read %d lines into buffer.\n", __func__, *lread);
 }
 static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lread) {
 	int i,j;
@@ -239,7 +244,7 @@ static void set_allparts_LineFile(char *buffer, char **allparts, int vn, int lre
 		}
 		line += LINE_LENGTH;
 	}
-	print3l("%s =>> distribute buffers into char *array, size: %d.\n", __func__, lread*vn);
+	printnl("%s =>> distribute buffers into char *array, size: %d.\n", __func__, lread*vn);
 }
 static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist, int lread, int vn, char *isok) {
 	int ***ilist = lf->ilist;
@@ -266,7 +271,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						ip[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							print2l("%s =>> %s file, line: %ld, i%d part.\n", __func__, lf->filename, j+lf->linesNum, IL);
+							print2l("%s =>> wrong: \"%s\" file, line: %ld, i%d part.\n", __func__, lf->filename, j+lf->linesNum, IL);
 							*isok = 0;
 						}
 					}
@@ -281,7 +286,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						dp[j+lf->linesNum] = strtod(p[j], &pend);
 						if (pend[0]!='\0') {
-							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							print2l("%s =>> wrong: \"%s\" file, line: %ld, d%d part.\n", __func__, lf->filename, j+lf->linesNum, DL);
 							*isok = 0;
 						}
 					}
@@ -296,7 +301,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						cp[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							print2l("%s =>> wrong: \"%s\" file, line: %ld, c%d part.\n", __func__, lf->filename, j+lf->linesNum, CL);
 							*isok = 0;
 						}
 					}
@@ -311,7 +316,7 @@ static void set_lf_LineFile(struct LineFile *lf, char **allparts, int *typelist,
 					if (p[j] != NULL) {
 						lp[j+lf->linesNum] = strtol(p[j], &pend, 10);
 						if (pend[0]!='\0') {
-							fprintf(stderr, "create LineFile =>> %s file, line: %ld, d%d part.\n", lf->filename, j+lf->linesNum, IL);
+							print2l("%s =>> wrong: \"%s\" file, line: %ld, l%d part.\n", __func__, lf->filename, j+lf->linesNum, LL);
 							*isok = 0;
 						}
 					}
@@ -356,7 +361,8 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	//get typelist.
 	int argMax = lf->iNum + lf->dNum + lf->cNum + lf->lNum + lf->ccNum;
-	int *typelist = smalloc(argMax*sizeof(int));
+	int *typelist = malloc(argMax*sizeof(int));
+	assert(typelist != NULL);
 	va_list vl;
 	va_start(vl, filename);
 	int vn = 0, type = -2;
@@ -392,8 +398,10 @@ struct LineFile *create_LineFile(char *filename, ...) {
 
 	//buffer used to read file.
 	char isok = 1;
-	char *buffer = smalloc(LINE_LENGTH * LINES_READIN * sizeof(char));
-	char **allparts = smalloc(vn * LINES_READIN * sizeof(char *));
+	char *buffer = malloc(LINE_LENGTH * LINES_READIN * sizeof(char));
+	assert(buffer);
+	char **allparts = malloc(vn * LINES_READIN * sizeof(char *));
+	assert(allparts);
 	int lread = LINES_READIN;
 	while (lread == LINES_READIN) {
 		set_buffer_LineFile(fp, buffer, &lread);
