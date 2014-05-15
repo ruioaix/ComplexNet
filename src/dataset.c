@@ -23,7 +23,7 @@ static char *DIRECTNETC[2] = {"DIRECT", "NON_DIRECT"};
  * 	non_cycle,	non_direct: L*(L-1)*2
  */
 struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
-	if (L<2) isError("lattice2d_DS's L too small");
+	if (L<2) isError("%s =>> L too small.\n", __func__);
 
 	struct LineFile *file = create_LineFile(NULL);
 	long linesNum = (L-1)*L*2;
@@ -33,7 +33,7 @@ struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
 	if (dd == DIRECT) {
 		linesNum *= 2;
 	}
-	printf("Generate 2D Lattice => %s, %s, L: %d, linesNum: %ld\n", CICLENETC[cc], DIRECTNETC[dd], L, linesNum);fflush(stdout);
+	print3l("%s =>> Generate 2D Lattice, %s, %s, L: %d, linesNum: %ld\n", __func__, CICLENETC[cc], DIRECTNETC[dd], L, linesNum);
 
 	int *i1 = malloc(linesNum * sizeof(int));
 	int *i2 = malloc(linesNum * sizeof(int));
@@ -125,7 +125,7 @@ struct LineFile * lattice2d_DS(int L, enum CICLENET cc, enum DIRECTNET dd) {
  * 
  */
 struct LineFile * line1d_DS(int N, enum CICLENET cc, enum DIRECTNET dd) {
-	if (N<2) isError("line1d_DS's N too small");
+	if (N<2) isError("%s =>> N too small.\n", __func__);
 	
 	struct LineFile *file = create_LineFile(NULL);
 
@@ -240,7 +240,7 @@ struct LineFile *ER_DS(int N, int seed) {
 	lf->linesNum = linesNum;
 	lf->memNum = memNum;
 	lf->filename = "ER random network";
-	printf("Generate ER random network => N: %d, linesNum: %ld, memNum: %ld\n", N, linesNum, memNum);fflush(stdout);
+	print3l("%s =>> Generate ER random network, N: %d, linesNum: %ld, memNum: %ld\n", __func__, N, linesNum, memNum);
 	return lf;
 }
 
@@ -322,6 +322,6 @@ struct LineFile *SF_DS(int N, int seed, int MM0) {
 	lf->linesNum = linesNum;
 	lf->memNum = memNum;
 	lf->filename = "ER random network";
-	printf("Generate SF network => N: %d, linesNum: %ld, memNum: %ld\n", N, linesNum, memNum);fflush(stdout);
+	print3l("%s =>> Generate SF network, N: %d, linesNum: %ld, memNum: %ld.\n", __func__, N, linesNum, memNum);fflush(stdout);
 	return lf;
 }
