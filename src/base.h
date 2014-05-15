@@ -81,7 +81,6 @@ later maybe we have print4l.*/
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
-		printf("   ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) ((void)0)
@@ -93,11 +92,9 @@ later maybe we have print4l.*/
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
-		printf("   ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
-		printf("      ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define printnl(format, ...) ((void)0)
@@ -108,15 +105,13 @@ later maybe we have print4l.*/
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
-		printf("   ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
-		printf("      ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define printnl(format, ...) do {\
-		printf("\t\t");\
+		printf("\t");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #endif

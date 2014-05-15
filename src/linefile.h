@@ -84,6 +84,7 @@ void print_LineFile(struct LineFile *lf, char *filename);
 
 //generate a new LineFile, simply join two LineFile.
 struct LineFile *add_LineFile(struct LineFile *lf1, struct LineFile *lf2);
+struct LineFile *clone_LineFile(struct LineFile *lf);
 
 
 #endif

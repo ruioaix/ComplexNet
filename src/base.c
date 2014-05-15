@@ -35,7 +35,7 @@ void isError(char *format, ...) {
 	va_start(args, format);
 	fprintf(stderr, "[ERROR]:\n\t");
 	vfprintf(stderr, format, args);
-	fprintf(stderr, "\n");
+	fprintf(stderr, "\n\n");
 	va_end(args);
 	exit(EXIT_FAILURE);
 }
