@@ -163,8 +163,8 @@ int main(int argc, char **argv)
 	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;
 	double q;
-	int coupNum;
-	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q, &coupNum);
+	int coupNum, algorithm_type, pairsNum;
+	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q, &coupNum, &algorithm_type, &pairsNum);
 	print1l("%s =>> nodes Num: %d, random seed: %d, MM0: %d, q: %f, coupNum: %d.\n", __func__, N, seed, MM0, q, coupNum);
 	/********************************************************************************************************/
 
@@ -174,8 +174,8 @@ int main(int argc, char **argv)
 	print1l("%s =>> network type: %s\n", __func__, ES_S[es-1]);
 	print1l("%s =>> create network, Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", __func__, net->maxId, net->minId, net->idNum, net->edgesNum, net->countMax, net->countMin);
 
-	struct CoupLink *cplk = robust_get_cplk(lf, q);
-	print1l("%s =>> create CPLKs, q: %f, cplkNum: %ld, netlkNum: %ld, cplkNodeNum: %d, netnodeNum: %d, gidMax: %d, gidCountMax: %d, gidCountMin: %d.\n", __func__, q, cplk->lid_i12->linesNum, net->edgesNum, cplk->i12_lid->idNum, net->idNum, cplk->gidMax, cplk->gidCountMax, cplk->gidCountMin);
+	struct CoupLink *cplk = robust_get_cplk(lf, q, algorithm_type, pairsNum);
+	print1l("%s =>> create CPLKs, type: %d, pairsNum: %d, q: %f, cplkNum: %ld, netlkNum: %ld, cplkNodeNum: %d, netnodeNum: %d, gidMax: %d, gidCountMax: %d, gidCountMin: %d.\n", __func__, algorithm_type, pairsNum, q, cplk->lid_i12->linesNum, net->edgesNum, cplk->i12_lid->idNum, net->idNum, cplk->gidMax, cplk->gidCountMax, cplk->gidCountMin);
 	/********************************************************************************************************/
 	
 	/********************************************************************************************************/

@@ -25,7 +25,7 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 	return lf;
 }
 
-void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *coupNum) {
+void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *coupNum, int *algorithm_type, int *pairsNum) {
 	print2l("%s =>> begin......\n", __func__);
 	if (argc == 1) {
 		*es = 2;
@@ -35,6 +35,8 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*kor = 2;
 		*q = 0.5;
 		*coupNum = 3;
+		*algorithm_type = 2;
+		*pairsNum = 3;
 	}
 	else if (argc == 2) {
 		char *p;
@@ -45,8 +47,10 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*kor = 2;
 		*q = strtod(argv[1], &p);
 		*coupNum = 3;
+		*algorithm_type = 1;
+		*pairsNum = 3;
 	}
-	else if (argc == 8) {
+	else if (argc == 10) {
 		char *p;
 		*es = strtol(argv[1], &p, 10);
 		*N = strtol(argv[2], &p, 10);
@@ -55,6 +59,8 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*kor = strtol(argv[5], &p, 10);
 		*q = strtod(argv[6], &p);
 		*coupNum = strtol(argv[7], &p, 10);
+		*algorithm_type =  strtol(argv[8], &p, 10);
+		*pairsNum =  strtol(argv[9], &p, 10);
 	}
 	else {
 		isError("%s =>> wrong arg.\n", __func__);
@@ -96,7 +102,7 @@ int *robust_create_deletelist(struct iiNet *net, int kor) {
 	return id;
 }
 
-static int *robust_set_each_link_group(struct LineFile *lf, double q, int **gidCounts) {
+static int *robust_set_each_link_group_algorithm01(struct LineFile *lf, double q, int **gidCounts) {
 	print4l("%s =>> begin......\n", __func__);
 	if (q<0 || q>1) isError("%s =>> invalid possiblity q value.\n", __func__);
 	
@@ -163,6 +169,45 @@ static int *robust_set_each_link_group(struct LineFile *lf, double q, int **gidC
 	return lid_gid;
 }
 
+static int *robust_set_each_link_group_algorithm02(struct LineFile *lf, double q, int **gidCounts, int pairsNum) {
+	print4l("%s =>> begin......\n", __func__);
+	if (q<0 || q>1 || pairsNum < 2) isError("%s =>> invalid possiblity q value or pairsNum.\n", __func__);
+	
+	long cplkNum = (long)(q*lf->linesNum);
+	print5l("%s =>> number of coupling links will be %ld.\n", __func__, cplkNum);
+	
+	int * lid_gid = smalloc(lf->linesNum * sizeof(int));
+	int *gidCount = scalloc(cplkNum/2, sizeof(int));
+	int gid = 0;
+	long i;
+	int *clean= smalloc(lf->linesNum * sizeof(int));
+	for (i = 0; i < lf->linesNum; ++i) {
+		lid_gid[i] = -1;
+		clean[i] = i;
+	}
+	long cleanNum = lf->linesNum;
+
+	long cpNum = 0;
+	while (cpNum < cplkNum - pairsNum) {
+		int pn = 0;
+		while (pn < pairsNum) {
+			int index = get_i31_MTPR()%cleanNum;
+			int lid = clean[index];
+			lid_gid[lid] = gid;
+			clean[index] = clean[--cleanNum];
+			++cpNum;
+			++pn;
+		}
+		gidCount[gid] = pairsNum;
+		++gid;
+	}
+		
+	free(clean);
+	*gidCounts = gidCount;
+	print4l("%s =>> ......end.\n", __func__);
+	return lid_gid;
+}
+
 static void robust_set_lidi12_lidgid_gidMax_gidlids(int *gidCount, struct LineFile *lid_i12, int *lid_gid, int *gidMaxs, int ***gid_lidss, int *gidCountMaxs, int *gidCountMins) {
 	long rlNum = 0;
 	long i;
@@ -202,11 +247,21 @@ static void robust_set_lidi12_lidgid_gidMax_gidlids(int *gidCount, struct LineFi
 	*gidCountMins = gidCountMin;
 }
 
+static int *robust_set_each_link_group(struct LineFile *lid_i12, double q, int **gidCount, int algorithm_type, int pairsNum) {
+	if (algorithm_type == 1) {
+		return robust_set_each_link_group_algorithm01(lid_i12, q, gidCount);
+	}	
+	if (algorithm_type == 2) {
+		return robust_set_each_link_group_algorithm02(lid_i12, q, gidCount, pairsNum);
+	}
+	return NULL;
+}
 
-struct CoupLink * robust_get_cplk(struct LineFile *lid_i12, double q) {
+
+struct CoupLink * robust_get_cplk(struct LineFile *lid_i12, double q, int algorithm_type, int pairsNum) {
 	print2l("%s =>> begin......\n", __func__);
 	int *gidCount;
-	int *lid_gid = robust_set_each_link_group(lid_i12, q, &gidCount);
+	int *lid_gid = robust_set_each_link_group(lid_i12, q, &gidCount, algorithm_type, pairsNum);
 	int gidMax, **gid_lids, gidCountMax, gidCountMin;
 	robust_set_lidi12_lidgid_gidMax_gidlids(gidCount, lid_i12, lid_gid, &gidMax, &gid_lids, &gidCountMax, &gidCountMin);
 
