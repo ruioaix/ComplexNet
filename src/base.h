@@ -50,8 +50,10 @@ long lmax(long a, long b);
 
 /*********use everywhere.********************************************************************************/
 void *malloc_safe(size_t size, const char *funcname, const char *filename, const int lineNum);
+void *calloc_safe(size_t num, size_t size, const char *funcname, const char *filename, const int lineNum);
 void realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum);
 #define smalloc(n) malloc_safe(n, __func__, __FILE__, __LINE__)
+#define scalloc(n, s) calloc_safe(n, s, __func__, __FILE__, __LINE__)
 #define srealloc(p, n) realloc_safe(p, n, __func__, __FILE__, __LINE__)
 /********************************************************************************************************/
 
@@ -64,62 +66,102 @@ void prerequisite(void);
 //print2l will be used in each global functions' begin and end position.
 //print3l will be used to describ the logic in global function 
 //print4l will be used in the static functions' begin&end position. but if static function is used in a loop, use printnl instead.
+//print5l will be used in describe the logic in static function
 //printnl will be used in loop.
 #ifdef VERBOSE_LEVEL_0
 #define print1l(format, ...) ((void)0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
 #define print4l(format, ...) ((void)0)
+#define print5l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_1
 #define print1l(format, ...) do {\
+		printf("[level 1] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) ((void)0)
 #define print3l(format, ...) ((void)0)
 #define print4l(format, ...) ((void)0)
+#define print5l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_2
 #define print1l(format, ...) do {\
+		printf("[level 1] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("[level 2] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) ((void)0)
 #define print4l(format, ...) ((void)0)
+#define print5l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_3
 #define print1l(format, ...) do {\
+		printf("[level 1] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("[level 2] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
+		printf("[level 3] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print4l(format, ...) ((void)0)
+#define print5l(format, ...) ((void)0)
 #define printnl(format, ...) ((void)0)
 #endif
 
 #ifdef VERBOSE_LEVEL_4
 #define print1l(format, ...) do {\
+		printf("[level 1] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("[level 2] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
+		printf("[level 3] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print4l(format, ...) do {\
+		printf("[level 4] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print5l(format, ...) ((void)0)
+#define printnl(format, ...) ((void)0)
+#endif
+
+#ifdef VERBOSE_LEVEL_5
+#define print1l(format, ...) do {\
+		printf("[level 1] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print2l(format, ...) do {\
+		printf("[level 2] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print3l(format, ...) do {\
+		printf("[level 3] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print4l(format, ...) do {\
+		printf("[level 4] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print5l(format, ...) do {\
+		printf("[level 4] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define printnl(format, ...) ((void)0)
@@ -127,18 +169,27 @@ void prerequisite(void);
 
 #ifdef VERBOSE_LEVEL_N
 #define print1l(format, ...) do {\
+		printf("[level 1] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print2l(format, ...) do {\
+		printf("[level 2] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print3l(format, ...) do {\
+		printf("[level 3] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define print4l(format, ...) do {\
+		printf("[level 4] ");\
+		printf(format, ##__VA_ARGS__);\
+} while(0)
+#define print5l(format, ...) do {\
+		printf("[level 4] ");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)
 #define printnl(format, ...) do {\
+		printf("[level n] ");\
 		printf("\t");\
 		printf(format, ##__VA_ARGS__);\
 } while(0)

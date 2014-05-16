@@ -70,6 +70,13 @@ void *malloc_safe(size_t size, const char *funcname, const char *filename, const
 	}
 	return tmp;
 }
+void *calloc_safe(size_t num, size_t size, const char *funcname, const char *filename, const int lineNum) {
+	void *tmp = calloc(num, size);
+	if (tmp == NULL) {
+		isError("%s => calloc failed: \"%s\" file, %d line.\n", funcname, filename, lineNum);
+	}
+	return tmp;
+}
 void realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum) {
 	void *tmp = realloc(p, size);
 	if (tmp == NULL) {

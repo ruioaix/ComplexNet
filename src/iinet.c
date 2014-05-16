@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 void free_iiNet(struct iiNet *net) {
+	print2l("%s =>> begin......\n", __func__);
 	int i=0;
 	for(i=0; i<net->maxId+1; ++i) {
 		if (net->count[i]>0) {
@@ -18,13 +19,13 @@ void free_iiNet(struct iiNet *net) {
 	free(net->count);
 	free(net->edges);
 	free(net);
+	print2l("%s =>> ......end.\n", __func__);
 }
 
 struct iiNet *create_iiNet(const struct LineFile * const lf) {
-	//int maxId=file->i1Max>file->i2Max?file->i1Max:file->i2Max;
-	//int minId=file->i1Min<file->i2Min?file->i1Min:file->i2Min;
-	if (lf->i1 == NULL || lf->i2 == NULL) {
-		isError("create_iiNet");
+	print2l("%s =>> begin......\n", __func__);
+	if (lf->i1 == NULL || lf->i2 == NULL || lf->linesNum == 0) {
+		isError("%s =>> i1 or/and i2 is NULL, or/and linesNum is 0.\n", __func__);
 	}
 	int *i1 = lf->i1;
 	int *i2 = lf->i2;
@@ -38,6 +39,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 		minId = minId < i1[i] ? minId : i1[i];
 		minId = minId < i2[i] ? minId : i2[i];
 	}
+	print3l("%s =>> get maxId: %d, minId: %d\n", __func__, maxId, minId);
 
 	long *count=calloc(maxId+1, sizeof(long));
 	assert(count!=NULL);
@@ -46,6 +48,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 		++count[i1[i]];
 		++count[i2[i]];
 	}
+	print3l("%s =>> get count.\n", __func__);
 
 	int j;
 	int idNum=0;
@@ -54,6 +57,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 			++idNum;
 		}
 	}
+	print3l("%s =>> get idNum: %d.\n", __func__, idNum);
 
 	int **edges=malloc((maxId+1)*sizeof(void *));
 	assert(edges!=NULL);
@@ -70,6 +74,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 			edges[i] = NULL;
 		}
 	}
+	print3l("%s =>> get countMax: %ld, countMin: %ld; and alloc memory for edges.\n", __func__, countMax, countMin);
 
 	long *temp_count=calloc(maxId+1, sizeof(long));
 	assert(temp_count!=NULL);
@@ -81,6 +86,7 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 		edges[ii2][temp_count[ii2]++]=ii1;
 	}
 	free(temp_count);
+	print3l("%s =>> fill in edges\n", __func__);
 
 	struct iiNet *net = malloc(sizeof(struct iiNet));
 	assert(net != NULL);
@@ -92,11 +98,13 @@ struct iiNet *create_iiNet(const struct LineFile * const lf) {
 	net->countMin=countMin;
 	net->count=count;
 	net->edges=edges;
-	printf("create iinet==>> Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", maxId, minId, idNum, linesNum, countMax, countMin); fflush(stdout);
+	print3l("%s =>> return iiNet.\n", __func__);
+	print2l("%s =>> ......end.\n", __func__);
 	return net;
 }
 
 void print_iiNet(struct iiNet *net, char *filename) {
+	print2l("%s =>> begin......\n", __func__);
 	FILE *fp = fopen(filename, "w");
 	fileError(fp, "print_iiNet");
 	int i;
@@ -111,12 +119,16 @@ void print_iiNet(struct iiNet *net, char *filename) {
 		}
 	}
 	fclose(fp);
-	printf("print_iiNet %s done. %ld lines generated.\n", filename, net->edgesNum);fflush(stdout);
+	print2l("%s =>> ......end.\n", __func__);
 }
 
 int delete_node_iiNet(struct iiNet *net, int nid) {
+	print2l("%s =>> begin......\n", __func__);
 	long i, j;
-	if (nid < 0 || nid > net->maxId || net->count[nid] == 0) return 0;
+	if (nid < 0 || nid > net->maxId || net->count[nid] == 0) {
+		print2l("%s =>> ......end.\n", __func__);
+		return 0;
+	}
 	net->edgesNum -= net->count[nid];
 	for (i = 0; i < net->count[nid]; ++i) {
 		int neigh = net->edges[nid][i];
@@ -141,11 +153,16 @@ int delete_node_iiNet(struct iiNet *net, int nid) {
 	//printf("delete node %d, node %d count is %ld, now the edgesNum is %ld\n", nid, nid, net->count[nid], net->edgesNum);
 	net->count[nid] = 0;
 	net->idNum--;
+	print2l("%s =>> ......end.\n", __func__);
 	return 1;
 }
 
 int delete_link_iiNet(struct iiNet *net, int x, int y) {
-	if (net->count[x] == 0 || net->count[y] == 0) return 0;
+	print2l("%s =>> begin......\n", __func__);
+	if (x > net->maxId || y > net->maxId || net->count[x] == 0 || net->count[y] == 0) {
+		print2l("%s =>> ......end.\n", __func__);
+		return 0;
+	}
 	long i;
 	int find_x_in_y = 0, find_y_in_x = 0;
 	for (i = 0; i < net->count[x]; ++i) {
@@ -174,58 +191,33 @@ int delete_link_iiNet(struct iiNet *net, int x, int y) {
 	}
 	int find = find_x_in_y + find_y_in_x;
 	if (find == 0) {
+		print2l("%s =>> ......end.\n", __func__);
 		return 0;
 	}
 	else if (find == 2) {
 		net->edgesNum--;
+		print2l("%s =>> ......end.\n", __func__);
 		return 1;
 	}
-	isError("delete_node_iiNet net wrong");
+	isError("%s =>> net has something wrong.\n", __func__);
 	//can not get here.
 	return -1;
 }
 
 long *degree_distribution_iiNet(struct iiNet *net) {
+	print2l("%s =>> begin......\n", __func__);
 	long *cd = calloc(net->countMax + 1, sizeof(long));
 	int i;
 	for (i = 0; i < net->maxId + 1; ++i) {
 		cd[net->count[i]]++;
 	}
+	print2l("%s =>> ......end.\n", __func__);
 	return cd;
 }
 
-void verify_duplicatePairs_iiNet(struct iiNet *net) {
-	long i;
-	int j,k;
-	int *place = malloc((net->maxId+1)*sizeof(int));
-	for (k=0; k<net->maxId + 1; ++k) {
-		place[k] = -1;
-	}
-	long dpairsNum=0;
-	for (j=0; j<net->maxId+1; ++j) {
-		for (i=0; i < net->count[j]; ++i) {
-			int neigh = net->edges[j][i];
-			if (place[neigh] == -1) {
-				place[neigh] = 1;
-			}
-			else {
-				printf("duplicate pairs %ld:\t%d\t%d\n", ++dpairsNum, j, neigh);
-			}
-		}
-		for (i = 0; i < net->count[j]; ++i) {
-			int neigh = net->edges[j][i];
-			place[neigh] = -1;
-		}
-	}
-	free(place);
-	if (!dpairsNum) {
-		printf("verify duplicatePairs iiNet =>> no duplicate pairs.\n");
-	}
-	fflush(stdout);
-}
-
 static int extract_backbone_iiNet(int nid, struct iiNet *net, char *fg, int *left, int *right) {
-	if (fg[nid] == 1) isError("extract_backbone_iiNet");
+	print4l("%s =>> begin......\n", __func__);
+	if (fg[nid] == 1) isError("%s =>> the %d node is in another backbone.\n", __func__, nid);
 	int lN = 0, rN = 0;
 	left[lN++] = nid;
 	fg[nid] = 1;
@@ -250,11 +242,13 @@ static int extract_backbone_iiNet(int nid, struct iiNet *net, char *fg, int *lef
 		right = tmp;
 		lN = rN;
 	}
+	print4l("%s =>> ......end.\n", __func__);
 	return conn;
 }
 
 //if net->count[nid] == 0, then I presume nid node is not existed.
 int robust_iiNet(struct iiNet *net, int *robust) {
+	print2l("%s =>> begin......\n", __func__);
 	int N = net->idNum;
 	int maxru = 0;
 	int already = 0;
@@ -281,10 +275,44 @@ int robust_iiNet(struct iiNet *net, int *robust) {
 	free(left);
 	free(right);
 	*robust = maxru;
+	print2l("%s =>> ......end.\n", __func__);
 	return maxi;
 }
 
+void verify_duplicatePairs_iiNet(struct iiNet *net) {
+	print2l("%s =>> begin......\n", __func__);
+	long i;
+	int j,k;
+	int *place = malloc((net->maxId+1)*sizeof(int));
+	for (k=0; k<net->maxId + 1; ++k) {
+		place[k] = -1;
+	}
+	long dpairsNum=0;
+	for (j=0; j<net->maxId+1; ++j) {
+		for (i=0; i < net->count[j]; ++i) {
+			int neigh = net->edges[j][i];
+			if (place[neigh] == -1) {
+				place[neigh] = 1;
+			}
+			else {
+				print1l("%s =>> duplicate pairs %ld:\t%d\t%d\n", __func__, ++dpairsNum, j, neigh);
+			}
+		}
+		for (i = 0; i < net->count[j]; ++i) {
+			int neigh = net->edges[j][i];
+			place[neigh] = -1;
+		}
+	}
+	free(place);
+	if (dpairsNum) {
+		isError("%s =>> net has some duplicate pairs.\n", __func__);
+	}
+	print2l("%s =>> ......end.\n", __func__);
+	fflush(stdout);
+}
+
 void verify_fullyConnected_iiNet(struct iiNet *net) {
+	print2l("%s =>> begin......\n", __func__);
 	char *fg = calloc(net->maxId + 1, sizeof(char));
 	int *left = malloc((net->maxId + 1) * sizeof(int));
 	int *right = malloc((net->maxId + 1) * sizeof(int));
@@ -297,10 +325,7 @@ void verify_fullyConnected_iiNet(struct iiNet *net) {
 	free(left);
 	free(right);
 	if (conn != net->idNum) {
-		printf("verily fullyConnected iinet =>> not connectedness.\n");
+		isError("%s =>> not connectedness.\n", __func__);
 	}
-	else {
-		printf("verily fullyConnected iinet =>> connectedness.\n");
-	}
-	fflush(stdout);
+	print2l("%s =>> ......end.\n", __func__);
 }

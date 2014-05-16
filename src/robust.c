@@ -3,10 +3,14 @@
 #include "dataset.h"
 #include "sort.h"
 #include "robust.h"
+#include "i3net.h"
+
 #include <stdlib.h>
+#include <limits.h>
 #include <string.h>
 
 struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
+	print2l("%s =>> begin......\n", __func__);
 	struct LineFile *lf;
 	if (es == 1) {
 		lf = ER_DS(N, seed);
@@ -15,12 +19,14 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 		lf = SF_DS(N, seed, MM0);
 	}
 	else {
-		isError("ER or SF");
+		isError("%s =>> wrong network type\n", __func__);
 	}
+	print2l("%s =>> ......end.\n", __func__);
 	return lf;
 }
 
 void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *coupNum) {
+	print2l("%s =>> begin......\n", __func__);
 	if (argc == 1) {
 		*es = 2;
 		*N = 10000;
@@ -53,10 +59,11 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 	else {
 		isError("%s =>> wrong arg.\n", __func__);
 	}
-	print2l("%s =>> es: %d, N: %d, seed: %d, MM0: %d, kor: %d, q: %f, coupNum: %d.\n", __func__, *es, *N, *seed, *MM0, *kor, *q, *coupNum);
+	print2l("%s =>> ......end.\n", __func__);
 }
 
-int *robust_deletelist(struct iiNet *net, int kor) {
+int *robust_create_deletelist(struct iiNet *net, int kor) {
+	print2l("%s =>> begin......\n", __func__);
 	int *id, i;
 	if (kor == 1) { //k max delete first.
 		long *count = calloc(net->maxId + 1, sizeof(long));
@@ -83,8 +90,150 @@ int *robust_deletelist(struct iiNet *net, int kor) {
 		}
 	}
 	else {
-		isError("robust_deletelist");
+		isError("%s =>> wrong deletelist type.\n", __func__);
 	}
+	print2l("%s =>> ......end.\n", __func__);
 	return id;
+}
+
+static int *robust_set_each_link_group(struct LineFile *lf, double q, int **gidCounts) {
+	print4l("%s =>> begin......\n", __func__);
+	if (q<0 || q>1) isError("%s =>> invalid possiblity q value.\n", __func__);
+	
+	long cplkNum = (long)(q*lf->linesNum);
+	print5l("%s =>> number of coupling links will be %ld.\n", __func__, cplkNum);
+	
+	int * lid_gid = smalloc(lf->linesNum * sizeof(int));
+	int *gidCount = scalloc(cplkNum/2, sizeof(int));
+	int gid = 0;
+	long i;
+	for (i = 0; i < lf->linesNum; ++i) {
+		lid_gid[i] = -1;
+	}
+	long cpNum = 0;
+	while (cpNum < cplkNum) {
+		int l1 = get_i31_MTPR()%(lf->linesNum);
+		int l2 = get_i31_MTPR()%(lf->linesNum);
+		if (l1 == l2) continue;
+		if (lid_gid[l1] == -1 && lid_gid[l2] == -1) {
+			lid_gid[l1] = lid_gid[l2] = gid;
+			gidCount[gid] += 2;
+			cpNum += 2;
+			++gid;
+		}
+		else if (lid_gid[l1] == -1 && lid_gid[l2] != -1) {
+			lid_gid[l1] = lid_gid[l2];
+			++gidCount[lid_gid[l2]];
+			++cpNum;
+		}
+		else if (lid_gid[l1] != -1 && lid_gid[l2] == -1) {
+			lid_gid[l2] = lid_gid[l1];
+			++gidCount[lid_gid[l1]];
+			++cpNum;
+		}
+		else if (lid_gid[l1] == lid_gid[l2]) {
+			continue;
+		}
+		else {
+			int sgid, bgid;
+			if (gidCount[lid_gid[l1]] > gidCount[lid_gid[l2]]) {
+				sgid = lid_gid[l2];
+				bgid = lid_gid[l1];
+			}
+			else {
+				sgid = lid_gid[l1];
+				bgid = lid_gid[l2];
+			}
+			for (i = 0; i < lf->linesNum; ++i) {
+				if (lid_gid[i] == sgid) {
+					lid_gid[i] = bgid;
+					--gidCount[sgid];
+					++gidCount[bgid];
+					if (gidCount[sgid] == 0) {
+						break;
+					}
+				}
+			}
+			assert(gidCount[sgid] == 0);
+		}
+	}
+		
+	*gidCounts = gidCount;
+	print4l("%s =>> ......end.\n", __func__);
+	return lid_gid;
+}
+
+static void robust_set_lidi12_lidgid_gidMax_gidlids(int *gidCount, struct LineFile *lid_i12, int *lid_gid, int *gidMaxs, int ***gid_lidss, int *gidCountMaxs, int *gidCountMins) {
+	long rlNum = 0;
+	long i;
+	int gidMax = -1;
+	for (i = 0; i < lid_i12->linesNum; ++i) {
+		if (lid_gid[i] == -1) continue;
+		gidMax = imax(gidMax, lid_gid[i]);
+		lid_i12->i1[rlNum] = lid_i12->i1[i];
+		lid_i12->i2[rlNum] = lid_i12->i2[i];
+		lid_gid[rlNum] = lid_gid[i];
+		++rlNum;
+	}
+	lid_i12->linesNum = rlNum;
+	//for (i = 0; i < rlNum; ++i) {
+	//	//printf("i,lid_gid[i]: %d\t%d\n", i, lid_gid[i]);
+	//}
+	int gidCountMax = -1, gidCountMin = INT_MAX;
+	int **gid_lids = smalloc((gidMax + 1)*sizeof(int *));
+	for (i = 0; i < gidMax + 1; ++i) {
+		gidCountMax = imax(gidCountMax, gidCount[i]);
+		gidCountMin = imin(gidCountMin, gidCount[i]);
+		gid_lids[i] = smalloc(gidCount[i]*sizeof(int));
+	}
+	int *tmpCount = scalloc(gidMax + 1, sizeof(int));
+	int *i3 = smalloc(rlNum * sizeof(int));
+	for (i = 0; i < rlNum; ++i) {
+		int gid = lid_gid[i];
+		gid_lids[gid][(tmpCount[gid])++] = i;
+		i3[i] = i;
+	}
+	lid_i12->i3 = i3;
+	lid_i12->filename = "couplinglinks";
+	free(tmpCount);
+	*gid_lidss = gid_lids;	
+	*gidMaxs = gidMax;
+	*gidCountMaxs = gidCountMax;
+	*gidCountMins = gidCountMin;
+}
+
+
+struct CoupLink * robust_get_cplk(struct LineFile *lid_i12, double q) {
+	print2l("%s =>> begin......\n", __func__);
+	int *gidCount;
+	int *lid_gid = robust_set_each_link_group(lid_i12, q, &gidCount);
+	int gidMax, **gid_lids, gidCountMax, gidCountMin;
+	robust_set_lidi12_lidgid_gidMax_gidlids(gidCount, lid_i12, lid_gid, &gidMax, &gid_lids, &gidCountMax, &gidCountMin);
+
+	struct i3Net *i12_lid = create_i3Net(lid_i12);
+	print3l("%s =>> Max: %d, Min: %d, idNum: %d, edgesNum: %ld, countMax: %ld, countMin: %ld\n", __func__, i12_lid->maxId, i12_lid->minId, i12_lid->idNum, i12_lid->edgesNum, i12_lid->countMax, i12_lid->countMin);
+	struct CoupLink *cplk = smalloc(sizeof(struct CoupLink));
+	cplk->i12_lid = i12_lid;
+	cplk->lid_i12 = lid_i12;
+	cplk->lid_gid = lid_gid;
+	cplk->gidMax = gidMax;
+	cplk->gidCountMax = gidCountMax;
+	cplk->gidCountMin = gidCountMin;
+	cplk->gidCount = gidCount;
+	cplk->gid_lids = gid_lids;
+	print2l("%s =>> ......end.\n", __func__);
+	return cplk;
+}
+
+void free_CPLK(struct CoupLink *cplk) {
+	free_i3Net(cplk->i12_lid);
+	free(cplk->lid_gid);
+	free(cplk->gidCount);
+	int i;
+	for (i = 0; i < cplk->gidMax + 1; ++i) {
+		free(cplk->gid_lids[i]);
+	}
+	free(cplk->gid_lids);
+	free(cplk);
 }
 
