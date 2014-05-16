@@ -163,8 +163,8 @@ int main(int argc, char **argv)
 	/********************************************************************************************************/
 	int es, N, seed, MM0, kor;
 	double q;
-	int coupNum, algorithm_type, pairsNum;
-	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q, &coupNum, &algorithm_type, &pairsNum);
+	int algorithm_type, pairsNum;
+	robust_argc_argv(argc, argv, &es, &N, &seed, &MM0, &kor, &q, &algorithm_type, &pairsNum);
 	print1l("%s =>> nodes Num: %d, random seed: %d, MM0: %d, q: %f, coupNum: %d.\n", __func__, N, seed, MM0, q, coupNum);
 	/********************************************************************************************************/
 

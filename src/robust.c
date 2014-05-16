@@ -25,7 +25,7 @@ struct LineFile *robust_ER_or_SF(int es, int N, int seed, int MM0) {
 	return lf;
 }
 
-void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *coupNum, int *algorithm_type, int *pairsNum) {
+void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM0, int *kor, double *q, int *algorithm_type, int *pairsNum) {
 	print2l("%s =>> begin......\n", __func__);
 	if (argc == 1) {
 		*es = 2;
@@ -34,7 +34,6 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = 5;
 		*kor = 2;
 		*q = 0.5;
-		*coupNum = 3;
 		*algorithm_type = 2;
 		*pairsNum = 3;
 	}
@@ -46,11 +45,10 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = 5;
 		*kor = 2;
 		*q = strtod(argv[1], &p);
-		*coupNum = 3;
 		*algorithm_type = 1;
 		*pairsNum = 3;
 	}
-	else if (argc == 10) {
+	else if (argc == 9) {
 		char *p;
 		*es = strtol(argv[1], &p, 10);
 		*N = strtol(argv[2], &p, 10);
@@ -58,9 +56,8 @@ void robust_argc_argv(int argc, char **argv, int *es, int *N, int *seed, int *MM
 		*MM0 = strtol(argv[4], &p, 10);
 		*kor = strtol(argv[5], &p, 10);
 		*q = strtod(argv[6], &p);
-		*coupNum = strtol(argv[7], &p, 10);
-		*algorithm_type =  strtol(argv[8], &p, 10);
-		*pairsNum =  strtol(argv[9], &p, 10);
+		*algorithm_type =  strtol(argv[7], &p, 10);
+		*pairsNum =  strtol(argv[8], &p, 10);
 	}
 	else {
 		isError("%s =>> wrong arg.\n", __func__);
