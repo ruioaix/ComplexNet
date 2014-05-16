@@ -235,8 +235,8 @@ struct LineFile *ER_DS(int N, int seed) {
 				id2[linesNum] = j;
 				++linesNum;
 				if (linesNum == memNum) {
-					srealloc(id1, (memNum + STP)*sizeof(int));
-					srealloc(id2, (memNum + STP)*sizeof(int));
+					id1 = srealloc(id1, (memNum + STP)*sizeof(int));
+					id2 = srealloc(id2, (memNum + STP)*sizeof(int));
 					memNum += STP;
 				}
 			}

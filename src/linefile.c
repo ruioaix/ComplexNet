@@ -180,27 +180,27 @@ static void add_memory_LineFile(struct LineFile *lf) {
 	int i;
 	for (i=0; i<lf->iNum; ++i) {
 		if (*(ilist[i]) != NULL) {
-			srealloc(*(ilist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(int));
+			*(ilist[i]) = srealloc(*(ilist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(int));
 		}
 	}
 	for (i=0; i<lf->dNum; ++i) {
 		if (*(dlist[i]) != NULL) {
-			srealloc(*(dlist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(double));
+			*(dlist[i]) = srealloc(*(dlist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(double));
 		}
 	}
 	for (i=0; i<lf->cNum; ++i) {
 		if (*(clist[i]) != NULL) {
-			srealloc(*(clist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(char));
+			*(clist[i]) = srealloc(*(clist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(char));
 		}
 	}
 	for (i=0; i<lf->lNum; ++i) {
 		if (*(llist[i]) != NULL) {
-			srealloc(*(llist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(long));
+			*(llist[i]) = srealloc(*(llist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(long));
 		}
 	}
 	for (i=0; i<lf->ccNum; ++i) {
 		if (*(cclist[i]) != NULL) {
-			srealloc(*(cclist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(void *));
+			*(cclist[i]) = srealloc(*(cclist[i]), (size_t)(lf->memNum + LINES_STEP)*sizeof(void *));
 		}
 	}
 	lf->memNum += LINES_STEP;

@@ -78,12 +78,12 @@ void *calloc_safe(size_t num, size_t size, const char *funcname, const char *fil
 	}
 	return tmp;
 }
-void realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum) {
+void *realloc_safe(void *p, size_t size, const char *funcname, const char *filename, const int lineNum) {
 	void *tmp = realloc(p, size);
 	if (tmp == NULL) {
 		isError("%s => realloc failed: \"%s\" file, %d line.\n", funcname, filename, lineNum);
 	}
-	p = tmp;
+	return tmp;
 }
 /********************************************************************************************************/
 
