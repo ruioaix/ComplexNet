@@ -8,9 +8,9 @@
 #define CN_BASE_H
 /****************Configuration Section*******************************************************************/
 //#define NDEBUG
-//#define VERBOSE_LEVEL_0 //no output, should be used when you can make sure the program is right, and what you want is only the result output.
+#define VERBOSE_LEVEL_0 //no output, should be used when you can make sure the program is right, and what you want is only the result output.
 //#define VERBOSE_LEVEL_1 //describe the logic of main.
-#define VERBOSE_LEVEL_2 //except above, additionally, describe all global function's calls.
+//#define VERBOSE_LEVEL_2 //except above, additionally, describe all global function's calls.
 //#define VERBOSE_LEVEL_3 //except above, additionally, describe all logic in each call of global function.
 //#define VERBOSE_LEVEL_4 //except above, additionally, describe all static function's calls.
 //#define VERBOSE_LEVEL_N //printing logic in loop!!! too much...

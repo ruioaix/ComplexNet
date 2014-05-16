@@ -4,6 +4,7 @@
 #include <time.h>
 void print_time(void) {
 	time_t t=time(NULL); 
+	(void)t;
 	print1l("time =>> %s", ctime(&t)); 
 	fflush(stdout);
 }
